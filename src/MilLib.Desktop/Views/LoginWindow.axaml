@@ -185,7 +185,14 @@
                                         BorderThickness="2"
                                         ClipToBounds="True"
                                         Margin="0,0,0,16">
-                                    <Image Source="{Binding Crest}" Stretch="Uniform" Margin="7" />
+                                    <!-- A unit's crest is a large, detailed scan
+                                         shown small. Downscaled with the default
+                                         sampler it comes out rough and blurred;
+                                         high-quality interpolation resamples it
+                                         properly so a 2 MB badge reads crisp at
+                                         90 pixels. -->
+                                    <Image Source="{Binding Crest}" Stretch="Uniform" Margin="7"
+                                           RenderOptions.BitmapInterpolationMode="HighQuality" />
                                 </Border>
 
                                 <!-- The product leads, so anybody at the

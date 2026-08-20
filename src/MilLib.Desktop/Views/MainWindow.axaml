@@ -186,7 +186,8 @@
                                 ClipToBounds="True"
                                 Background="{Binding CrestGround}"
                                 VerticalAlignment="Center">
-                            <Image Source="{Binding Crest}" Stretch="Uniform" Margin="3" />
+                            <Image Source="{Binding Crest}" Stretch="Uniform" Margin="3"
+                                   RenderOptions.BitmapInterpolationMode="HighQuality" />
                         </Border>
 
                         <StackPanel VerticalAlignment="Center" Spacing="1" MaxWidth="420">
@@ -208,14 +209,22 @@
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="16"
                                 VerticalAlignment="Center">
 
-                        <StackPanel Spacing="0" VerticalAlignment="Center" Margin="0,0,4,0">
-                            <TextBlock Text="{Binding Clock}" FontSize="23" FontWeight="SemiBold"
+                        <!-- The clock and the date, as one tidy block against the
+                             right edge. The time is not given a cramped line
+                             height — pinned too short it clipped the tops of the
+                             digits — and the date is letter-spaced so it spans
+                             the same width as the time, so the two read as a pair
+                             rather than a big line with a stray one under it. -->
+                        <StackPanel Spacing="1" VerticalAlignment="Center" Margin="0,0,4,0"
+                                    HorizontalAlignment="Right">
+                            <TextBlock Text="{Binding Clock}" FontSize="24" FontWeight="SemiBold"
                                        FontFamily="Segoe UI, Inter, sans-serif"
-                                       LineHeight="26"
-                                       Foreground="{DynamicResource BarInk}" TextAlignment="Right" />
-                            <TextBlock Text="{Binding ClockDate}" FontSize="12" LetterSpacing="0.6"
+                                       HorizontalAlignment="Right" TextAlignment="Right"
+                                       Foreground="{DynamicResource BarInk}" />
+                            <TextBlock Text="{Binding ClockDate}" FontSize="12.5" LetterSpacing="1.8"
                                        FontFamily="Segoe UI, Inter, sans-serif"
-                                       Foreground="{DynamicResource BarInkSoft}" TextAlignment="Right" />
+                                       HorizontalAlignment="Right" TextAlignment="Right"
+                                       Foreground="{DynamicResource BarInkSoft}" />
                         </StackPanel>
 
                         <!-- Light / dark, from one icon: a moon while light, a
