@@ -1,0 +1,147 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="MilLib.Desktop.Views.DashboardView"
+             x:DataType="vm:DashboardViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <!-- Who, and when. One line, and then out of the way. -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,20">
+            <StackPanel Grid.Column="0" Spacing="3">
+                <TextBlock Text="{Binding Greeting}" Classes="h2" />
+                <TextBlock Classes="sub" Text="Here is where the library stands today." />
+            </StackPanel>
+
+            <Button Grid.Column="1" Classes="quiet"
+                    Content="Refresh"
+                    VerticalAlignment="Center"
+                    Command="{Binding RefreshCommand}" />
+        </Grid>
+
+        <Border Grid.Row="0" Classes="card bad" IsVisible="{Binding HasProblem}" Padding="18,14">
+            <TextBlock Text="{Binding Problem}" TextWrapping="Wrap"
+                       Foreground="{DynamicResource Bad}" />
+        </Border>
+
+        <!--
+             The figures.
+
+             Six, in the order a librarian would ask for them: what we have,
+             what is out, what is late, who we lend to. Each one is tinted for
+             what kind of figure it is, so the row can be read by colour before
+             it is read by word — and the one that means trouble is the only red
+             thing on the screen.
+        -->
+        <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,22">
+
+            <Border Classes="card cool" Margin="0,0,9,9" Padding="20">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="BOOKS IN LIBRARY" Classes="label" />
+                    <TextBlock Text="{Binding Titles}" Classes="figure" />
+                    <TextBlock Classes="faint" Text="separate works in the catalogue" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card cool" Margin="9,0,9,9" Padding="20">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="COPIES ON THE REGISTER" Classes="label" />
+                    <TextBlock Text="{Binding Copies}" Classes="figure" />
+                    <TextBlock Classes="faint" Text="physical books, each with its own number" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card info" Margin="9,0,0,9" Padding="20">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="MEMBERS" Classes="label" />
+                    <TextBlock Text="{Binding Members}" Classes="figure" />
+                    <TextBlock Classes="faint" Text="currently enrolled and active" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card good" Margin="0,9,9,0" Padding="20">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="OUT ON LOAN" Classes="label" />
+                    <TextBlock Text="{Binding Issued}" Classes="figure" />
+                    <TextBlock Classes="faint" Text="books with somebody at the moment" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card good" Margin="9,9,9,0" Padding="20">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="ISSUED TODAY" Classes="label" />
+                    <TextBlock Text="{Binding IssuedToday}" Classes="figure" />
+                    <TextBlock Classes="faint" Text="handed over the counter since midnight" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card bad" Margin="9,9,0,0" Padding="20">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="OVERDUE" Classes="label" />
+                    <TextBlock Text="{Binding Overdue}" Classes="figure"
+                               Foreground="{DynamicResource Bad}" />
+                    <TextBlock Classes="faint" Text="past their due date and still out" />
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <!--
+             What should have come back and hasn't.
+
+             The only list on this screen, because it is the only one that asks
+             somebody to do something today. Oldest first — the book that is
+             three months late matters more than the one that is a day late.
+        -->
+        <Border Grid.Row="2" Classes="card" Padding="0" ClipToBounds="True">
+            <Grid RowDefinitions="Auto,*">
+
+                <Border Grid.Row="0" Classes="tableHead">
+                    <Grid ColumnDefinitions="*,2*,150,110,90" Margin="20,0">
+                        <TextBlock Grid.Column="0" Text="MEMBER" Classes="label" />
+                        <TextBlock Grid.Column="1" Text="BOOK" Classes="label" />
+                        <TextBlock Grid.Column="2" Text="ACCESSION NO" Classes="label" />
+                        <TextBlock Grid.Column="3" Text="DUE" Classes="label" />
+                        <TextBlock Grid.Column="4" Text="LATE BY" Classes="label" />
+                    </Grid>
+                </Border>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <ItemsControl ItemsSource="{Binding Overdues}" Classes="rows">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="vm:OverdueRow">
+                                    <Grid ColumnDefinitions="*,2*,150,110,90" Margin="20,11">
+                                        <TextBlock Grid.Column="0" Text="{Binding Member}"
+                                                   FontWeight="Medium"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Book}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Accession}" Classes="mono" />
+                                        <TextBlock Grid.Column="3" Text="{Binding DueText}" Classes="faint" />
+                                        <TextBlock Grid.Column="4" Text="{Binding DaysText}"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource Bad}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- A library with nothing overdue is a library doing
+                             well, and should be told so rather than shown an
+                             empty rectangle. -->
+                        <StackPanel IsVisible="{Binding NothingOverdue}"
+                                    Margin="0,54" Spacing="8" HorizontalAlignment="Center">
+                            <TextBlock Text="Nothing is overdue" Classes="h2"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Classes="faint" HorizontalAlignment="Center"
+                                       Text="Every book that is out is still within its loan period." />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

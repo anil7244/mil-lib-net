@@ -1,0 +1,389 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:conv="using:MilLib.Desktop"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+             x:Class="MilLib.Desktop.Views.CounterView"
+             x:DataType="vm:CounterViewModel">
+
+    <!--
+         Two columns.
+
+         Left is the one box and whatever it has just caused. Right is who is
+         standing at the desk and what they are holding — a fact the operator
+         glances at constantly and must never have to go and fetch.
+    -->
+    <Grid ColumnDefinitions="*,380">
+
+        <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*" Margin="0,0,20,0">
+
+            <!-- The box. Large, always focused, and the only thing on this
+                 screen that ever takes typing in the ordinary case. -->
+            <Border Grid.Row="0" Classes="card" Padding="20" Margin="0,0,0,14">
+                <Grid ColumnDefinitions="Auto,*">
+                    <Path Grid.Column="0" Classes="icon big"
+                          Data="{StaticResource IconBarcode}"
+                          Stroke="{DynamicResource Accent}"
+                          Margin="2,0,16,0" />
+
+                    <!-- Enter is bound on the box itself rather than to a
+                         default button. A barcode scanner types the number and
+                         then presses Enter, and while the counter is waiting
+                         there is no button on the screen for Enter to reach —
+                         so without this the scanner fills the box and nothing
+                         happens, which is exactly what it did the first time
+                         this was tried with a real one. -->
+                    <TextBox Grid.Column="1" Name="ScanBox"
+                             Text="{Binding Scanned, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="Scan a member's pass or a book"
+                             FontSize="19"
+                             MinHeight="52"
+                             Padding="16,12"
+                             IsEnabled="{Binding !Busy}">
+                        <TextBox.KeyBindings>
+                            <KeyBinding Gesture="Enter" Command="{Binding ScanCommand}" />
+                        </TextBox.KeyBindings>
+                    </TextBox>
+                </Grid>
+            </Border>
+
+            <!-- What just happened, in one line. Green when the counter moved
+                 forward, red when it did not. -->
+            <Border Grid.Row="1" Classes="card" Margin="0,0,0,14" Padding="18,13"
+                    Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                <TextBlock Text="{Binding Said}" TextWrapping="Wrap" FontSize="14"
+                           Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+            </Border>
+
+            <!-- =============================================== waiting ==== -->
+            <Border Grid.Row="2" Classes="card" VerticalAlignment="Top" Padding="24"
+                    IsVisible="{Binding IsReady}">
+                <StackPanel Spacing="14">
+                    <StackPanel Spacing="6" IsVisible="{Binding BookIsWaiting}">
+                        <TextBlock Text="HELD, WAITING FOR A PASS" Classes="label"
+                                   Foreground="{DynamicResource Warn}" />
+                        <TextBlock Text="{Binding WaitingBook}" FontSize="15" TextWrapping="Wrap" />
+                        <TextBlock Classes="faint" TextWrapping="Wrap"
+                                   Text="Scan the member's pass and this book goes out to them. It is forgotten after a minute." />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6" IsVisible="{Binding !BookIsWaiting}">
+                        <TextBlock Text="READY" Classes="label" />
+                        <TextBlock Classes="sub" TextWrapping="Wrap"
+                                   Text="A book that is out comes back. A book that is in goes out to whoever is at the desk. Either order works — scan the book first if that is quicker." />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ================================================ return ==== -->
+            <Border Grid.Row="2" Classes="card" VerticalAlignment="Top" Padding="24"
+                    IsVisible="{Binding IsReturning}">
+                <StackPanel Spacing="18">
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="COMING BACK" Classes="label"
+                                   Foreground="{DynamicResource Accent}" />
+                        <TextBlock Text="{Binding ReturningBook}" FontSize="20"
+                                   FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <Grid ColumnDefinitions="Auto,Auto,*" Margin="0,4,0,0">
+                            <TextBlock Grid.Column="0" Text="{Binding ReturningAccession}"
+                                       Classes="mono" Margin="0,0,16,0" />
+                            <TextBlock Grid.Column="1" Text="{Binding ReturningFrom}"
+                                       Classes="faint" Margin="0,0,16,0" />
+                            <Border Grid.Column="2" Classes="pill bad" HorizontalAlignment="Left"
+                                    IsVisible="{Binding ReturningIsLate}">
+                                <TextBlock Text="{Binding ReturningLate}" />
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+
+                    <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                    <!-- The condition it went out in is already chosen. Most
+                         books come back as they left, so the common case is
+                         one key and a change is deliberate. -->
+                    <StackPanel Spacing="8">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Grid.Column="0" Text="CONDITION IT CAME BACK IN" Classes="label" />
+                            <!-- What it left in, said out loud. Without it the
+                                 pre-chosen answer is indistinguishable from a
+                                 default, and nobody can tell whether agreeing
+                                 with it means anything. -->
+                            <TextBlock Grid.Column="1" Text="{Binding ReturningWentOut}"
+                                       Classes="faint" TextAlignment="Right" />
+                        </Grid>
+                        <ComboBox ItemsSource="{Binding Conditions}"
+                                  SelectedItem="{Binding ReturnCondition}"
+                                  MinHeight="42" MinWidth="220"
+                                  HorizontalAlignment="Left">
+                        <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                        <TextBlock Text="{Binding Converter={x:Static conv:Spoken.Instance}}" />
+                        </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <Border Classes="card" Padding="14,11"
+                                IsVisible="{Binding WillBeFlagged}"
+                                Background="{DynamicResource WarnSoft}"
+                                BorderBrush="{DynamicResource Warn}">
+                            <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource Warn}"
+                                       Text="Worse than it went out — taking it back will flag it as damaged, and the drop is written down against this loan." />
+                        </Border>
+
+                        <TextBlock Classes="faint" TextWrapping="Wrap"
+                                   IsVisible="{Binding !WillBeFlagged}"
+                                   Text="A book that comes back worse than it went out is flagged, and the drop is written down." />
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="ANYTHING TO NOTE" Classes="label" />
+                        <TextBox Text="{Binding ReturnRemarks}"
+                                 PlaceholderText="Optional — added to the loan, never replacing what is there"
+                                 AcceptsReturn="True"
+                                 MinHeight="70" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Classes="primary" Content="Take it back"
+                                MinHeight="44" MinWidth="160"
+                                IsDefault="True"
+                                IsEnabled="{Binding !Busy}"
+                                Command="{Binding ConfirmReturnCommand}" />
+                        <Button Content="Cancel" MinHeight="44"
+                                Command="{Binding CancelCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ================================================= issue ==== -->
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"
+                          IsVisible="{Binding IsIssuing}">
+                <Border Classes="card" VerticalAlignment="Top" Padding="24">
+                    <StackPanel Spacing="18">
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="GOING OUT" Classes="label"
+                                       Foreground="{DynamicResource Accent}" />
+                            <TextBlock Text="{Binding IssuingBook}" FontSize="20"
+                                       FontWeight="SemiBold" TextWrapping="Wrap" />
+                            <Grid ColumnDefinitions="Auto,*" Margin="0,4,0,0">
+                                <TextBlock Grid.Column="0" Text="{Binding IssuingAccession}"
+                                           Classes="mono" Margin="0,0,16,0" />
+                                <Border Grid.Column="1" Classes="pill warn" HorizontalAlignment="Left"
+                                        IsVisible="{Binding IssuingIsClassified}">
+                                    <TextBlock Text="{Binding IssuingClassification}" />
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Why it stopped. Every reason, in words, because
+                             "blocked" on its own sends somebody to find a
+                             supervisor who then has to ask the same question. -->
+                        <Border Classes="card" Padding="16,13"
+                                IsVisible="{Binding HasStops}"
+                                Background="{DynamicResource BadSoft}"
+                                BorderBrush="{DynamicResource Bad}">
+                            <StackPanel Spacing="6">
+                                <ItemsControl ItemsSource="{Binding Stops}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" TextWrapping="Wrap"
+                                                       Foreground="{DynamicResource Bad}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Custody. Only for classified material, and required
+                             there — the two lines a board asks about first. -->
+                        <StackPanel Spacing="12" IsVisible="{Binding IssuingIsClassified}">
+                            <Rectangle Height="1" Fill="{DynamicResource Line}" />
+                            <TextBlock Text="CUSTODY" Classes="label" />
+                            <Grid ColumnDefinitions="*,14,*">
+                                <StackPanel Grid.Column="0" Spacing="6">
+                                    <TextBlock Text="Witness" Classes="faint" />
+                                    <TextBox Text="{Binding CustodyWitness}" MinHeight="40" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="6">
+                                    <TextBlock Text="Signature" Classes="faint" />
+                                    <TextBox Text="{Binding CustodySignature}" MinHeight="40" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- The override. Shown only to somebody who has the
+                             authority to use it: offering the box to a person
+                             who cannot is a daily invitation to ask why. -->
+                        <StackPanel Spacing="8">
+                            <StackPanel.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="NeedsOverride" />
+                                    <Binding Path="MayOverride" />
+                                </MultiBinding>
+                            </StackPanel.IsVisible>
+
+                            <Rectangle Height="1" Fill="{DynamicResource Line}" />
+                            <TextBlock Text="REASON FOR OVERRIDING" Classes="label"
+                                       Foreground="{DynamicResource Warn}" />
+                            <TextBox Text="{Binding OverrideReason}"
+                                     PlaceholderText="Written to the audit log against your name"
+                                     MinHeight="40" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="8" IsVisible="{Binding IssuingIsUnitPublication}">
+                            <TextBlock Text="ISSUED TO SUB-UNIT" Classes="label" />
+                            <TextBox Text="{Binding IssuedToSubunit}"
+                                     PlaceholderText="Optional"
+                                     MinHeight="40" HorizontalAlignment="Left" MinWidth="260" />
+                        </StackPanel>
+
+                        <Border Classes="card" Padding="14,11"
+                                IsVisible="{Binding HasIssueProblem}"
+                                Background="{DynamicResource BadSoft}"
+                                BorderBrush="{DynamicResource Bad}">
+                            <TextBlock Text="{Binding IssueProblem}" TextWrapping="Wrap"
+                                       Foreground="{DynamicResource Bad}" />
+                        </Border>
+
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button Classes="primary" Content="Issue it"
+                                    MinHeight="44" MinWidth="160"
+                                    IsDefault="True"
+                                    IsVisible="{Binding MayProceed}"
+                                    IsEnabled="{Binding !Busy}"
+                                    Command="{Binding ConfirmIssueCommand}" />
+                            <Button Content="Cancel" MinHeight="44"
+                                    Command="{Binding CancelCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </ScrollViewer>
+
+            <!-- ================================================ choose ==== -->
+            <Border Grid.Row="2" Classes="card" VerticalAlignment="Top" Padding="0"
+                    IsVisible="{Binding IsChoosing}" ClipToBounds="True">
+                <StackPanel>
+                    <Border Classes="tableHead">
+                        <TextBlock Text="WHICH MEMBER?" Classes="label" Margin="20,0" />
+                    </Border>
+
+                    <ItemsControl ItemsSource="{Binding Matches}" Classes="rows">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:MemberMatch">
+                                <Button Classes="quiet" HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Left"
+                                        Padding="20,12"
+                                        Command="{Binding $parent[ItemsControl].((vm:CounterViewModel)DataContext).ChooseCommand}"
+                                        CommandParameter="{Binding}">
+                                    <Grid ColumnDefinitions="*,160,140">
+                                        <TextBlock Grid.Column="0" Text="{Binding Name}" FontWeight="Medium" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Number}" Classes="mono" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Unit}" Classes="faint" />
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ============================================== who is at the desk -->
+        <Border Grid.Column="1" Classes="card" Padding="0" ClipToBounds="True">
+            <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+                <StackPanel Grid.Row="0" Margin="20,20,20,16" Spacing="5"
+                            IsVisible="{Binding HasMember}">
+                    <TextBlock Text="AT THE DESK" Classes="label" />
+                    <TextBlock Text="{Binding MemberName}" FontSize="19"
+                               FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding MemberNumber}" Classes="mono" />
+                    <TextBlock Text="{Binding MemberCategory}" Classes="faint" TextWrapping="Wrap" />
+
+                    <!-- The three facts that decide whether the next scan goes
+                         through: what they are cleared for, how much of their
+                         allowance is spent, and whether they are in good
+                         standing. Together, and above the books, because the
+                         operator reads them before the first barcode and not
+                         after a refusal. -->
+                    <WrapPanel Margin="0,7,0,0" ItemSpacing="6" LineSpacing="6">
+                        <Border Classes="pill"
+                                Background="{Binding MemberCleared, Converter={x:Static conv:Marking.Ground}}"
+                                BorderBrush="Transparent">
+                            <TextBlock Text="{Binding MemberCleared, Converter={x:Static conv:Spoken.Instance}}"
+                                       Foreground="{Binding MemberCleared, Converter={x:Static conv:Marking.Ink}}" />
+                        </Border>
+
+                        <Border Classes="pill" Classes.bad="{Binding MemberAtLimit}">
+                            <TextBlock Text="{Binding MemberHolding}" />
+                        </Border>
+
+                        <Border Classes="pill bad" IsVisible="{Binding MemberOwesAnything}">
+                            <TextBlock Text="{Binding MemberOwes}" />
+                        </Border>
+
+                        <Border Classes="pill bad"
+                                IsVisible="{Binding MemberStanding, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock Text="{Binding MemberStanding}" />
+                        </Border>
+                    </WrapPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Row="0" Margin="20,40" Spacing="8"
+                            IsVisible="{Binding !HasMember}">
+                    <Path Classes="icon big" Data="{StaticResource IconMembers}"
+                          Stroke="{DynamicResource InkFaint}" HorizontalAlignment="Center" />
+                    <TextBlock Text="Nobody at the desk" Classes="sub"
+                               TextAlignment="Center" />
+                    <TextBlock Classes="faint" TextAlignment="Center" TextWrapping="Wrap"
+                               Text="A book can still be taken back without one." />
+                </StackPanel>
+
+                <Border Grid.Row="1" Classes="tableHead" IsVisible="{Binding HasMember}">
+                    <TextBlock Text="HOLDING NOW" Classes="label" Margin="20,0" />
+                </Border>
+
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"
+                              IsVisible="{Binding HasMember}">
+                    <StackPanel>
+                        <ItemsControl ItemsSource="{Binding OnLoan}" Classes="rows">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="vm:LoanRow">
+                                    <Grid ColumnDefinitions="*,Auto" Margin="20,11">
+                                        <StackPanel Grid.Column="0" Spacing="3" Margin="0,0,10,0">
+                                            <TextBlock Text="{Binding Title}" FontWeight="Medium"
+                                                       TextWrapping="Wrap" MaxLines="2"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding Accession}" Classes="mono" FontSize="11" />
+                                            <TextBlock Text="{Binding LateText}" FontSize="11"
+                                                       Foreground="{Binding IsLate, Converter={x:Static conv:Swatch.LateOrNot}}" />
+                                            <TextBlock Text="{Binding RenewalsText}" Classes="faint" FontSize="10.5" />
+                                        </StackPanel>
+
+                                        <Button Grid.Column="1" Classes="quiet" Content="Renew"
+                                                VerticalAlignment="Center"
+                                                IsVisible="{Binding MayRenew}"
+                                                Command="{Binding $parent[ItemsControl].((vm:CounterViewModel)DataContext).RenewCommand}"
+                                                CommandParameter="{Binding}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="Nothing out at the moment" Classes="faint"
+                                   Margin="20,26" TextAlignment="Center"
+                                   IsVisible="{Binding NothingOnLoan}" />
+                    </StackPanel>
+                </ScrollViewer>
+
+                <Button Grid.Row="3" Classes="quiet" Content="Done with this member"
+                        Margin="16" HorizontalAlignment="Stretch" MinHeight="42"
+                        IsVisible="{Binding HasMember}"
+                        Command="{Binding FinishCommand}" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

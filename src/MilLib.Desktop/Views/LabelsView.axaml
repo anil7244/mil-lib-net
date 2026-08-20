@@ -1,0 +1,160 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:conv="using:MilLib.Desktop"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+             x:Class="MilLib.Desktop.Views.LabelsView"
+             x:DataType="vm:LabelsViewModel">
+
+    <Grid ColumnDefinitions="*,330">
+
+        <Grid Grid.Column="0" RowDefinitions="Auto,*" Margin="0,0,20,0">
+
+            <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,14">
+                <TextBox Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"
+                         PlaceholderText="Search by title, accession number or book number — or leave empty for the most recent"
+                         MinHeight="42" FontSize="14" Padding="14,9" />
+
+                <!-- The range. A new intake was accessioned as a block, so its
+                     labels are asked for as a block. -->
+                <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*">
+                    <TextBlock Grid.Column="0" Text="Or the register from" Classes="faint"
+                               VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <TextBox Grid.Column="1" Text="{Binding From, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="from" MinHeight="36" Width="100" Classes="mono" />
+                    <TextBlock Grid.Column="2" Text="to" Classes="faint"
+                               VerticalAlignment="Center" Margin="10,0,8,0" />
+                    <TextBox Grid.Column="3" Text="{Binding To, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="to" MinHeight="36" Width="100" Classes="mono" />
+                    <Button Grid.Column="4" Content="Take the range" MinHeight="36" Margin="12,0,0,0"
+                            Command="{Binding TakeRangeCommand}" />
+                    <Button Grid.Column="5" Content="Tick all" Classes="quiet" MinHeight="36" Margin="8,0,0,0"
+                            HorizontalAlignment="Left"
+                            Command="{Binding TickAllCommand}" />
+                </Grid>
+
+                <!-- On its own line. Squeezed onto the end of the row above it
+                     was trimmed to "300 copies — …", which is the half that
+                     says nothing. -->
+                <TextBlock Text="{Binding Tally}" Classes="faint" Margin="3,0,0,0" />
+
+                <Border Classes="card" Padding="14,11"
+                        IsVisible="{Binding HasSaid}"
+                        Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                    <TextBlock Text="{Binding Said}" TextWrapping="Wrap"
+                               Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+                </Border>
+            </StackPanel>
+
+            <Border Grid.Row="1" Classes="card bad" IsVisible="{Binding HasProblem}"
+                    VerticalAlignment="Top" Padding="18,14">
+                <TextBlock Text="{Binding Problem}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource Bad}" />
+            </Border>
+
+            <Border Grid.Row="1" Classes="card" Padding="0" ClipToBounds="True"
+                    IsVisible="{Binding !HasProblem}">
+                <Grid RowDefinitions="Auto,*">
+                    <Border Grid.Row="0" Classes="tableHead">
+                        <Grid ColumnDefinitions="44,150,*,130" Margin="20,0">
+                            <TextBlock Grid.Column="1" Text="ACCESSION NO" Classes="label" />
+                            <TextBlock Grid.Column="2" Text="TITLE" Classes="label" />
+                            <TextBlock Grid.Column="3" Text="CALL NO" Classes="label" />
+                        </Grid>
+                    </Border>
+
+                    <ListBox Grid.Row="1" Classes="table"
+                             ItemsSource="{Binding Rows}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:LabelRow">
+                                <Grid ColumnDefinitions="44,150,*,130" Margin="20,8">
+                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsChosen}"
+                                              VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Accession}" Classes="mono"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Title}"
+                                               VerticalAlignment="Center" Margin="0,0,12,0"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Grid.Column="3" Text="{Binding CallNumber}" Classes="mono"
+                                               VerticalAlignment="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Grid.Row="1" IsVisible="{Binding Nothing}"
+                                VerticalAlignment="Center" Spacing="8">
+                        <TextBlock Text="Nothing found" Classes="h2" HorizontalAlignment="Center" />
+                        <TextBlock Classes="faint" HorizontalAlignment="Center"
+                                   Text="Clear the search to see the copies taken on most recently." />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ================================================ what to print ==== -->
+        <Border Grid.Column="1" Classes="card" Padding="0" ClipToBounds="True">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="22,20,22,22" Spacing="18">
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="WHICH LABEL" Classes="label" />
+                        <RadioButton GroupName="kind" IsChecked="{Binding Pocket}"
+                                     Content="Pocket — inside the front cover" />
+                        <RadioButton GroupName="kind" IsChecked="{Binding !Pocket}"
+                                     Content="Spine — the call number only" />
+                    </StackPanel>
+
+                    <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                    <StackPanel Spacing="8" IsVisible="{Binding Pocket}">
+                        <TextBlock Text="WHAT GOES ON IT" Classes="label" />
+                        <ComboBox ItemsSource="{Binding Codes}" SelectedItem="{Binding Code}"
+                                  MinHeight="40" HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={x:Static conv:Spoken.Instance}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                   Text="The number is always printed underneath in plain figures, so a book can still be found when the scanner is out of order." />
+                    </StackPanel>
+
+                    <Border Classes="card cool" Padding="14,12">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="THE STOCK" Classes="label" />
+                            <TextBlock Text="{Binding StockNow}" Classes="faint"
+                                       FontSize="11" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                    <StackPanel Spacing="10">
+                        <Button Classes="primary withIcon" Content="Save a sheet as PDF"
+                                Tag="{StaticResource IconPrint}"
+                                MinHeight="44" HorizontalAlignment="Stretch"
+                                IsEnabled="{Binding AnyChosen}"
+                                Command="{Binding SheetCommand}" />
+
+                        <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                   Text="For any ordinary printer and a sheet of blank sticky labels. The hairline round each one is the cutting line." />
+
+                        <Button Classes="withIcon" Content="Save for a Zebra printer"
+                                Tag="{StaticResource IconBarcode}"
+                                MinHeight="42" HorizontalAlignment="Stretch"
+                                IsEnabled="{Binding AnyChosen}"
+                                Command="{Binding ZebraCommand}" />
+
+                        <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                   Text="A .zpl file to send to a thermal printer. The sizes in it must be calibrated against the roll actually loaded before a production run." />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

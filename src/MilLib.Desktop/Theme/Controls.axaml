@@ -1,0 +1,821 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        The controls this application is built from.
+
+        The rule followed throughout: one shape, one weight of line, one shadow
+        depth. Variety in a business application is noise — the eye should be
+        drawn by what the numbers say, not by the furniture around them.
+    -->
+
+    <Design.PreviewWith>
+        <Border Padding="24" Background="{DynamicResource Bg}">
+            <StackPanel Spacing="12" Width="320">
+                <TextBlock Classes="h1" Text="Licences" />
+                <TextBlock Classes="sub" Text="27 issued to 6 clients" />
+                <Button Classes="primary" Content="Issue Licence" />
+                <Button Content="Export" />
+                <TextBox Watermark="Search licences" />
+                <Border Classes="pill good">
+                    <TextBlock Text="Active" />
+                </Border>
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <!-- ===================================================== typography == -->
+
+    <Style Selector="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI, Inter, sans-serif" />
+        <Setter Property="Foreground" Value="{DynamicResource Ink}" />
+        <Setter Property="FontSize" Value="13.5" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+    </Style>
+
+    <!-- Page title. One per screen, never repeated inside it. -->
+    <Style Selector="TextBlock.h1">
+        <Setter Property="FontSize" Value="23" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="LetterSpacing" Value="-0.3" />
+    </Style>
+
+    <Style Selector="TextBlock.h2">
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- The small line under a title that says how much of something there is -->
+    <Style Selector="TextBlock.sub">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{DynamicResource InkMuted}" />
+    </Style>
+
+    <Style Selector="TextBlock.faint">
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="Foreground" Value="{DynamicResource InkFaint}" />
+    </Style>
+
+    <!-- Column headings and other small capitals -->
+    <Style Selector="TextBlock.label">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource InkFaint}" />
+        <Setter Property="LetterSpacing" Value="0.7" />
+    </Style>
+
+    <!-- Licence keys, hardware ids, money: things read character by character -->
+    <Style Selector="TextBlock.mono">
+        <Setter Property="FontFamily" Value="Consolas, Cascadia Mono, monospace" />
+        <Setter Property="FontSize" Value="12.5" />
+    </Style>
+
+    <Style Selector="TextBlock.figure">
+        <Setter Property="FontSize" Value="30" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="LetterSpacing" Value="-0.8" />
+    </Style>
+
+    <!-- ======================================================== buttons == -->
+
+    <Style Selector="Button">
+        <Setter Property="FontFamily" Value="Segoe UI, Inter, sans-serif" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="15,9" />
+        <Setter Property="MinHeight" Value="36" />
+        <Setter Property="Background" Value="{DynamicResource GlassRaised}" />
+        <Setter Property="Foreground" Value="{DynamicResource Ink}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassEdge}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <!-- The shadow belongs on the surface inside the template: a Button is not
+         itself a drawn shape, so it has nothing to cast one. -->
+    <Style Selector="Button /template/ ContentPresenter">
+        <Setter Property="BoxShadow" Value="0 1 2 0 #1416191D" />
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Surface}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LineStrong}" />
+    </Style>
+
+    <!-- The one action that matters on a screen. Solid, not glass: the point
+         of it is that it is the one thing on the screen that is not
+         see-through. -->
+    <Style Selector="Button.primary">
+        <Setter Property="Background" Value="{DynamicResource Accent}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="Button.primary /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource Accent}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BoxShadow" Value="0 3 10 -2 #4DC8102E" />
+    </Style>
+
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AccentHover}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentHover}" />
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <!--
+         A button that cannot be pressed must look like one.
+
+         Only the withIcon buttons had a disabled state, so a plain primary
+         button — "Withdraw them", "Take it back", "Save" — sat there in full
+         crimson while doing nothing when clicked. A control that looks live and
+         is not teaches people that the application is broken.
+
+         Faded rather than greyed: the shape and the words stay, so it is still
+         legible as the thing that will become available once whatever is
+         missing has been supplied.
+    -->
+    <Style Selector="Button:disabled">
+        <Setter Property="Opacity" Value="0.42" />
+        <Setter Property="Cursor" Value="Arrow" />
+    </Style>
+
+    <Style Selector="Button:disabled /template/ ContentPresenter">
+        <Setter Property="BoxShadow" Value="none" />
+    </Style>
+
+    <Style Selector="Button.primary:disabled /template/ ContentPresenter">
+        <Setter Property="BoxShadow" Value="none" />
+    </Style>
+
+    <Style Selector="Button.quiet">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource InkMuted}" />
+        <Setter Property="Padding" Value="9,6" />
+    </Style>
+
+    <Style Selector="Button.quiet /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Button.quiet:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceRaised}" />
+    </Style>
+
+    <!-- ========================================================= inputs == -->
+
+    <!-- Inputs stay nearly solid. A field somebody is about to type a bank
+         account number into is the wrong place to be clever with
+         transparency. -->
+    <Style Selector="TextBox">
+        <Setter Property="FontFamily" Value="Segoe UI, Inter, sans-serif" />
+        <Setter Property="FontSize" Value="13.5" />
+        <Setter Property="MinHeight" Value="36" />
+        <Setter Property="Padding" Value="11,7" />
+        <Setter Property="Background" Value="{DynamicResource GlassRaised}" />
+        <Setter Property="Foreground" Value="{DynamicResource Ink}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LineStrong}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource AccentSoft}" />
+        <Setter Property="CaretBrush" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <!-- The border eases to crimson rather than snapping to it. 120ms is below
+         the threshold at which a person waits for something, and above the one
+         at which a change registers as movement rather than as a flicker. -->
+    <Style Selector="TextBox /template/ Border#PART_BorderElement">
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.12" />
+                <BrushTransition Property="Background" Duration="0:0:0.12" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+        <Setter Property="BorderThickness" Value="1.5" />
+    </Style>
+
+    <!-- Buttons take the pointer the same way, and give a little under the
+         press: the only feedback a mouse can offer that the click landed. -->
+    <Style Selector="Button /template/ ContentPresenter">
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.12" />
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.12" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button:pressed">
+        <Setter Property="RenderTransform" Value="scale(0.985)" />
+    </Style>
+
+    <Style Selector="Button">
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.08" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="ComboBox">
+        <Setter Property="FontFamily" Value="Segoe UI, Inter, sans-serif" />
+        <Setter Property="FontSize" Value="13.5" />
+        <Setter Property="MinHeight" Value="36" />
+        <Setter Property="Padding" Value="11,6" />
+        <Setter Property="Background" Value="{DynamicResource GlassRaised}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LineStrong}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+    </Style>
+
+    <!-- Left to itself the theme ticks these in its own accent, which is not
+         this company's. One stray colour is all it takes for a screen to look
+         like it was assembled rather than designed. -->
+    <Style Selector="CheckBox">
+        <Setter Property="FontFamily" Value="Segoe UI, Inter, sans-serif" />
+        <Setter Property="FontSize" Value="13.5" />
+        <Setter Property="Foreground" Value="{DynamicResource Ink}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="MinHeight" Value="0" />
+    </Style>
+
+    <Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource Accent}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="CheckBox:checked:pointerover /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource AccentHover}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentHover}" />
+    </Style>
+
+    <Style Selector="CheckBox:unchecked /template/ Border#NormalRectangle">
+        <Setter Property="BorderBrush" Value="{DynamicResource LineStrong}" />
+    </Style>
+
+    <Style Selector="CheckBox /template/ Path#CheckGlyph">
+        <Setter Property="Fill" Value="White" />
+    </Style>
+
+    <Style Selector="CalendarDatePicker">
+        <Setter Property="MinHeight" Value="36" />
+        <Setter Property="Background" Value="{DynamicResource Surface}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LineStrong}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+    </Style>
+
+    <!-- ========================================================== cards == -->
+
+    <!--
+        A pane of glass.
+
+        Three things do the work, and all three are needed: a translucent fill
+        so the ground shows through, a light edge along the border so the pane
+        has a rim, and a shadow soft enough to read as depth rather than as a
+        drop shadow. Take away the rim and it is a tint; take away the shadow
+        and it is a sticker.
+    -->
+    <Style Selector="Border.card">
+        <Setter Property="Background" Value="{DynamicResource Glass}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassEdge}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{DynamicResource CardRadius}" />
+        <Setter Property="Padding" Value="{DynamicResource CardPadding}" />
+        <Setter Property="BoxShadow" Value="0 2 3 -1 #0F16191D, 0 14 34 -12 #2416191D" />
+    </Style>
+
+    <!-- The panes that carry the figures. Denser than the chrome around them,
+         because a licence key read character by character must not be
+         competing with whatever is behind the window. -->
+    <Style Selector="Border.card.solid">
+        <Setter Property="Background" Value="{DynamicResource Surface}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+    </Style>
+
+    <!--
+        Tinted cards.
+
+        The tint is not decoration — it says what kind of figure the card
+        carries, so a row of them can be read by colour before it is read by
+        word: money in is green, money late is amber, trouble is red, counts
+        are blue, and anything neutral stays plain.
+
+        All five are the same lightness. That is the whole trick: six cards at
+        one weight in five hues look like a set, and the same six at six
+        different weights look like a paintbox.
+    -->
+    <Style Selector="Border.card.good">
+        <Setter Property="Background" Value="{DynamicResource CardGood}" />
+    </Style>
+
+    <Style Selector="Border.card.warn">
+        <Setter Property="Background" Value="{DynamicResource CardWarn}" />
+    </Style>
+
+    <Style Selector="Border.card.bad">
+        <Setter Property="Background" Value="{DynamicResource CardBad}" />
+    </Style>
+
+    <Style Selector="Border.card.info">
+        <Setter Property="Background" Value="{DynamicResource CardInfo}" />
+    </Style>
+
+    <Style Selector="Border.card.cool">
+        <Setter Property="Background" Value="{DynamicResource CardCool}" />
+    </Style>
+
+    <!-- ========================================================== pills == -->
+
+    <Style Selector="Border.pill">
+        <Setter Property="CornerRadius" Value="{DynamicResource PillRadius}" />
+        <Setter Property="Padding" Value="9,3" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+
+    <Style Selector="Border.pill > TextBlock">
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="LetterSpacing" Value="0.3" />
+    </Style>
+
+    <Style Selector="Border.pill.good">
+        <Setter Property="Background" Value="{DynamicResource GoodSoft}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Good}" />
+    </Style>
+    <Style Selector="Border.pill.good > TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource Good}" />
+    </Style>
+
+    <Style Selector="Border.pill.warn">
+        <Setter Property="Background" Value="{DynamicResource WarnSoft}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Warn}" />
+    </Style>
+    <Style Selector="Border.pill.warn > TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource Warn}" />
+    </Style>
+
+    <Style Selector="Border.pill.bad">
+        <Setter Property="Background" Value="{DynamicResource BadSoft}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Bad}" />
+    </Style>
+    <Style Selector="Border.pill.bad > TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource Bad}" />
+    </Style>
+
+    <Style Selector="Border.pill.info">
+        <Setter Property="Background" Value="{DynamicResource InfoSoft}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Info}" />
+    </Style>
+    <Style Selector="Border.pill.info > TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource Info}" />
+    </Style>
+
+    <!-- ========================================================== table == -->
+
+    <!--
+        The heading band.
+
+        Ruled above and below in a colour darker than anything inside the
+        table, and filled more solidly than the rows beneath it. Those two
+        things together are what make a list of data read as a table: the eye
+        finds the top edge, the heading, and the first row as three separate
+        events rather than one grey drift.
+    -->
+    <Style Selector="Border.tableHead">
+        <Setter Property="Background" Value="{DynamicResource TableHead}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TableRule}" />
+        <Setter Property="BorderThickness" Value="0,1,0,1" />
+        <Setter Property="Padding" Value="16,11" />
+    </Style>
+
+    <!-- Column headings sit on a darker band than ordinary small capitals, so
+         they take a darker ink to stay as legible as the figures below. -->
+    <Style Selector="Border.tableHead TextBlock.label">
+        <Setter Property="Foreground" Value="{DynamicResource InkMuted}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="LetterSpacing" Value="0.8" />
+    </Style>
+
+    <Style Selector="ListBox.table">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style Selector="ListBox.table ListBoxItem">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <!-- Every other row, very faintly. On a row this wide the eye needs
+         something to travel along; anything stronger and the table starts
+         looking like a deckchair. -->
+    <Style Selector="ListBox.table ListBoxItem:nth-child(2n) /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource RowAlt}" />
+    </Style>
+
+    <!-- The same, for the tables built from an ItemsControl rather than a
+         ListBox. The banding is applied to the container the control generates
+         so the row itself stays free to colour itself on hover. -->
+    <Style Selector="ItemsControl.rows > ContentPresenter:nth-child(2n)">
+        <Setter Property="Background" Value="{DynamicResource RowAlt}" />
+    </Style>
+
+    <Style Selector="ListBox.table ListBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceSunken}" />
+    </Style>
+
+    <Style Selector="ListBox.table ListBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+    </Style>
+
+    <!-- ========================================================== icons == -->
+
+    <!--
+        One weight, one cap, one size. An icon set stops looking like a set the
+        moment one of the three varies, which is why these are set here and not
+        at each use.
+    -->
+    <Style Selector="Path.icon">
+        <!-- The ordinary ink colour by default. Where an icon sits on
+             something dark, or inside a button, the styles below and the
+             control templates set it explicitly — an icon must never be left
+             to inherit a colour that might match its background. -->
+        <Setter Property="Stroke" Value="{DynamicResource InkMuted}" />
+        <Setter Property="StrokeThickness" Value="1.7" />
+        <Setter Property="StrokeLineCap" Value="Round" />
+        <Setter Property="StrokeJoin" Value="Round" />
+        <Setter Property="Fill" Value="Transparent" />
+        <Setter Property="Stretch" Value="Uniform" />
+        <Setter Property="Width" Value="17" />
+        <Setter Property="Height" Value="17" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Path.icon.small">
+        <Setter Property="Width" Value="14" />
+        <Setter Property="Height" Value="14" />
+        <Setter Property="StrokeThickness" Value="1.9" />
+    </Style>
+
+    <Style Selector="Path.icon.big">
+        <Setter Property="Width" Value="22" />
+        <Setter Property="Height" Value="22" />
+        <Setter Property="StrokeThickness" Value="1.5" />
+    </Style>
+
+    <!-- Icons inside a button take the button's text colour. Set on the Path
+         rather than inherited, for the same reason the rail label is: the
+         application-wide colour would otherwise win. -->
+    <Style Selector="Button Path.icon">
+        <Setter Property="Stroke" Value="{Binding $parent[Button].Foreground}" />
+    </Style>
+
+    <Style Selector="Button.primary Path.icon">
+        <Setter Property="Stroke" Value="White" />
+    </Style>
+
+    <!--
+        A button with a glyph in front of its words.
+
+        Done as one template rather than a hand-built row inside each button:
+        that way the gap, the glyph size and the alignment are decided once.
+        Left to each use they drift, and a toolbar of nearly-aligned buttons is
+        exactly what makes an application look homemade.
+
+        The icon comes from Tag; the words from Content, as usual.
+    -->
+    <Style Selector="Button.withIcon">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="Bg"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        Padding="{TemplateBinding Padding}"
+                        BoxShadow="0 1 2 0 #1416191D">
+                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                        <Path Classes="icon small"
+                              Data="{TemplateBinding Tag}"
+                              Stroke="{TemplateBinding Foreground}" />
+                        <TextBlock Text="{TemplateBinding Content}"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   FontSize="{TemplateBinding FontSize}"
+                                   FontWeight="{TemplateBinding FontWeight}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button.withIcon:pointerover /template/ Border#Bg">
+        <Setter Property="Background" Value="{DynamicResource SurfaceRaised}" />
+    </Style>
+
+    <Style Selector="Button.withIcon.primary:pointerover /template/ Border#Bg">
+        <Setter Property="Background" Value="{DynamicResource AccentHover}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentHover}" />
+    </Style>
+
+    <Style Selector="Button.withIcon:disabled /template/ Border#Bg">
+        <Setter Property="Opacity" Value="0.45" />
+    </Style>
+
+    <!-- A button that is only an icon: square, so a row of them lines up -->
+    <Style Selector="Button.icon">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Width" Value="36" />
+        <Setter Property="MinWidth" Value="36" />
+        <Setter Property="Height" Value="36" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Button.icon /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Button.icon:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceRaised}" />
+    </Style>
+
+    <!--
+        A link.
+
+        Underlined only on hover: a line of contact details is not improved by
+        being permanently underscored, but the moment the pointer is over it the
+        reader has to know it will do something.
+    -->
+    <Style Selector="Button.link">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="Button.link /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BoxShadow" Value="none" />
+    </Style>
+
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Button.link:pointerover TextBlock">
+        <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+
+    <!-- On the dark rail, where hover has to be lighter rather than darker -->
+    <Style Selector="Button.icon.onRail">
+        <Setter Property="Foreground" Value="{DynamicResource RailInk}" />
+    </Style>
+
+    <Style Selector="Button.icon.onRail:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource RailRaised}" />
+    </Style>
+
+    <!--
+        The way out of the application, at the foot of the rail.
+
+        Outlined rather than filled: it is the last thing on the rail and it
+        must be findable, but it is not the thing anybody came to the screen to
+        do. Filled, it would compete with the section the person is actually
+        working in. The red only arrives on hover, at the moment the button is
+        about to be pressed.
+    -->
+    <Style Selector="Button.railOut">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="#3B4552" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="9" />
+        <Setter Property="Padding" Value="12,9" />
+        <Setter Property="FontSize" Value="13.5" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource RailIcon}" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="Button.railOut /template/ Border#Bg">
+        <Setter Property="BoxShadow" Value="none" />
+    </Style>
+
+    <Style Selector="Button.railOut:pointerover">
+        <Setter Property="Foreground" Value="#FFFFFF" />
+    </Style>
+
+    <Style Selector="Button.railOut:pointerover /template/ Border#Bg">
+        <Setter Property="Background" Value="#3A1D24" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <!-- =========================================================== rail == -->
+
+    <Style Selector="RadioButton.nav">
+        <Setter Property="FontFamily" Value="Segoe UI, Inter, sans-serif" />
+        <Setter Property="FontSize" Value="14.5" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Foreground" Value="{DynamicResource RailInk}" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="Shell"
+                        Background="Transparent"
+                        CornerRadius="10"
+                        Padding="13,11"
+                        Margin="11,1">
+                    <Grid ColumnDefinitions="3,Auto,*">
+                        <Border Name="Marker"
+                                Grid.Column="0"
+                                Width="3" Height="20"
+                                CornerRadius="2"
+                                Background="Transparent"
+                                Margin="0,0,10,0" />
+
+                        <!-- The icon carried by the item itself, so the rail
+                             reads at a glance before any word is read. Its
+                             colour is set here rather than inherited from the
+                             item, because the glyph and the label are two
+                             different signals and are coloured separately. -->
+                        <Path Name="Glyph"
+                              Grid.Column="1"
+                              Classes="icon"
+                              Width="21" Height="21"
+                              StrokeThickness="1.8"
+                              Data="{TemplateBinding Tag}"
+                              Stroke="{DynamicResource RailIcon}"
+                              Margin="1,0,13,0" />
+
+                        <!-- A TextBlock with the colour set on it directly,
+                             rather than a ContentPresenter.
+                             The application-wide TextBlock style sets a dark
+                             ink colour, and that style beats an inherited one
+                             - so text presented indirectly came out near-black
+                             on this near-black rail and vanished. A value set
+                             on the element itself outranks the style. -->
+                        <TextBlock Name="Label"
+                                   Grid.Column="2"
+                                   Text="{TemplateBinding Content}"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   FontSize="{TemplateBinding FontSize}"
+                                   FontWeight="{TemplateBinding FontWeight}"
+                                   VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="RadioButton.nav:pointerover /template/ Border#Shell">
+        <Setter Property="Background" Value="{DynamicResource RailRaised}" />
+    </Style>
+
+    <!-- The glyph brightens before the word does, so the row answers the
+         pointer without the whole line changing weight -->
+    <Style Selector="RadioButton.nav:pointerover /template/ Path#Glyph">
+        <Setter Property="Stroke" Value="{DynamicResource RailIconHover}" />
+    </Style>
+
+    <Style Selector="RadioButton.nav:checked /template/ Border#Shell">
+        <Setter Property="Background" Value="{DynamicResource RailRaised}" />
+    </Style>
+
+    <!-- Crimson is spent on exactly two things here: the marker at the edge
+         and the glyph of the item you are on. Both say "you are here"; the
+         label going white is the third and quietest part of the same
+         statement. -->
+    <Style Selector="RadioButton.nav:checked /template/ Border#Marker">
+        <Setter Property="Background" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="RadioButton.nav:checked /template/ Path#Glyph">
+        <Setter Property="Stroke" Value="{DynamicResource Accent}" />
+        <Setter Property="StrokeThickness" Value="2" />
+    </Style>
+
+    <Style Selector="RadioButton.nav:checked">
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- Narrowed rail: the words go, the icons stay put.
+         The icon does not move when the rail closes, so the eye keeps its
+         place and closing the rail does not feel like a different screen. -->
+    <Style Selector="RadioButton.nav.tight /template/ TextBlock#Label">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <Style Selector="RadioButton.nav.tight /template/ Border#Shell">
+        <Setter Property="Padding" Value="13,12" />
+    </Style>
+
+    <!-- The small capitals that head a group of items -->
+    <Style Selector="TextBlock.railGroup">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="LetterSpacing" Value="1.3" />
+        <Setter Property="Foreground" Value="{DynamicResource RailLabel}" />
+    </Style>
+
+    <!-- ============================================== share indicator == -->
+
+    <!-- A quantity drawn as a bar. Deliberately thin: it is there to be
+         compared with the bars above and below it, not to be looked at. -->
+    <Style Selector="ProgressBar.share">
+        <Setter Property="Height" Value="6" />
+        <Setter Property="MinHeight" Value="6" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceRaised}" />
+        <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="ProgressBar.share /template/ Border#PART_Indicator">
+        <Setter Property="CornerRadius" Value="3" />
+    </Style>
+
+    <!-- One bar carrying two quantities that add up to the whole: what has
+         arrived, and what has not. Drawn as a filled track rather than two
+         boxes, because the point being made is the proportion. -->
+    <Style Selector="ProgressBar.split">
+        <Setter Property="Height" Value="24" />
+        <Setter Property="MinHeight" Value="24" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Background" Value="{DynamicResource Warn}" />
+        <Setter Property="Foreground" Value="{DynamicResource Info}" />
+    </Style>
+
+    <Style Selector="ProgressBar.split /template/ Border#PART_Indicator">
+        <Setter Property="CornerRadius" Value="6,0,0,6" />
+    </Style>
+
+    <!-- ============================================================ rows == -->
+
+    <!--
+        A row that answers back.
+
+        These rows open something when they are double-clicked, and until the
+        pointer changes them there is nothing to say so. The change is small on
+        purpose: a list where every row lights up is a list that flickers as
+        the mouse crosses it.
+    -->
+    <Style Selector="Border.row">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.12" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Border.row:pointerover">
+        <Setter Property="Background" Value="{DynamicResource GlassRaised}" />
+    </Style>
+
+    <!-- ==================================================== scrollbars == -->
+
+    <!-- Thin, and only there while it is being used. A permanent grey trough
+         down the side of every list is furniture nobody asked for. -->
+    <Style Selector="ScrollBar">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="ScrollBar:vertical">
+        <Setter Property="Width" Value="10" />
+    </Style>
+
+    <Style Selector="ScrollBar:horizontal">
+        <Setter Property="Height" Value="10" />
+    </Style>
+
+    <Style Selector="ScrollBar /template/ Thumb">
+        <Setter Property="Background" Value="#3316191D" />
+        <Setter Property="CornerRadius" Value="5" />
+    </Style>
+
+    <Style Selector="ScrollBar:pointerover /template/ Thumb">
+        <Setter Property="Background" Value="#5916191D" />
+    </Style>
+
+</Styles>

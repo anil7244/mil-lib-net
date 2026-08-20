@@ -1,0 +1,147 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="MilLib.Desktop.Views.BooksView"
+             x:DataType="vm:BooksViewModel">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- One box, and what it found. Searching is the only thing anybody
+             does on this screen often enough to deserve the width. -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,18">
+            <StackPanel Grid.Column="0" Spacing="6">
+                <TextBox Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"
+                         PlaceholderText="Search by title, author, publisher, call number or accession number"
+                         MinHeight="42"
+                         FontSize="14"
+                         Padding="14,9" />
+                <TextBlock Text="{Binding Tally}" Classes="faint" Margin="3,0,0,0" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                        Margin="14,0,0,0" VerticalAlignment="Top">
+                <!-- A double-click on the row does the same thing. The button is
+                     here because a double-click is not discoverable, and this
+                     screen is used by people nobody trained. -->
+                <Button Classes="primary withIcon" Content="Open"
+                        Tag="{StaticResource IconBooks}" MinHeight="42"
+                        IsEnabled="{Binding HasSelection}"
+                        Command="{Binding OpenSelectedCommand}" />
+                <Button Content="Edit" MinHeight="42"
+                        IsVisible="{Binding MayCatalogue}"
+                        IsEnabled="{Binding HasSelection}"
+                        Command="{Binding EditSelectedCommand}" />
+                <Button Classes="withIcon" Content="Catalogue a book"
+                        Tag="{StaticResource IconAdd}" MinHeight="42"
+                        IsVisible="{Binding MayCatalogue}"
+                        Command="{Binding AddCommand}" />
+                <Button Classes="quiet" Content="Refresh" MinHeight="42"
+                        Command="{Binding RefreshCommand}" />
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1" Classes="card bad" IsVisible="{Binding HasProblem}"
+                VerticalAlignment="Top" Padding="18,14">
+            <TextBlock Text="{Binding Problem}" TextWrapping="Wrap"
+                       Foreground="{DynamicResource Bad}" />
+        </Border>
+
+        <Border Grid.Row="1" Classes="card" Padding="0" ClipToBounds="True"
+                IsVisible="{Binding !HasProblem}">
+            <Grid RowDefinitions="Auto,*">
+
+                <Border Grid.Row="0" Classes="tableHead">
+                    <Grid ColumnDefinitions="3*,2*,120,140,110,110" Margin="20,0">
+                        <TextBlock Grid.Column="0" Text="TITLE" Classes="label" />
+                        <TextBlock Grid.Column="1" Text="AUTHOR" Classes="label" />
+                        <TextBlock Grid.Column="2" Text="LANGUAGE" Classes="label" />
+                        <TextBlock Grid.Column="3" Text="ACCESSION NO" Classes="label" />
+                        <TextBlock Grid.Column="4" Text="CALL NO" Classes="label" />
+                        <TextBlock Grid.Column="5" Text="COPIES" Classes="label" />
+                    </Grid>
+                </Border>
+
+                <!--
+                     A ListBox rather than an ItemsControl in a ScrollViewer.
+
+                     Fourteen hundred rows are only drawn a screenful at a time
+                     this way. Laid out all at once the screen takes a visible
+                     second to appear and scrolls unevenly afterwards.
+                -->
+                <ListBox Grid.Row="1" Classes="table"
+                         ItemsSource="{Binding Shown}"
+                         SelectedItem="{Binding Selected}"
+                         DoubleTapped="OnRowActivated"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="vm:BookRow">
+                            <Grid ColumnDefinitions="3*,2*,120,140,110,110" Margin="20,9">
+
+                                <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,14,0">
+                                    <Grid ColumnDefinitions="Auto,Auto,*">
+                                        <!-- A classified book says so on the row
+                                             itself. Finding out at the counter,
+                                             with the member standing there, is
+                                             finding out too late. -->
+                                        <Border Grid.Column="0" Classes="pill warn"
+                                                IsVisible="{Binding IsClassified}"
+                                                Margin="0,0,8,0">
+                                            <TextBlock Text="{Binding ClassificationText}" />
+                                        </Border>
+                                        <!-- A unit's own publication is handled
+                                             differently everywhere it turns up —
+                                             it earns a mark on the row for the
+                                             same reason. -->
+                                        <Border Grid.Column="1" Classes="pill info"
+                                                IsVisible="{Binding UnitPublication}"
+                                                Margin="0,0,8,0">
+                                            <TextBlock Text="Unit pub" />
+                                        </Border>
+                                        <TextBlock Grid.Column="2" Text="{Binding Title}"
+                                                   FontWeight="Medium"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </Grid>
+                                    <TextBlock Text="{Binding Sub}" Classes="faint"
+                                               FontSize="11"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+
+                                <TextBlock Grid.Column="1" Text="{Binding Authors}"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,14,0"
+                                           TextTrimming="CharacterEllipsis" />
+
+                                <TextBlock Grid.Column="2" Text="{Binding Language}"
+                                           VerticalAlignment="Center" Classes="faint" />
+
+                                <TextBlock Grid.Column="3" Text="{Binding Accession}"
+                                           VerticalAlignment="Center" Classes="mono" />
+
+                                <TextBlock Grid.Column="4" Text="{Binding CallNumber}"
+                                           VerticalAlignment="Center" Classes="mono" />
+
+                                <StackPanel Grid.Column="5" VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock Text="{Binding CopiesText}" FontWeight="Medium" />
+                                    <TextBlock Text="{Binding AvailableText}"
+                                               FontSize="11"
+                                               Classes="faint" />
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <StackPanel Grid.Row="1" IsVisible="{Binding Nothing}"
+                            VerticalAlignment="Center" Spacing="8">
+                    <TextBlock Text="Nothing matches that" Classes="h2"
+                               HorizontalAlignment="Center" />
+                    <TextBlock Classes="faint" HorizontalAlignment="Center"
+                               Text="Try fewer words, or part of a word." />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

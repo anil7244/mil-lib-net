@@ -1,0 +1,374 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MilLib.Desktop.ViewModels"
+        xmlns:models="using:MilLib.Desktop.Models"
+        xmlns:conv="using:MilLib.Desktop"
+        xmlns:local="using:MilLib.Desktop.Views"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1360" d:DesignHeight="860"
+        x:Class="MilLib.Desktop.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Icon="/Assets/library.ico"
+        Title="Library Management System"
+        Width="1360" Height="860"
+        MinWidth="1100" MinHeight="700"
+        Background="{DynamicResource Backdrop}"
+        WindowStartupLocation="CenterScreen">
+
+    <!--
+        The shell, laid out the way the web application lays it out.
+
+        A dark bar across the top carrying the unit's identity and whoever is
+        signed in, a menu bar of five buttons under it, and the working area
+        below. Somebody who has been using this in a browser finds the same
+        things in the same places.
+
+        Five buttons, not eighteen rows. The screens used all day get their own
+        button; the rest are gathered under the thing they belong to. Nothing is
+        further away than it was — everything is still one click — but the top
+        of the window can be read at a glance rather than scanned.
+    -->
+    <Window.Styles>
+        <!-- A top-level menu button. Square, and taking the unit's accent when
+             it is the screen showing. -->
+        <Style Selector="Button.top">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource RailInk}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="15,0" />
+            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="Button.top /template/ ContentPresenter">
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+
+        <Style Selector="Button.top:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource Accent}" />
+        </Style>
+
+        <!-- The label is coloured on the TextBlock itself, not left to
+             inherit. The application-wide TextBlock style sets a dark ink for
+             the working area, and an explicit style beats inheritance — so a
+             label on this near-black bar came out dark on dark and simply was
+             not there. -->
+        <Style Selector="Button.top TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource RailInk}" />
+        </Style>
+
+        <Style Selector="Button.top:pointerover TextBlock">
+            <Setter Property="Foreground" Value="#FFFFFF" />
+        </Style>
+
+        <Style Selector="Button.top.here TextBlock">
+            <Setter Property="Foreground" Value="#FFFFFF" />
+        </Style>
+
+        <Style Selector="Button.top.here /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource Accent}" />
+        </Style>
+
+
+
+        <!-- The icon follows the text, so it goes white on the accent rather
+             than staying a colour that then clashes with it. -->
+        <Style Selector="Button.top Path.glyph">
+            <Setter Property="Stroke" Value="{DynamicResource Accent}" />
+            <Setter Property="StrokeThickness" Value="1.7" />
+            <Setter Property="Width" Value="15" />
+            <Setter Property="Height" Value="15" />
+            <Setter Property="Stretch" Value="Uniform" />
+        </Style>
+
+        <Style Selector="Button.top:pointerover Path.glyph">
+            <Setter Property="Stroke" Value="#FFFFFF" />
+        </Style>
+
+        <Style Selector="Button.top.here Path.glyph">
+            <Setter Property="Stroke" Value="#FFFFFF" />
+        </Style>
+
+        <!-- One line inside an open menu. -->
+        <Style Selector="Button.leaf">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource Ink}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="14,9" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+
+        <Style Selector="Button.leaf /template/ ContentPresenter">
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
+
+        <Style Selector="Button.leaf:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource Accent}" />
+        </Style>
+
+        <Style Selector="Button.leaf TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource Ink}" />
+        </Style>
+
+        <Style Selector="Button.leaf:pointerover TextBlock">
+            <Setter Property="Foreground" Value="#FFFFFF" />
+        </Style>
+
+        <Style Selector="Button.leaf Path.glyph">
+            <Setter Property="Stroke" Value="{DynamicResource Accent}" />
+            <Setter Property="StrokeThickness" Value="1.7" />
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Height" Value="16" />
+            <Setter Property="Stretch" Value="Uniform" />
+        </Style>
+
+        <Style Selector="Button.leaf:pointerover Path.glyph">
+            <Setter Property="Stroke" Value="#FFFFFF" />
+        </Style>
+
+        <!-- A plain button on the dark bar: sign out, the reading room. -->
+        <Style Selector="Button.chrome">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource RailInk}" />
+            <Setter Property="BorderBrush" Value="#26FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="11,0" />
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <Style Selector="Button.chrome TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource RailInk}" />
+        </Style>
+
+        <Style Selector="Button.chrome /template/ ContentPresenter">
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+
+        <Style Selector="Button.chrome:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1FFFFFFF" />
+        </Style>
+    </Window.Styles>
+
+    <Panel>
+        <local:Backdrop />
+
+        <Grid RowDefinitions="Auto,Auto,*">
+
+            <!-- ======================================== the unit's bar ==== -->
+            <Border Grid.Row="0"
+                    Background="#0D0D0D"
+                    BorderBrush="{DynamicResource Accent}"
+                    BorderThickness="0,0,0,3"
+                    Padding="22,7">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+
+                    <!-- The crest and the two-line lockup, as the web
+                         application carries it. -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="11">
+                        <Border Width="38" Height="38" CornerRadius="999"
+                                ClipToBounds="True"
+                                Background="{Binding CrestGround}"
+                                VerticalAlignment="Center">
+                            <Image Source="{Binding Crest}" Stretch="Uniform" Margin="3" />
+                        </Border>
+
+                        <StackPanel VerticalAlignment="Center" Spacing="1" MaxWidth="420">
+                            <TextBlock Text="{Binding BarTitle}"
+                                       FontSize="13.5" FontWeight="Bold" LetterSpacing="0.5"
+                                       TextTrimming="CharacterEllipsis"
+                                       Foreground="#F2F2F2" />
+                            <TextBlock Text="{Binding BarUnit}"
+                                       FontSize="9.5" FontWeight="SemiBold" LetterSpacing="1.6"
+                                       TextTrimming="CharacterEllipsis"
+                                       Foreground="#94FFFFFF" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Who is signed in, and the two things they do about it.
+                         Kept together at the right, away from the work. -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="14"
+                                VerticalAlignment="Center">
+
+                        <StackPanel Spacing="1" HorizontalAlignment="Right"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Who}" FontSize="12"
+                                       TextAlignment="Right" Foreground="#F2F2F2" />
+                            <TextBlock Text="{Binding Role}" FontSize="9" LetterSpacing="0.8"
+                                       TextAlignment="Right" Foreground="{DynamicResource AccentOnDark}" />
+                        </StackPanel>
+
+                        <Button Classes="chrome"
+                                IsVisible="{Binding MayOpenKiosk}"
+                                Command="{Binding ReadingRoomCommand}"
+                                ToolTip.Tip="Turn this machine into a public catalogue terminal">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <Path Data="{StaticResource IconSearch}" Stroke="{DynamicResource RailInk}"
+                                      StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform"
+                                      VerticalAlignment="Center" />
+                                <TextBlock Text="Reading room" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="chrome" Command="{Binding SignOutCommand}"
+                                ToolTip.Tip="Sign out"
+                                AutomationProperties.Name="Sign out">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <Path Data="{StaticResource IconSignOut}" Stroke="{DynamicResource RailInk}"
+                                      StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform"
+                                      VerticalAlignment="Center" />
+                                <TextBlock Text="Sign out" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ============================================ the menu bar == -->
+            <Border Grid.Row="1" Background="#14161A">
+                <ItemsControl ItemsSource="{Binding Nodes}" Margin="14,0">
+                    <!-- The dock goes on the container the ItemsControl makes,
+                         not on anything inside the template. Set on the inner
+                         panel it does nothing at all, because the thing the
+                         DockPanel is actually arranging is the presenter
+                         wrapped round it. -->
+                    <ItemsControl.Styles>
+                        <Style Selector="ItemsControl > ContentPresenter">
+                            <Setter Property="DockPanel.Dock"
+                                    Value="{ReflectionBinding Trailing, Converter={x:Static conv:Side.RightOrLeft}}" />
+                        </Style>
+                    </ItemsControl.Styles>
+
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <!-- A row, so Administration can be pushed to the
+                                 far end away from the day's work. -->
+                            <DockPanel LastChildFill="False" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="models:NavNode">
+                            <Panel>
+
+                                <!-- One screen: a plain button. A menu holding
+                                     a single item is a click for nothing. -->
+                                <Button Classes="top" Classes.here="{Binding Here}"
+                                        IsVisible="{Binding IsPlain}"
+                                        Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).GoCommand}"
+                                        CommandParameter="{Binding Section}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Path Classes="glyph" Data="{Binding Icon}" />
+                                        <TextBlock Text="{Binding Shown}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Several: a button that opens a short list. -->
+                                <Button Classes="top" Classes.here="{Binding Here}"
+                                        IsVisible="{Binding IsMenu}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Path Classes="glyph" Data="{Binding Icon}" />
+                                        <TextBlock Text="{Binding Shown}" VerticalAlignment="Center" />
+                                        <Path Data="M4,7 L8,11 L12,7"
+                                              Stroke="{DynamicResource RailLabel}" StrokeThickness="1.6"
+                                              Width="11" Height="11" Stretch="Uniform"
+                                              VerticalAlignment="Center" />
+                                    </StackPanel>
+
+                                    <Button.Flyout>
+                                        <Flyout Placement="BottomEdgeAlignedLeft" HorizontalOffset="-6">
+                                            <ItemsControl ItemsSource="{Binding Items}" MinWidth="215">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate DataType="models:NavItem">
+                                                        <Button Classes="leaf"
+                                                                Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).GoCommand}"
+                                                                CommandParameter="{Binding Section}">
+                                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                                <Path Classes="glyph" Data="{Binding Icon}" />
+                                                                <TextBlock Text="{Binding Label}"
+                                                                           VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Button>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                </Button>
+                            </Panel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+
+            <!-- ============================================ working area == -->
+            <Grid Grid.Row="2" RowDefinitions="Auto,Auto,Auto,*" Margin="26,20,26,24">
+
+                <!-- Where you are. The heading and its icon, so the eye can
+                     confirm the screen without travelling back to the menu. -->
+                <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="0,0,0,18">
+                    <Path Grid.Column="0" Classes="icon big"
+                          Data="{Binding SectionIcon}"
+                          Stroke="{DynamicResource InkMuted}"
+                          Margin="0,0,12,0" />
+                    <TextBlock Grid.Column="1" Classes="h1"
+                               Text="{Binding Title}"
+                               VerticalAlignment="Center" />
+                </Grid>
+
+                <!-- The licence, when there is something to say about it.
+                     Quiet unless it is close, so that when it does shout
+                     somebody reads it. -->
+                <Border Grid.Row="1" Classes="card" Margin="0,0,0,16"
+                        IsVisible="{Binding LicenceWorthSaying}"
+                        Background="{Binding LicenceGrave, Converter={x:Static conv:Swatch.BadOrGoodSoft}}"
+                        BorderBrush="{Binding LicenceGrave, Converter={x:Static conv:Swatch.BadOrGood}}"
+                        Padding="20,14">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,16,0">
+                            <TextBlock Text="{Binding LicenceHeadline}"
+                                       FontWeight="SemiBold" FontSize="14"
+                                       TextWrapping="Wrap"
+                                       Foreground="{Binding LicenceGrave, Converter={x:Static conv:Swatch.BadOrGood}}" />
+                            <TextBlock Text="{Binding LicenceWhat}" TextWrapping="Wrap"
+                                       FontSize="12" Classes="faint" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Licence" MinHeight="38"
+                                VerticalAlignment="Center"
+                                IsVisible="{Binding MayFixLicence}"
+                                Command="{Binding GoToLicenceCommand}" />
+                    </Grid>
+                </Border>
+
+                <!-- Said once, loudly. An application that cannot see its data
+                     file must not look like a library with no books. -->
+                <Border Grid.Row="2" Classes="card" Margin="0,0,0,18"
+                        IsVisible="{Binding DataFileMissing}"
+                        Background="{DynamicResource BadSoft}"
+                        BorderBrush="{DynamicResource Bad}"
+                        Padding="20,16">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="The data file could not be found"
+                                   FontWeight="SemiBold" FontSize="15"
+                                   Foreground="{DynamicResource Bad}" />
+                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource Bad}"
+                                   Text="Nothing has been lost. This copy of the application simply cannot see its records. It was looking for:" />
+                        <SelectableTextBlock Text="{Binding DataFile}" Classes="mono"
+                                             Foreground="{DynamicResource Bad}" TextWrapping="Wrap" />
+                        <TextBlock TextWrapping="Wrap" Classes="faint"
+                                   Text="Restore it from a backup on the Database screen, or copy it back into the data folder beside the application." />
+                    </StackPanel>
+                </Border>
+
+                <ContentControl Grid.Row="3" Content="{Binding Current}" />
+            </Grid>
+        </Grid>
+    </Panel>
+</Window>

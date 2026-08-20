@@ -1,0 +1,282 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:conv="using:MilLib.Desktop"
+             xmlns:svc="using:MilLib.Desktop.Services"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+             x:Class="MilLib.Desktop.Views.DatabaseView"
+             x:DataType="vm:DatabaseViewModel">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <Border Grid.Row="0" Classes="card" Margin="0,0,0,14" Padding="16,12"
+                IsVisible="{Binding HasSaid}"
+                Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+            <TextBlock Text="{Binding Said}" TextWrapping="Wrap"
+                       Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,20,460">
+
+            <!-- ======================================== where the records are -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="16">
+
+                    <Border Classes="card" Padding="22,20">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Where the records are" Classes="h2" />
+                                <TextBlock Classes="sub" TextWrapping="Wrap"
+                                           Text="A file beside this application, or a server several people share. The records are the same either way — the same schema on SQLite, MariaDB or PostgreSQL — so a unit can start on the file and move to a server later without retyping a book." />
+                            </StackPanel>
+
+                            <Border Classes="card cool" Padding="16,13">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="READING NOW" Classes="label" />
+                                    <TextBlock Text="{Binding Reading}" Classes="mono" FontSize="12"
+                                               TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding Origin}" Classes="faint" FontSize="11"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+
+                            <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Kind of database" Classes="faint" />
+                                <ComboBox SelectedIndex="{Binding KindChosen}"
+                                          HorizontalAlignment="Stretch" MinHeight="40"
+                                          IsEnabled="{Binding MayManage}">
+                                    <ComboBoxItem Content="A file beside this application (SQLite)" />
+                                    <ComboBoxItem Content="A shared server — MariaDB or MySQL" />
+                                    <ComboBoxItem Content="A shared server — PostgreSQL" />
+                                </ComboBox>
+                            </StackPanel>
+
+                            <!-- The file -->
+                            <StackPanel Spacing="6" IsVisible="{Binding !OnAServer}">
+                                <TextBlock Text="The data file" Classes="faint" />
+                                <Grid ColumnDefinitions="*,10,Auto">
+                                    <TextBox Grid.Column="0" Classes="mono" MinHeight="40"
+                                             Text="{Binding FilePath, UpdateSourceTrigger=PropertyChanged}"
+                                             IsEnabled="{Binding MayManage}" />
+                                    <Button Grid.Column="2" Content="Choose…" MinHeight="40"
+                                            IsEnabled="{Binding MayManage}"
+                                            Command="{Binding ChooseFileCommand}" />
+                                </Grid>
+                                <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                           Text="Leave it empty to use the copy in this folder, which is what a folder handed to a unit should do." />
+                            </StackPanel>
+
+                            <!-- The server -->
+                            <StackPanel Spacing="12" IsVisible="{Binding OnAServer}">
+                                <Grid ColumnDefinitions="*,14,120">
+                                    <StackPanel Grid.Column="0" Spacing="6">
+                                        <TextBlock Text="Server" Classes="faint" />
+                                        <TextBox Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}"
+                                                 Classes="mono" MinHeight="40"
+                                                 IsEnabled="{Binding MayManage}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Spacing="6">
+                                        <TextBlock Text="Port" Classes="faint" />
+                                        <TextBox Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"
+                                                 Classes="mono" MinHeight="40"
+                                                 IsEnabled="{Binding MayManage}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="Database" Classes="faint" />
+                                    <TextBox Text="{Binding Database, UpdateSourceTrigger=PropertyChanged}"
+                                             Classes="mono" MinHeight="40"
+                                             IsEnabled="{Binding MayManage}" />
+                                </StackPanel>
+
+                                <Grid ColumnDefinitions="*,14,*">
+                                    <StackPanel Grid.Column="0" Spacing="6">
+                                        <TextBlock Text="Username" Classes="faint" />
+                                        <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                                                 Classes="mono" MinHeight="40"
+                                                 IsEnabled="{Binding MayManage}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Spacing="6">
+                                        <TextBlock Text="Password" Classes="faint" />
+                                        <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
+                                                 PasswordChar="•" MinHeight="40"
+                                                 IsEnabled="{Binding MayManage}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                           Text="The password is left empty because the one already saved is not shown. Type it only if it is being changed. It is stored encrypted for this Windows account, so a copied folder carries no readable password." />
+                            </StackPanel>
+
+                            <Border Classes="card" Padding="16,13"
+                                    IsVisible="{Binding HasProblems}"
+                                    Background="{DynamicResource BadSoft}"
+                                    BorderBrush="{DynamicResource Bad}">
+                                <ItemsControl ItemsSource="{Binding Problems}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2"
+                                                       Foreground="{DynamicResource Bad}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Border>
+
+                            <Border Classes="card" Padding="16,13"
+                                    IsVisible="{Binding HasTried}"
+                                    Background="{Binding TriedWorked, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                                <TextBlock Text="{Binding Tried}" TextWrapping="Wrap"
+                                           Foreground="{Binding TriedWorked, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+                            </Border>
+
+                            <StackPanel Orientation="Horizontal" Spacing="9"
+                                        IsVisible="{Binding MayManage}">
+                                <Button Content="Try it" MinHeight="42" MinWidth="130"
+                                        IsEnabled="{Binding !Busy}"
+                                        Command="{Binding TryItCommand}" />
+                                <!-- Only after it has worked. This is the one
+                                     setting that can stop the application
+                                     opening, and putting it right needs the
+                                     application. -->
+                                <Button Classes="primary" Content="Use this connection"
+                                        MinHeight="42" MinWidth="190"
+                                        IsEnabled="{Binding TriedWorked}"
+                                        Command="{Binding SaveConnectionCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ================================================== the copies -->
+            <Border Grid.Column="2" Classes="card" Padding="0" ClipToBounds="True">
+                <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+                    <StackPanel Grid.Row="0" Spacing="4" Margin="22,20,22,12">
+                        <TextBlock Text="Copies of the library" Classes="h2" />
+                        <TextBlock Classes="sub" TextWrapping="Wrap"
+                                   Text="Everything else here can be typed in again. This file cannot." />
+                    </StackPanel>
+
+                    <!-- On a server there is nothing here to copy, and saying
+                         so is better than a button that produces something
+                         that looks like a backup and is not one. -->
+                    <Border Grid.Row="1" Classes="card cool" Margin="16,0,16,12" Padding="14,12"
+                            IsVisible="{Binding !MayBackUp}">
+                        <TextBlock TextWrapping="Wrap" FontSize="12"
+                                   Text="This copy reads a server, so the records are on somebody else's machine. Backing them up is that server's job, with the server's own tools — anything this application wrote would only be what it happens to be able to read." />
+                    </Border>
+
+                    <StackPanel Grid.Row="1" Spacing="12" Margin="22,0,22,12"
+                                IsVisible="{Binding MayBackUp}">
+                        <CheckBox Content="Keep copies automatically"
+                                  IsChecked="{Binding BackupsOn}"
+                                  IsEnabled="{Binding MayManage}" />
+
+                        <Grid ColumnDefinitions="*,14,*">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="A copy every" Classes="faint" />
+                                <NumericUpDown Value="{Binding EveryHours}" Minimum="1" Maximum="720"
+                                               FormatString="0" MinHeight="38"
+                                               IsEnabled="{Binding MayManage}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="6">
+                                <TextBlock Text="Keep the last" Classes="faint" />
+                                <NumericUpDown Value="{Binding Keep}" Minimum="1" Maximum="365"
+                                               FormatString="0" MinHeight="38"
+                                               IsEnabled="{Binding MayManage}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                   Text="Hours, and how many to keep. Taken at sign-in rather than on a timer — a copy taken in the middle of the day's issues is taken at the worst moment for it. Anything taken by hand is kept regardless." />
+
+                        <TextBlock Text="{Binding LastBackup}" Classes="faint" FontSize="11" />
+
+                        <StackPanel Orientation="Horizontal" Spacing="9">
+                            <Button Classes="primary" Content="Take a copy now" MinHeight="40"
+                                    IsEnabled="{Binding !Busy}"
+                                    IsVisible="{Binding MayManage}"
+                                    Command="{Binding BackUpNowCommand}" />
+                            <Button Content="Save these" MinHeight="40"
+                                    IsVisible="{Binding MayManage}"
+                                    Command="{Binding SaveBackupSettingsCommand}" />
+                            <Button Classes="quiet" Content="Open the folder" MinHeight="40"
+                                    Command="{Binding OpenFolderCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Grid.Row="2" Margin="16,0,16,0" Classes="card" Padding="0"
+                            ClipToBounds="True" IsVisible="{Binding MayBackUp}">
+                        <Panel>
+                            <StackPanel VerticalAlignment="Center" Spacing="8" Margin="24"
+                                        IsVisible="{Binding NoBackups}">
+                                <Path Classes="icon big" Data="{StaticResource IconDatabase}"
+                                      Stroke="{DynamicResource InkFaint}" HorizontalAlignment="Center" />
+                                <TextBlock Text="No copies yet" Classes="sub" TextAlignment="Center" />
+                                <TextBlock Classes="faint" TextAlignment="Center" TextWrapping="Wrap"
+                                           Text="Take one now, and turn the automatic copies on." />
+                            </StackPanel>
+
+                            <ListBox Classes="table" ItemsSource="{Binding Backups}"
+                                     SelectedItem="{Binding Chosen}"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                     IsVisible="{Binding !NoBackups}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="svc:BackupFile">
+                                        <Grid ColumnDefinitions="*,90" Margin="16,9">
+                                            <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,10,0">
+                                                <TextBlock Text="{Binding When}" FontWeight="Medium"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding Why}" Classes="faint"
+                                                           FontSize="11" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{Binding Weight}"
+                                                       Classes="mono faint" FontSize="11.5"
+                                                       VerticalAlignment="Center" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Panel>
+                    </Border>
+
+                    <StackPanel Grid.Row="3" Spacing="10" Margin="16,12,16,16"
+                                IsVisible="{Binding MayBackUp}">
+                        <TextBlock Text="{Binding Occupies}" Classes="faint" FontSize="11" />
+
+                        <!-- The question, on the screen the list is on rather
+                             than in a box somebody clicks through. -->
+                        <Border Classes="card" Padding="14,12"
+                                IsVisible="{Binding Confirm}"
+                                Background="{DynamicResource BadSoft}"
+                                BorderBrush="{DynamicResource Bad}">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="{Binding Confirming}" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource Bad}" FontSize="12" />
+                                <StackPanel Orientation="Horizontal" Spacing="9">
+                                    <Button Content="Put it back" MinHeight="38"
+                                            Command="{Binding RestoreCommand}" />
+                                    <Button Classes="primary" Content="Leave things as they are"
+                                            MinHeight="38"
+                                            Command="{Binding KeepThingsAsTheyAreCommand}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Button Content="Put the chosen copy back" MinHeight="40"
+                                HorizontalAlignment="Left"
+                                IsVisible="{Binding MayManage}"
+                                IsEnabled="{Binding Chosen, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                Command="{Binding AskToRestoreCommand}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

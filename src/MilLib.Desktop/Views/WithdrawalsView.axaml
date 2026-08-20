@@ -1,0 +1,267 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:conv="using:MilLib.Desktop"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+             x:Class="MilLib.Desktop.Views.WithdrawalsView"
+             x:DataType="vm:WithdrawalsViewModel">
+
+    <Grid ColumnDefinitions="300,*">
+
+        <!-- ============================================== the proceedings ==== -->
+        <Grid Grid.Column="0" RowDefinitions="Auto,*" Margin="0,0,20,0">
+            <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,14">
+                <Button Classes="primary withIcon" Content="Condemn books"
+                        Tag="{StaticResource IconAdd}" MinHeight="42"
+                        HorizontalAlignment="Stretch"
+                        IsVisible="{Binding MayManage}"
+                        Command="{Binding DraftCommand}" />
+                <Button Classes="quiet withIcon" Content="The whole register"
+                        Tag="{StaticResource IconPrint}" MinHeight="38"
+                        HorizontalAlignment="Stretch"
+                        Command="{Binding RegisterCommand}" />
+            </StackPanel>
+
+            <Border Grid.Row="1" Classes="card" Padding="0" ClipToBounds="True">
+                <ListBox Classes="table"
+                         ItemsSource="{Binding Boards}"
+                         SelectedItem="{Binding Selected}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="vm:WithdrawalRow">
+                            <StackPanel Spacing="3" Margin="18,11">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{Binding Number}" Classes="mono"
+                                               FontWeight="Medium" VerticalAlignment="Center" />
+                                    <Border Classes="pill bad" VerticalAlignment="Center"
+                                            IsVisible="{Binding WasLoss}">
+                                        <TextBlock Text="Loss" />
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="{Binding Reason}" FontSize="12" />
+                                <TextBlock Classes="faint" FontSize="11">
+                                    <Run Text="{Binding When}" />
+                                    <Run Text="·" />
+                                    <Run Text="{Binding Size}" />
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+        </Grid>
+
+        <!-- ============================================== the working area ==== -->
+        <Grid Grid.Column="1" RowDefinitions="Auto,*">
+
+            <Border Grid.Row="0" Classes="card" Padding="14,11" Margin="0,0,0,14"
+                    IsVisible="{Binding HasSaid}"
+                    Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                <TextBlock Text="{Binding Said}" TextWrapping="Wrap"
+                           Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+            </Border>
+
+            <Border Grid.Row="1" Classes="card bad" IsVisible="{Binding HasProblem}"
+                    VerticalAlignment="Top" Padding="18,14">
+                <TextBlock Text="{Binding Problem}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource Bad}" />
+            </Border>
+
+            <!-- ============================================== drafting ==== -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                          IsVisible="{Binding Drafting}">
+                <StackPanel Spacing="14">
+
+                    <Border Classes="card" Padding="20,16">
+                        <StackPanel Spacing="14">
+                            <TextBlock Text="A NEW CONDEMNATION" Classes="label"
+                                       Foreground="{DynamicResource Accent}" />
+
+                            <Grid ColumnDefinitions="*,12,*,12,*">
+                                <StackPanel Grid.Column="0" Spacing="6">
+                                    <TextBlock Text="Why" Classes="faint" />
+                                    <ComboBox ItemsSource="{Binding Reasons}" SelectedItem="{Binding Reason}"
+                                              MinHeight="40" HorizontalAlignment="Stretch">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Converter={x:Static conv:Spoken.Instance}}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="6">
+                                    <TextBlock Text="Withdrawal number" Classes="faint" />
+                                    <TextBox Text="{Binding Number, UpdateSourceTrigger=PropertyChanged}"
+                                             MinHeight="40" Classes="mono" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="4" Spacing="6">
+                                    <TextBlock Text="Date" Classes="faint" />
+                                    <CalendarDatePicker SelectedDate="{Binding On}"
+                                                        MinHeight="40" HorizontalAlignment="Stretch" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="*,12,*,12,*">
+                                <StackPanel Grid.Column="0" Spacing="6">
+                                    <TextBlock Text="Board proceedings" Classes="faint" />
+                                    <TextBox Text="{Binding BoardProceedings, UpdateSourceTrigger=PropertyChanged}"
+                                             MinHeight="40" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="6">
+                                    <TextBlock Text="Sanction authority" Classes="faint" />
+                                    <TextBox Text="{Binding SanctionAuthority, UpdateSourceTrigger=PropertyChanged}"
+                                             MinHeight="40" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="4" Spacing="6">
+                                    <TextBlock Text="Sanction date" Classes="faint" />
+                                    <CalendarDatePicker SelectedDate="{Binding SanctionDate}"
+                                                        MinHeight="40" HorizontalAlignment="Stretch" />
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Only a loss is charged to anybody, so only a loss
+                                 asks what to charge. -->
+                            <StackPanel Spacing="6" IsVisible="{Binding IsLoss}">
+                                <TextBlock Text="Charge the borrower" Classes="faint" />
+                                <TextBox Text="{Binding LossAmount, UpdateSourceTrigger=PropertyChanged}"
+                                         PlaceholderText="Leave empty to charge what the book cost"
+                                         MinHeight="40" HorizontalAlignment="Left" MinWidth="260" />
+                                <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                           Text="A copy still on loan is closed as lost and the amount raised against whoever has it. Any other reason requires the book back first." />
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Remarks" Classes="faint" />
+                                <TextBox Text="{Binding Remarks, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True" MinHeight="60" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="card" Padding="20,16">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="WHICH BOOKS" Classes="label" />
+
+                            <Grid ColumnDefinitions="*,Auto,Auto">
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding Identifiers, UpdateSourceTrigger=PropertyChanged}"
+                                         PlaceholderText="Scan or type accession numbers, separated by spaces"
+                                         MinHeight="40">
+                                    <TextBox.KeyBindings>
+                                        <KeyBinding Gesture="Enter" Command="{Binding FindCommand}" />
+                                    </TextBox.KeyBindings>
+                                </TextBox>
+                                <Button Grid.Column="1" Content="Add them" MinHeight="40" Margin="10,0,0,0"
+                                        Command="{Binding FindCommand}" />
+                                <Button Grid.Column="2" Content="Take what is missing" MinHeight="40"
+                                        Margin="8,0,0,0"
+                                        ToolTip.Tip="Everything a stock check could not find"
+                                        Command="{Binding TakeMissingCommand}" />
+                            </Grid>
+
+                            <TextBlock Text="{Binding PickedText}" Classes="faint" />
+
+                            <Border Classes="card" Padding="0" ClipToBounds="True"
+                                    IsVisible="{Binding Picked}" MaxHeight="260">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl ItemsSource="{Binding Candidates}" Classes="rows">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="vm:CandidateRow">
+                                                <Grid ColumnDefinitions="40,150,*,120,100" Margin="16,8">
+                                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsChosen}"
+                                                              VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding Accession}"
+                                                               Classes="mono" VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="2" Text="{Binding Title}"
+                                                               VerticalAlignment="Center" Margin="0,0,12,0"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Grid.Column="3" Text="{Binding State}"
+                                                               Classes="faint" VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="4" Text="{Binding CostText}"
+                                                               Classes="mono" VerticalAlignment="Center" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Border>
+
+                            <Border Classes="card" Padding="16,13"
+                                    IsVisible="{Binding HasProblems}"
+                                    Background="{DynamicResource BadSoft}"
+                                    BorderBrush="{DynamicResource Bad}">
+                                <ItemsControl ItemsSource="{Binding Problems}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2"
+                                                       Foreground="{DynamicResource Bad}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Border>
+
+                            <TextBlock Classes="faint" TextWrapping="Wrap"
+                                       Text="Withdrawing does not delete anything. The copies stay in the register marked withdrawn, and their accession numbers are retired — never reissued to another book." />
+
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <Button Classes="primary" Content="Withdraw them" MinHeight="42"
+                                        IsEnabled="{Binding AnyPicked}"
+                                        Command="{Binding WithdrawCommand}" />
+                                <Button Content="Cancel" MinHeight="42" Command="{Binding AbandonCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ============================================ one withdrawal ==== -->
+            <Grid Grid.Row="1" RowDefinitions="Auto,*" IsVisible="{Binding HasSelection}">
+
+                <Border Grid.Row="0" Classes="card" Padding="20,16" Margin="0,0,0,14">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="{Binding Heading}" Classes="h2" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding Particulars}" Classes="faint" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding Value}" FontWeight="Medium" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Classes="primary withIcon" Content="Certificate"
+                                Tag="{StaticResource IconPrint}" MinHeight="42"
+                                VerticalAlignment="Center" Margin="14,0,0,0"
+                                Command="{Binding CertificateCommand}" />
+                    </Grid>
+                </Border>
+
+                <Border Grid.Row="1" Classes="card" Padding="0" ClipToBounds="True">
+                    <Grid RowDefinitions="Auto,*">
+                        <Border Grid.Row="0" Classes="tableHead">
+                            <Grid ColumnDefinitions="150,*,130,100" Margin="20,0">
+                                <TextBlock Grid.Column="0" Text="ACCESSION NO" Classes="label" />
+                                <TextBlock Grid.Column="1" Text="TITLE" Classes="label" />
+                                <TextBlock Grid.Column="2" Text="ACQUIRED" Classes="label" />
+                                <TextBlock Grid.Column="3" Text="COST" Classes="label" />
+                            </Grid>
+                        </Border>
+
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding Under}" Classes="rows">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="vm:CondemnedRow">
+                                        <Grid ColumnDefinitions="150,*,130,100" Margin="20,9">
+                                            <TextBlock Grid.Column="0" Text="{Binding Accession}" Classes="mono" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Title}"
+                                                       TextTrimming="CharacterEllipsis" Margin="0,0,12,0" />
+                                            <TextBlock Grid.Column="2" Text="{Binding Source}" Classes="faint" />
+                                            <TextBlock Grid.Column="3" Text="{Binding CostText}" Classes="mono" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

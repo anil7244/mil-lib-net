@@ -1,0 +1,73 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\library.ico</ApplicationIcon>
+    <AssemblyTitle>Military Library Management System</AssemblyTitle>
+    <Product>Military Library Management System</Product>
+    <Company>Tactical Code</Company>
+    <Version>1.0.0</Version>
+    <AssemblyName>Library Manager</AssemblyName>
+  </PropertyGroup>
+
+  <!-- How the shipped copy is built. Kept here rather than in a command line
+       someone has to remember: one executable, no .NET installation on the
+       client machine, and no debug files scattered beside it. -->
+  <PropertyGroup Condition="'$(_IsPublishing)' == 'true'">
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <DebugType>none</DebugType>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1" />
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MilLib.Core\MilLib.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Skia and HarfBuzz ship 100 MB of native debug symbols. They are of no
+       use on a client machine and dwarf the application itself.
+
+       QuestPDF brings eighteen Lato font files - eleven megabytes - beside the
+       executable as its default typeface. Every document this application
+       prints names Calibri or Consolas, so none of them is ever opened; what
+       they would do is make a liar of a README that says the .exe is the whole
+       application. If a document is ever changed to use Lato, this has to come
+       out and the folder has to ship. -->
+  <Target Name="DropWhatIsNotNeeded" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                             Condition="'%(Extension)' == '.pdb'" />
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                             Condition="$([System.String]::Copy('%(RelativePath)').StartsWith('LatoFont'))" />
+    </ItemGroup>
+  </Target>
+
+  <!-- The real licence salt lives in a git-ignored LicenceSecret.cs. When it is
+       present, this stand-in is left out of the build so the two do not clash;
+       a public clone without it compiles against the stand-in instead. -->
+  <ItemGroup Condition="Exists('$(MSBuildProjectDirectory)\Services\LicenceSecret.cs')">
+    <Compile Remove="Services\LicenceSecret.Default.cs" />
+  </ItemGroup>
+
+</Project>

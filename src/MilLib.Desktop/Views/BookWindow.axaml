@@ -1,0 +1,386 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MilLib.Desktop.ViewModels"
+        xmlns:conv="using:MilLib.Desktop"
+        xmlns:local="using:MilLib.Desktop.Views"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1120" d:DesignHeight="800"
+        x:Class="MilLib.Desktop.Views.BookWindow"
+        x:DataType="vm:BookViewModel"
+        Icon="/Assets/library.ico"
+        Title="Book"
+        Width="1160" Height="830"
+        MinWidth="960" MinHeight="640"
+        Background="{DynamicResource Backdrop}"
+        WindowStartupLocation="CenterOwner">
+
+    <Panel>
+        <local:Backdrop />
+
+        <Grid RowDefinitions="Auto,Auto,*">
+
+            <!-- ============================================== the work ==== -->
+            <Border Grid.Row="0"
+                    Background="{DynamicResource GlassSunken}"
+                    BorderBrush="{DynamicResource GlassEdge}"
+                    BorderThickness="0,0,0,1"
+                    Padding="26,20">
+                <Grid ColumnDefinitions="Auto,*">
+
+                    <!-- The cover, where there is one. A book with none simply
+                         starts at its title; an empty grey rectangle labelled
+                         "no image" is worse than nothing. -->
+                    <Border Grid.Column="0" Width="96" Height="132"
+                            Margin="0,0,22,0"
+                            CornerRadius="6"
+                            ClipToBounds="True"
+                            VerticalAlignment="Top"
+                            IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            Background="{DynamicResource SurfaceSunken}"
+                            BorderBrush="{DynamicResource Line}"
+                            BorderThickness="1">
+                        <Image Source="{Binding Cover}" Stretch="UniformToFill" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1" Spacing="7">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Classes="pill warn" IsVisible="{Binding IsClassified}">
+                                <TextBlock Text="{Binding Classification}" />
+                            </Border>
+                            <Border Classes="pill info" IsVisible="{Binding IsUnitPublication}">
+                                <TextBlock Text="Unit publication" />
+                            </Border>
+                            <!-- Which amendment it is current to, right next to
+                                 the mark that it is a controlled publication. -->
+                            <TextBlock Text="{Binding Amendment}" Classes="faint"
+                                       VerticalAlignment="Center"
+                                       IsVisible="{Binding HasAmendment}" />
+                        </StackPanel>
+
+                        <TextBlock Text="{Binding TitleText}" FontSize="23" FontWeight="SemiBold"
+                                   TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Subtitle}" Classes="sub" TextWrapping="Wrap"
+                                   IsVisible="{Binding HasSubtitle}" />
+                        <TextBlock Text="{Binding Authors}" FontSize="14"
+                                   TextWrapping="Wrap"
+                                   IsVisible="{Binding Authors, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                        <StackPanel Spacing="3" Margin="0,4,0,0">
+                            <TextBlock Text="{Binding Imprint}" Classes="faint" TextWrapping="Wrap"
+                                       IsVisible="{Binding Imprint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            <TextBlock Text="{Binding Physical}" Classes="faint" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding ShelfMark}" Classes="mono" FontSize="11.5"
+                                       IsVisible="{Binding ShelfMark, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            <TextBlock Text="{Binding Subjects}" Classes="faint" TextWrapping="Wrap"
+                                       IsVisible="{Binding HasSubjects}" />
+                        </StackPanel>
+
+                        <TextBlock Text="{Binding About}" Classes="faint" TextWrapping="Wrap"
+                                   Margin="0,4,0,0"
+                                   IsVisible="{Binding HasAbout}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- What was just done, and what is on the shelf. -->
+            <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="26,18,26,14">
+                <StackPanel Grid.Column="0" Spacing="8">
+                    <TextBlock Text="{Binding Holdings}" Classes="h2" />
+
+                    <Border Classes="card" Padding="14,11"
+                            IsVisible="{Binding HasSaid}"
+                            Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                        <TextBlock Text="{Binding Said}" TextWrapping="Wrap"
+                                   Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="9"
+                            VerticalAlignment="Top" Margin="14,0,0,0"
+                            IsVisible="{Binding MayManage}">
+                    <!-- Correcting the description is offered here as well as
+                         on the list, because the place a wrong year or a
+                         misspelt author is noticed is with the book open. -->
+                    <Button Classes="withIcon" Content="Edit the record"
+                            Tag="{StaticResource IconEdit}" MinHeight="42"
+                            Command="{Binding EditRecordCommand}" />
+                    <Button Classes="primary withIcon" Content="Accession copies"
+                            Tag="{StaticResource IconAdd}" MinHeight="42"
+                            Command="{Binding StartAccessioningCommand}" />
+                </StackPanel>
+            </Grid>
+
+            <!-- ============================================ the copies ==== -->
+            <Grid Grid.Row="2" ColumnDefinitions="*,400" Margin="26,0,26,26">
+
+                <Border Grid.Column="0" Classes="card" Padding="0" ClipToBounds="True"
+                        Margin="0,0,18,0">
+                    <Grid RowDefinitions="Auto,*">
+                        <Border Grid.Row="0" Classes="tableHead">
+                            <Grid ColumnDefinitions="*,120,110" Margin="20,0">
+                                <TextBlock Grid.Column="0" Text="ACCESSION NO" Classes="label" />
+                                <TextBlock Grid.Column="1" Text="STATE" Classes="label" />
+                                <TextBlock Grid.Column="2" Text="CONDITION" Classes="label" />
+                            </Grid>
+                        </Border>
+
+                        <ListBox Grid.Row="1" Classes="table"
+                                 ItemsSource="{Binding Copies}"
+                                 SelectedItem="{Binding Selected}"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="vm:CopyRow">
+                                    <Grid ColumnDefinitions="*,120,110" Margin="20,10">
+                                        <StackPanel Grid.Column="0" Spacing="3" Margin="0,0,14,0">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{Binding Accession}" Classes="mono"
+                                                           FontWeight="Medium" VerticalAlignment="Center" />
+                                                <Border Classes="pill" VerticalAlignment="Center"
+                                                        IsVisible="{Binding IsReference}">
+                                                    <TextBlock Text="Reference only" />
+                                                </Border>
+                                            </StackPanel>
+                                            <!-- A copy sitting on the shelf with
+                                                 no shelf mark has nothing to say
+                                                 here; the line collapses rather
+                                                 than leaving a hole in the row. -->
+                                            <TextBlock Text="{Binding Whereabouts}" Classes="faint" FontSize="11"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       IsVisible="{Binding Whereabouts, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                            <TextBlock Text="{Binding Acquired}" Classes="faint" FontSize="10.5" />
+                                        </StackPanel>
+
+                                        <!-- Only a copy that is not simply on
+                                             the shelf is coloured. -->
+                                        <TextBlock Grid.Column="1" Text="{Binding StatusText}"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{Binding IsAvailable, Converter={x:Static conv:Swatch.PlainOrBad}}" />
+
+                                        <TextBlock Grid.Column="2" Text="{Binding ConditionText}"
+                                                   VerticalAlignment="Center" Classes="faint" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <StackPanel Grid.Row="1" IsVisible="{Binding NoCopies}"
+                                    VerticalAlignment="Center" Spacing="8" Margin="30">
+                            <TextBlock Text="Catalogued, but not yet on the register" Classes="h2"
+                                       TextAlignment="Center" TextWrapping="Wrap" />
+                            <TextBlock Classes="faint" TextAlignment="Center" TextWrapping="Wrap"
+                                       Text="This is the work. Accession a copy to put an actual book on the shelf against it." />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- ======================================== the side panel == -->
+                <Border Grid.Column="1" Classes="card" Padding="0" ClipToBounds="True">
+                  <Panel>
+
+                    <!-- Accessioning takes the panel over while it is open,
+                         because it is a different job from editing a copy and
+                         doing both at once is how the wrong one gets saved. -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" IsVisible="{Binding Accessioning}">
+                        <StackPanel Margin="22,20,22,22" Spacing="16">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="ONTO THE REGISTER" Classes="label"
+                                           Foreground="{DynamicResource Accent}" />
+                                <TextBlock Text="The next number is" Classes="faint" />
+                                <TextBlock Text="{Binding NextNumber}" Classes="mono" FontSize="17"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                           Text="Numbers run in sequence and are never reused, so a batch takes the next few and no number is spent unless the whole batch is written." />
+                            </StackPanel>
+
+                            <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                            <Grid ColumnDefinitions="*,12,*">
+                                <StackPanel Grid.Column="0" Spacing="6">
+                                    <TextBlock Text="How many" Classes="faint" />
+                                    <NumericUpDown Value="{Binding Quantity}" Minimum="1" Maximum="200"
+                                                   FormatString="0" MinHeight="40" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="6">
+                                    <TextBlock Text="Accessioned on" Classes="faint" />
+                                    <CalendarDatePicker SelectedDate="{Binding AccessionDate}"
+                                                        MinHeight="40" HorizontalAlignment="Stretch" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="*,12,*">
+                                <StackPanel Grid.Column="0" Spacing="6">
+                                    <TextBlock Text="How acquired" Classes="faint" />
+                                    <ComboBox ItemsSource="{Binding Sources}" SelectedItem="{Binding Source}"
+                                              MinHeight="40" HorizontalAlignment="Stretch">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Converter={x:Static conv:Spoken.Instance}}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="6">
+                                    <TextBlock Text="Condition" Classes="faint" />
+                                    <ComboBox ItemsSource="{Binding Conditions}" SelectedItem="{Binding Condition}"
+                                              MinHeight="40" HorizontalAlignment="Stretch">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Converter={x:Static conv:Spoken.Instance}}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+                            </Grid>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Supplier" Classes="faint" />
+                                <TextBox Text="{Binding Supplier, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="40" />
+                            </StackPanel>
+
+                            <Grid ColumnDefinitions="*,12,*">
+                                <StackPanel Grid.Column="0" Spacing="6">
+                                    <TextBlock Text="Bill number" Classes="faint" />
+                                    <TextBox Text="{Binding BillNo, UpdateSourceTrigger=PropertyChanged}"
+                                             MinHeight="40" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="6">
+                                    <TextBlock Text="Cost each" Classes="faint" />
+                                    <TextBox Text="{Binding Cost, UpdateSourceTrigger=PropertyChanged}"
+                                             MinHeight="40" />
+                                </StackPanel>
+                            </Grid>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Where it lives" Classes="faint" />
+                                <TextBox Text="{Binding Location, UpdateSourceTrigger=PropertyChanged}"
+                                         PlaceholderText="Shelf, rack or room"
+                                         MinHeight="40" />
+                            </StackPanel>
+
+                            <CheckBox Content="May be borrowed" IsChecked="{Binding Circulating}" />
+
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <Button Classes="primary" Content="Accession" MinHeight="42" MinWidth="130"
+                                        IsEnabled="{Binding !Busy}"
+                                        Command="{Binding AccessionCommand}" />
+                                <Button Content="Cancel" MinHeight="42"
+                                        Command="{Binding StopAccessioningCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <StackPanel VerticalAlignment="Center" Spacing="8" Margin="30">
+                        <StackPanel.IsVisible>
+                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                <Binding Path="!Accessioning" />
+                                <Binding Path="!HasSelection" />
+                            </MultiBinding>
+                        </StackPanel.IsVisible>
+
+                        <Path Classes="icon big" Data="{StaticResource IconCopy}"
+                              Stroke="{DynamicResource InkFaint}" HorizontalAlignment="Center" />
+                        <TextBlock Text="Pick a copy" Classes="sub" TextAlignment="Center" />
+                        <TextBlock Classes="faint" TextAlignment="Center" TextWrapping="Wrap"
+                                   Text="Where it is, what state it is in, and every note ever written against it." />
+                    </StackPanel>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ScrollViewer.IsVisible>
+                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                <Binding Path="!Accessioning" />
+                                <Binding Path="HasSelection" />
+                            </MultiBinding>
+                        </ScrollViewer.IsVisible>
+
+                        <StackPanel Margin="22,20,22,22" Spacing="16">
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="{Binding Selected.Accession}" Classes="mono"
+                                           FontSize="17" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding Selected.Acquired}" Classes="faint" />
+                                <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                           Text="The number, the date and how it was acquired are the register's entry and cannot be edited. A correction is a note." />
+                            </StackPanel>
+
+                            <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="State" Classes="faint" />
+                                <ComboBox ItemsSource="{Binding Statuses}" SelectedItem="{Binding CopyStatus}"
+                                          MinHeight="40" HorizontalAlignment="Stretch"
+                                          IsEnabled="{Binding MayManage}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Converter={x:Static conv:Spoken.Instance}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Condition" Classes="faint" />
+                                <ComboBox ItemsSource="{Binding Conditions}" SelectedItem="{Binding CopyCondition}"
+                                          MinHeight="40" HorizontalAlignment="Stretch"
+                                          IsEnabled="{Binding MayManage}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Converter={x:Static conv:Spoken.Instance}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Where it lives" Classes="faint" />
+                                <TextBox Text="{Binding CopyLocation, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="40" IsEnabled="{Binding MayManage}" />
+                            </StackPanel>
+
+                            <CheckBox Content="May be borrowed" IsChecked="{Binding CopyCirculating}"
+                                      IsEnabled="{Binding MayManage}" />
+
+                            <Button Classes="primary" Content="Save" MinHeight="40" MinWidth="110"
+                                    HorizontalAlignment="Left"
+                                    IsVisible="{Binding MayManage}"
+                                    IsEnabled="{Binding !Busy}"
+                                    Command="{Binding SaveCopyCommand}" />
+
+                            <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="NOTES ON THIS COPY" Classes="label" />
+
+                                <ItemsControl ItemsSource="{Binding Notes}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="vm:NoteRow">
+                                            <StackPanel Spacing="2" Margin="0,6">
+                                                <TextBlock Text="{Binding Note}" TextWrapping="Wrap" />
+                                                <TextBlock Text="{Binding Attribution}" Classes="faint"
+                                                           FontSize="10.5" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <TextBlock Text="Nothing has been written against this copy."
+                                           Classes="faint" IsVisible="{Binding !HasNotes}" />
+
+                                <StackPanel Spacing="8" IsVisible="{Binding MayManage}" Margin="0,6,0,0">
+                                    <TextBox Text="{Binding NewNote, UpdateSourceTrigger=PropertyChanged}"
+                                             PlaceholderText="Add a note — it cannot be edited or removed afterwards"
+                                             AcceptsReturn="True" MinHeight="66" />
+                                    <Button Content="Add note" MinHeight="38" HorizontalAlignment="Left"
+                                            IsEnabled="{Binding !Busy}"
+                                            Command="{Binding AddNoteCommand}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                  </Panel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Panel>
+</Window>

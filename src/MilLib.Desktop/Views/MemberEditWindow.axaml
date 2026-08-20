@@ -1,0 +1,206 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MilLib.Desktop.ViewModels"
+        xmlns:local="using:MilLib.Desktop.Views"
+        xmlns:conv="using:MilLib.Desktop"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="720" d:DesignHeight="760"
+        x:Class="MilLib.Desktop.Views.MemberEditWindow"
+        x:DataType="vm:MemberEditViewModel"
+        Icon="/Assets/library.ico"
+        Title="Member"
+        Width="720" Height="780"
+        MinWidth="640" MinHeight="600"
+        Background="{DynamicResource Backdrop}"
+        WindowStartupLocation="CenterOwner">
+
+    <Panel>
+        <local:Backdrop />
+
+        <Grid RowDefinitions="Auto,*,Auto">
+
+            <Border Grid.Row="0"
+                    Background="{DynamicResource GlassSunken}"
+                    BorderBrush="{DynamicResource GlassEdge}"
+                    BorderThickness="0,0,0,1"
+                    Padding="26,18">
+                <StackPanel Spacing="3">
+                    <TextBlock Text="MEMBER" Classes="label" Foreground="{DynamicResource Accent}" />
+                    <TextBlock Text="{Binding Heading}" Classes="h2" />
+                </StackPanel>
+            </Border>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="26,22,26,22" Spacing="20">
+
+                    <Border Classes="card" Padding="16,13"
+                            IsVisible="{Binding HasProblems}"
+                            Background="{DynamicResource BadSoft}"
+                            BorderBrush="{DynamicResource Bad}">
+                        <ItemsControl ItemsSource="{Binding Problems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2"
+                                               Foreground="{DynamicResource Bad}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
+
+                    <!-- Who they are -->
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="WHO THEY ARE" Classes="label" />
+
+                        <Grid ColumnDefinitions="1.6*,14,*">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="Full name" Classes="faint" />
+                                <TextBox Text="{Binding FullName, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="40" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="6">
+                                <TextBlock Text="Rank" Classes="faint" />
+                                <TextBox Text="{Binding Rank, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="40" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,14,*">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="Membership number" Classes="faint" />
+                                <TextBox Text="{Binding MembershipNo, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="40" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="6">
+                                <TextBlock Text="Personnel number" Classes="faint" />
+                                <TextBox Text="{Binding PersonnelNo, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="40" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,14,*">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="Unit / company" Classes="faint" />
+                                <TextBox Text="{Binding UnitCoy, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="40" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="6">
+                                <TextBlock Text="Appointment" Classes="faint" />
+                                <TextBox Text="{Binding Appointment, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="40" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,14,*">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="Phone" Classes="faint" />
+                                <TextBox Text="{Binding Phone, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="40" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="6">
+                                <TextBlock Text="Email" Classes="faint" />
+                                <TextBox Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="40" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+
+                    <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                    <!--
+                         What they may borrow.
+
+                         The category is the consequential field on this form, so
+                         it gets its own section and what it permits is spelled
+                         out beneath it as it changes. Nobody should have to
+                         remember what "Officer" allows.
+                    -->
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="WHAT THEY MAY BORROW" Classes="label" />
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Category" Classes="faint" />
+                            <ComboBox ItemsSource="{Binding Categories}"
+                                      SelectedItem="{Binding Category}"
+                                      MinHeight="42" HorizontalAlignment="Stretch" />
+                            <TextBlock Text="{Binding CategoryMeans}" Classes="faint"
+                                       FontSize="11.5" TextWrapping="Wrap" Margin="2,4,0,0" />
+                        </StackPanel>
+
+                        <Grid ColumnDefinitions="*,14,*">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="Clearance" Classes="faint" />
+                                <ComboBox ItemsSource="{Binding Clearances}"
+                                          SelectedItem="{Binding ClearanceLevel}"
+                                          MinHeight="40" HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                <TextBlock Text="{Binding Converter={x:Static conv:Spoken.Instance}}" />
+                                </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="6">
+                                <TextBlock Text="Standing" Classes="faint" />
+                                <ComboBox ItemsSource="{Binding Statuses}"
+                                          SelectedItem="{Binding Status}"
+                                          MinHeight="40" HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                <TextBlock Text="{Binding Converter={x:Static conv:Spoken.Instance}}" />
+                                </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+
+                    <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="MEMBERSHIP" Classes="label" />
+
+                        <Grid ColumnDefinitions="*,14,*,14,*">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="Enrolled on" Classes="faint" />
+                                <CalendarDatePicker SelectedDate="{Binding EnrolledOn}"
+                                                    MinHeight="40" HorizontalAlignment="Stretch" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="6">
+                                <TextBlock Text="Valid until" Classes="faint" />
+                                <CalendarDatePicker SelectedDate="{Binding ValidUpto}"
+                                                    MinHeight="40" HorizontalAlignment="Stretch" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="4" Spacing="6">
+                                <TextBlock Text="Deposit held" Classes="faint" />
+                                <TextBox Text="{Binding SecurityDeposit, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="40" />
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Remarks" Classes="faint" />
+                            <TextBox Text="{Binding Remarks, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True" MinHeight="76" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Border Grid.Row="2"
+                    Background="{DynamicResource GlassSunken}"
+                    BorderBrush="{DynamicResource GlassEdge}"
+                    BorderThickness="0,1,0,0"
+                    Padding="26,16">
+                <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                    <Button Content="Cancel" MinHeight="42" MinWidth="110"
+                            Command="{Binding AbandonCommand}" />
+                    <Button Classes="primary" Content="Save" MinHeight="42" MinWidth="150"
+                            IsDefault="True"
+                            IsEnabled="{Binding !Busy}"
+                            Command="{Binding SaveCommand}" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Panel>
+</Window>

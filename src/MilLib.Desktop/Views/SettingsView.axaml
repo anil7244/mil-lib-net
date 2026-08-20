@@ -1,0 +1,333 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:conv="using:MilLib.Desktop"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+             x:Class="MilLib.Desktop.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <!-- What was just saved, above everything, because a save on this
+             screen changes what other screens will show. -->
+        <Border Grid.Row="0" Classes="card" Margin="0,0,0,14" Padding="16,12"
+                IsVisible="{Binding HasSaid}"
+                Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+            <TextBlock Text="{Binding Said}" TextWrapping="Wrap"
+                       Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+        </Border>
+
+        <Border Grid.Row="1" Classes="card bad" Margin="0,0,0,14" Padding="18,14"
+                IsVisible="{Binding HasProblem}">
+            <TextBlock Text="{Binding Problem}" TextWrapping="Wrap"
+                       Foreground="{DynamicResource Bad}" />
+        </Border>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,420" IsVisible="{Binding !HasProblem}">
+
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="0,0,20,0">
+                <StackPanel Spacing="16">
+
+                    <!-- ============================================ branding -->
+                    <Border Classes="card" Padding="22,20">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="What this library is called" Classes="h2" />
+                                <TextBlock Classes="sub" TextWrapping="Wrap"
+                                           Text="These names and this crest head every page the library prints — the register, the reports, the condemnation certificates." />
+                            </StackPanel>
+
+                            <Grid ColumnDefinitions="Auto,20,*">
+                                <StackPanel Grid.Column="0" Spacing="8" Width="132">
+                                    <Border Width="132" Height="132" CornerRadius="8"
+                                            Background="{DynamicResource Glass}"
+                                            BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                        <Panel>
+                                            <TextBlock Text="No crest" Classes="faint"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       IsVisible="{Binding Crest, Converter={x:Static ObjectConverters.IsNull}}" />
+                                            <Image Source="{Binding Crest}" Margin="10"
+                                                   Stretch="Uniform" />
+                                        </Panel>
+                                    </Border>
+
+                                    <Button Content="Choose…" HorizontalAlignment="Stretch" MinHeight="36"
+                                            IsEnabled="{Binding MayManage}"
+                                            Command="{Binding ChooseCrestCommand}" />
+                                    <Button Content="Remove" Classes="quiet" HorizontalAlignment="Stretch"
+                                            MinHeight="32"
+                                            IsEnabled="{Binding MayManage}"
+                                            Command="{Binding RemoveCrestCommand}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Spacing="14">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Library name" Classes="faint" />
+                                        <TextBox Text="{Binding LibraryName, UpdateSourceTrigger=PropertyChanged}"
+                                                 MinHeight="40" IsEnabled="{Binding MayManage}" />
+                                    </StackPanel>
+
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Organisation" Classes="faint" />
+                                        <TextBox Text="{Binding Organisation, UpdateSourceTrigger=PropertyChanged}"
+                                                 MinHeight="40" IsEnabled="{Binding MayManage}" />
+                                    </StackPanel>
+
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Motto" Classes="faint" />
+                                        <TextBox Text="{Binding Motto, UpdateSourceTrigger=PropertyChanged}"
+                                                 MinHeight="40" IsEnabled="{Binding MayManage}" />
+                                    </StackPanel>
+
+                                    <TextBlock Text="{Binding CrestNote}" Classes="faint" FontSize="11"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                            <Grid ColumnDefinitions="*,16,*">
+                                <StackPanel Grid.Column="0" Spacing="8">
+                                    <TextBlock Text="Accent colour" Classes="faint" />
+                                    <Grid ColumnDefinitions="Auto,10,*">
+                                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="6"
+                                                BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                                                Background="{Binding AccentBrush}" />
+                                        <TextBox Grid.Column="2" Classes="mono" MinHeight="40"
+                                                 Text="{Binding Accent, UpdateSourceTrigger=PropertyChanged}"
+                                                 IsEnabled="{Binding MayManage}" />
+                                    </Grid>
+
+                                    <ItemsControl ItemsSource="{Binding Palettes}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Padding="0" Margin="0,0,6,6"
+                                                        Background="Transparent" BorderThickness="0"
+                                                        ToolTip.Tip="{Binding Name}"
+                                                        Command="{Binding ChooseCommand}">
+                                                    <Border Width="26" Height="26" CornerRadius="5"
+                                                            Background="{Binding Swatch}"
+                                                            BorderBrush="{DynamicResource Line}"
+                                                            BorderThickness="1" />
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Spacing="6">
+                                    <TextBlock Text="Circle behind the crest" Classes="faint" />
+                                    <Grid ColumnDefinitions="Auto,10,*">
+                                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="20"
+                                                BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                                                Background="{Binding CircleBrush}" />
+                                        <TextBox Grid.Column="2" Classes="mono" MinHeight="40"
+                                                 Text="{Binding CrestCircleColour, UpdateSourceTrigger=PropertyChanged}"
+                                                 IsEnabled="{Binding MayManage}" />
+                                    </Grid>
+                                </StackPanel>
+                            </Grid>
+
+                            <StackPanel Spacing="8">
+                                <CheckBox Content="Set the crest in a circle"
+                                          IsChecked="{Binding CrestInCircle}"
+                                          IsEnabled="{Binding MayManage}" />
+                                <CheckBox Content="Open in the dark theme"
+                                          IsChecked="{Binding DarkByDefault}"
+                                          IsEnabled="{Binding MayManage}" />
+                            </StackPanel>
+
+                            <Button Classes="primary" Content="Save the branding" MinHeight="42"
+                                    HorizontalAlignment="Left" MinWidth="180"
+                                    IsEnabled="{Binding MayManage}"
+                                    Command="{Binding SaveBrandingCommand}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- =========================================== accession -->
+                    <Border Classes="card" Padding="22,20">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="How books are numbered" Classes="h2" />
+                                <TextBlock Classes="sub" TextWrapping="Wrap"
+                                           Text="Every physical copy gets one accession number, in order, for as long as the library exists." />
+                            </StackPanel>
+
+                            <Grid ColumnDefinitions="*,14,Auto,14,Auto">
+                                <StackPanel Grid.Column="0" Spacing="6">
+                                    <TextBlock Text="Prefix" Classes="faint" />
+                                    <TextBox Text="{Binding Prefix, UpdateSourceTrigger=PropertyChanged}"
+                                             Classes="mono" MinHeight="40"
+                                             IsEnabled="{Binding MayManage}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Spacing="6" Width="130">
+                                    <TextBlock Text="Digits" Classes="faint" />
+                                    <NumericUpDown Value="{Binding PadLength}" Minimum="1" Maximum="12"
+                                                   FormatString="0" MinHeight="40"
+                                                   IsEnabled="{Binding MayManage}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="4" Spacing="6" Width="150">
+                                    <TextBlock Text="Start from" Classes="faint" />
+                                    <NumericUpDown Value="{Binding StartFrom}" Minimum="1" Maximum="99999999"
+                                                   FormatString="0" MinHeight="40"
+                                                   IsEnabled="{Binding MayChangeStart}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <CheckBox Content="Show the prefix on screens and labels"
+                                      IsChecked="{Binding ShowPrefix}"
+                                      IsEnabled="{Binding MayManage}" />
+
+                            <!-- The shape of a number, as the boxes above stand.
+                                 Three fields decide what goes on every label and
+                                 into a statutory register; showing the result as
+                                 it is typed is the difference between getting it
+                                 right and printing five hundred labels to find
+                                 out. -->
+                            <Border Classes="card cool" Padding="16,13">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="A NUMBER WILL LOOK LIKE" Classes="label" />
+                                    <TextBlock Text="{Binding SampleNumber}" Classes="mono"
+                                               FontSize="19" />
+                                    <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                               Text="{Binding LockNote}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Grid ColumnDefinitions="Auto,*">
+                                <Button Grid.Column="0" Classes="primary" Content="Save the numbering"
+                                        MinHeight="42" MinWidth="180"
+                                        IsEnabled="{Binding MayManage}"
+                                        Command="{Binding SaveAccessionCommand}" />
+                                <StackPanel Grid.Column="1" Spacing="2" Margin="18,0,0,0"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="NEXT NUMBER TO BE GIVEN" Classes="label" />
+                                    <TextBlock Text="{Binding NextNumber}" Classes="mono" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ============================================== labels -->
+                    <Border Classes="card" Padding="22,20">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="Label stock" Classes="h2" />
+                                <TextBlock Classes="sub" TextWrapping="Wrap"
+                                           Text="Millimetres, measured off the sticker in the printer. Nothing here assumes a make of printer — a sheet of A4 stickers and a thermal roll are both just sizes." />
+                            </StackPanel>
+
+                            <Grid ColumnDefinitions="*,14,*,14,*,14,*">
+                                <StackPanel Grid.Column="0" Spacing="6">
+                                    <TextBlock Text="Pocket width" Classes="faint" />
+                                    <NumericUpDown Value="{Binding PocketWidth}" Minimum="5" Maximum="300"
+                                                   Increment="0.5" FormatString="0.##" MinHeight="40"
+                                                   IsEnabled="{Binding MayManage}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="6">
+                                    <TextBlock Text="Pocket height" Classes="faint" />
+                                    <NumericUpDown Value="{Binding PocketHeight}" Minimum="5" Maximum="300"
+                                                   Increment="0.5" FormatString="0.##" MinHeight="40"
+                                                   IsEnabled="{Binding MayManage}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="4" Spacing="6">
+                                    <TextBlock Text="Spine width" Classes="faint" />
+                                    <NumericUpDown Value="{Binding SpineWidth}" Minimum="5" Maximum="300"
+                                                   Increment="0.5" FormatString="0.##" MinHeight="40"
+                                                   IsEnabled="{Binding MayManage}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="6" Spacing="6">
+                                    <TextBlock Text="Spine height" Classes="faint" />
+                                    <NumericUpDown Value="{Binding SpineHeight}" Minimum="5" Maximum="300"
+                                                   Increment="0.5" FormatString="0.##" MinHeight="40"
+                                                   IsEnabled="{Binding MayManage}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="What goes on a pocket label" Classes="faint" />
+                                <ComboBox ItemsSource="{Binding Codes}"
+                                          SelectedItem="{Binding ChosenCode}"
+                                          MinHeight="40" HorizontalAlignment="Stretch"
+                                          IsEnabled="{Binding MayManage}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate DataType="vm:CodeChoice">
+                                            <TextBlock Text="{Binding Name}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <CheckBox Content="Print one label per page (a label printer) rather than a sheet"
+                                      IsChecked="{Binding OneLabelPerPage}"
+                                      IsEnabled="{Binding MayManage}" />
+
+                            <!-- The one thing about a thermal printer that
+                                 changes what every dimension means. The same
+                                 label sent to a 300 dpi printer as though it
+                                 were 203 comes out two thirds the size. -->
+                            <CheckBox Content="The thermal printer is a 300 dpi one (most are 203)"
+                                      IsChecked="{Binding FinePrinter}"
+                                      IsEnabled="{Binding MayManage}" />
+
+                            <Button Classes="primary" Content="Save the label sizes" MinHeight="42"
+                                    HorizontalAlignment="Left" MinWidth="180"
+                                    IsEnabled="{Binding MayManage}"
+                                    Command="{Binding SaveLabelsCommand}" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ============================================ feature flags -->
+            <Border Grid.Column="1" Classes="card" Padding="0" ClipToBounds="True">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <StackPanel Grid.Row="0" Spacing="4" Margin="22,20,22,14">
+                        <TextBlock Text="Which screens this library has" Classes="h2" />
+                        <TextBlock Classes="sub" TextWrapping="Wrap"
+                                   Text="Each is saved the moment you tick it." />
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Features}" Margin="22,0,22,14">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="vm:FeatureRow">
+                                    <StackPanel Spacing="2" Margin="0,7">
+                                        <CheckBox Content="{Binding Name}"
+                                                  IsChecked="{Binding On}"
+                                                  Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).ToggleFeatureCommand}"
+                                                  CommandParameter="{Binding}" />
+                                        <TextBlock Text="{Binding What}" Classes="faint" FontSize="11"
+                                                   TextWrapping="Wrap" Margin="30,0,0,0" />
+                                        <TextBlock Text="No screen for it yet." Classes="faint" FontSize="11"
+                                                   Margin="30,0,0,0"
+                                                   Foreground="{DynamicResource Bad}"
+                                                   IsVisible="{Binding Unavailable}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Said once, at the foot, rather than against each switch.
+                         It is the single most misunderstood thing about this
+                         screen: turning a feature off hides a screen and keeps
+                         every record it ever made. -->
+                    <Border Grid.Row="2" Classes="card cool" Margin="16" Padding="14,12">
+                        <TextBlock TextWrapping="Wrap" FontSize="11.5"
+                                   Text="Turning one off hides its screen. Nothing is deleted — every fine, hold and stock check it recorded stays where it is, and turning it back on shows them again." />
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

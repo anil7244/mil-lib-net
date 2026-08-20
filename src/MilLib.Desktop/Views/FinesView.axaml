@@ -1,0 +1,168 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:conv="using:MilLib.Desktop"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+             x:Class="MilLib.Desktop.Views.FinesView"
+             x:DataType="vm:FinesViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,14">
+            <StackPanel Grid.Column="0" Spacing="3">
+                <TextBlock Text="{Binding Outstanding}" Classes="h2" />
+                <TextBlock Classes="sub" TextWrapping="Wrap"
+                           Text="A record of what is owed, not a cash book. The library records a payment against a receipt issued elsewhere; it does not take money." />
+            </StackPanel>
+        </Grid>
+
+        <StackPanel Grid.Row="1" Spacing="12" Margin="0,0,0,14">
+
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                <TextBlock Grid.Column="0" Text="Showing" Classes="faint"
+                           VerticalAlignment="Center" Margin="0,0,10,0" />
+                <ComboBox Grid.Column="1" ItemsSource="{Binding States}" SelectedItem="{Binding Showing}"
+                          MinHeight="38" MinWidth="160">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Converter={x:Static conv:Spoken.Instance}}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBox Grid.Column="2" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"
+                         PlaceholderText="Search by member name or number"
+                         MinHeight="38" Margin="14,0,0,0" />
+                <TextBlock Grid.Column="3" Text="{Binding Tally}" Classes="faint"
+                           VerticalAlignment="Center" Margin="16,0,0,0" />
+            </Grid>
+
+            <Border Classes="card" Padding="14,11"
+                    IsVisible="{Binding HasSaid}"
+                    Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                <TextBlock Text="{Binding Said}" TextWrapping="Wrap"
+                           Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+            </Border>
+
+            <!-- Settling. Both ask for the one thing that makes the record worth
+                 having: a receipt number, or a reason. -->
+            <Border Classes="card" Padding="20,16" IsVisible="{Binding Settling}">
+                <StackPanel Spacing="12">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{Binding Chosen.Member}" FontWeight="SemiBold" FontSize="15" />
+                        <TextBlock Text="{Binding Chosen.About}" Classes="faint" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Chosen.Amount}" Classes="figure" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="8" IsVisible="{Binding Paying}">
+                        <TextBlock Text="RECEIPT NUMBER" Classes="label" />
+                        <TextBox Text="{Binding Receipt, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="The number on the receipt already issued"
+                                 MinHeight="40" HorizontalAlignment="Left" MinWidth="300">
+                            <TextBox.KeyBindings>
+                                <KeyBinding Gesture="Enter" Command="{Binding ConfirmPaymentCommand}" />
+                            </TextBox.KeyBindings>
+                        </TextBox>
+                        <StackPanel Orientation="Horizontal" Spacing="9">
+                            <Button Classes="primary" Content="Record the payment" MinHeight="40"
+                                    IsEnabled="{Binding !Busy}" Command="{Binding ConfirmPaymentCommand}" />
+                            <Button Content="Cancel" MinHeight="40" Command="{Binding StopCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Spacing="8" IsVisible="{Binding Waiving}">
+                        <TextBlock Text="WHY IT IS BEING WAIVED" Classes="label" />
+                        <TextBox Text="{Binding Reason, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="Goes on the record against your name"
+                                 MinHeight="40">
+                            <TextBox.KeyBindings>
+                                <KeyBinding Gesture="Enter" Command="{Binding ConfirmWaiverCommand}" />
+                            </TextBox.KeyBindings>
+                        </TextBox>
+                        <StackPanel Orientation="Horizontal" Spacing="9">
+                            <Button Classes="primary" Content="Waive it" MinHeight="40"
+                                    IsEnabled="{Binding !Busy}" Command="{Binding ConfirmWaiverCommand}" />
+                            <Button Content="Cancel" MinHeight="40" Command="{Binding StopCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <Border Grid.Row="2" Classes="card bad" IsVisible="{Binding HasProblem}"
+                VerticalAlignment="Top" Padding="18,14">
+            <TextBlock Text="{Binding Problem}" TextWrapping="Wrap"
+                       Foreground="{DynamicResource Bad}" />
+        </Border>
+
+        <Border Grid.Row="2" Classes="card" Padding="0" ClipToBounds="True"
+                IsVisible="{Binding !HasProblem}">
+            <Grid RowDefinitions="Auto,*">
+                <Border Grid.Row="0" Classes="tableHead">
+                    <Grid ColumnDefinitions="*,120,110,110,180" Margin="20,0">
+                        <TextBlock Grid.Column="0" Text="MEMBER" Classes="label" />
+                        <TextBlock Grid.Column="1" Text="FOR" Classes="label" />
+                        <TextBlock Grid.Column="2" Text="RAISED" Classes="label" />
+                        <TextBlock Grid.Column="3" Text="AMOUNT" Classes="label" />
+                        <TextBlock Grid.Column="4" Text="" Classes="label" />
+                    </Grid>
+                </Border>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <ItemsControl ItemsSource="{Binding Fines}" Classes="rows">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="vm:FineRow">
+                                    <Grid ColumnDefinitions="*,120,110,110,180" Margin="20,10">
+                                        <StackPanel Grid.Column="0" Spacing="3" Margin="0,0,12,0">
+                                            <TextBlock Text="{Binding Member}" FontWeight="Medium"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding About}" Classes="faint" FontSize="11"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding Settled}" Classes="faint" FontSize="11"
+                                                       IsVisible="{Binding IsSettled}" />
+                                        </StackPanel>
+
+                                        <!-- Only a loss or a damage is coloured.
+                                             An overdue charge is routine, and
+                                             colouring every row teaches the eye
+                                             to skip the column. -->
+                                        <TextBlock Grid.Column="1" Text="{Binding Kind}"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{Binding IsSerious, Converter={x:Static conv:Swatch.BadOrPlain}}" />
+
+                                        <TextBlock Grid.Column="2" Text="{Binding Raised}" Classes="faint"
+                                                   VerticalAlignment="Center" />
+
+                                        <TextBlock Grid.Column="3" Text="{Binding Amount}" Classes="mono"
+                                                   FontWeight="Medium" VerticalAlignment="Center" />
+
+                                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="8"
+                                                    VerticalAlignment="Center"
+                                                    IsVisible="{Binding Settleable}">
+                                            <Button Classes="quiet" Content="Paid"
+                                                    Command="{Binding $parent[ItemsControl].((vm:FinesViewModel)DataContext).PayCommand}"
+                                                    CommandParameter="{Binding}" />
+                                            <Button Classes="quiet" Content="Waive"
+                                                    Command="{Binding $parent[ItemsControl].((vm:FinesViewModel)DataContext).WaiveCommand}"
+                                                    CommandParameter="{Binding}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <StackPanel Margin="20,40" Spacing="8" IsVisible="{Binding Nothing}">
+                            <TextBlock Text="{Binding NothingSays}" Classes="h2"
+                                       HorizontalAlignment="Center" TextAlignment="Center" />
+                            <TextBlock Classes="faint" HorizontalAlignment="Center" TextWrapping="Wrap"
+                                       TextAlignment="Center"
+                                       Text="Overdue charges are worked out when a late book comes back." />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

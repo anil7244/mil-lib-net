@@ -1,0 +1,283 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:conv="using:MilLib.Desktop"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+             x:Class="MilLib.Desktop.Views.StockView"
+             x:DataType="vm:StockViewModel">
+
+    <Grid ColumnDefinitions="320,*">
+
+        <!-- ================================================== the counts ==== -->
+        <Grid Grid.Column="0" RowDefinitions="Auto,*" Margin="0,0,20,0">
+            <Button Grid.Row="0" Classes="primary withIcon" Content="Start a count"
+                    Tag="{StaticResource IconAdd}" MinHeight="42"
+                    HorizontalAlignment="Stretch" Margin="0,0,0,14"
+                    IsVisible="{Binding MayVerify}"
+                    Command="{Binding BeginCommand}" />
+
+            <Border Grid.Row="1" Classes="card" Padding="0" ClipToBounds="True">
+                <ListBox Classes="table"
+                         ItemsSource="{Binding Checks}"
+                         SelectedItem="{Binding Selected}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="vm:CheckRow">
+                            <StackPanel Spacing="3" Margin="18,11">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{Binding Name}" FontWeight="Medium"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <Border Classes="pill good" VerticalAlignment="Center"
+                                            IsVisible="{Binding IsOpen}">
+                                        <TextBlock Text="Open" />
+                                    </Border>
+                                    <Border Classes="pill bad" VerticalAlignment="Center"
+                                            IsVisible="{Binding HasShortage}">
+                                        <TextBlock Text="Shortage" />
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="{Binding When}" Classes="faint" FontSize="11" />
+                                <TextBlock Text="{Binding Outcome}" Classes="faint" FontSize="11" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+        </Grid>
+
+        <!-- ================================================== the working ==== -->
+        <Grid Grid.Column="1" RowDefinitions="Auto,*">
+
+            <StackPanel Grid.Row="0" Spacing="12" Margin="0,0,0,14">
+
+                <Border Classes="card" Padding="14,11"
+                        IsVisible="{Binding HasSaid}"
+                        Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                    <TextBlock Text="{Binding Said}" TextWrapping="Wrap"
+                               Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+                </Border>
+
+                <!-- Naming a new count. It is what the board minute refers to
+                     afterwards, so it is asked for rather than generated. -->
+                <Border Classes="card" Padding="20,16" IsVisible="{Binding Starting}">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="A NEW COUNT" Classes="label"
+                                   Foreground="{DynamicResource Accent}" />
+                        <TextBox Text="{Binding NewName, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="What this count is called"
+                                 MinHeight="42" FontSize="14" />
+                        <TextBlock Classes="faint" TextWrapping="Wrap"
+                                   Text="Every scan is written down as it is made, so a count can run over several days. The library can keep lending while it does — a book issued during the count is not counted as missing." />
+                        <StackPanel Orientation="Horizontal" Spacing="9">
+                            <Button Classes="primary" Content="Start counting" MinHeight="42"
+                                    IsEnabled="{Binding !Busy}" Command="{Binding StartCommand}" />
+                            <Button Content="Cancel" MinHeight="42" Command="{Binding NeverCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <Border Grid.Row="1" Classes="card bad" IsVisible="{Binding HasProblem}"
+                    VerticalAlignment="Top" Padding="18,14">
+                <TextBlock Text="{Binding Problem}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource Bad}" />
+            </Border>
+
+            <!-- ============================================== scanning ==== -->
+            <Grid Grid.Row="1" RowDefinitions="Auto,Auto,*" IsVisible="{Binding IsOpen}">
+
+                <Border Grid.Row="0" Classes="card" Padding="20" Margin="0,0,0,14">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Path Grid.Column="0" Classes="icon big"
+                              Data="{StaticResource IconBarcode}"
+                              Stroke="{DynamicResource Accent}" Margin="2,0,16,0" />
+                        <TextBox Grid.Column="1" Name="ScanBox"
+                                 Text="{Binding Scanned, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="Scan a book off the shelf"
+                                 FontSize="19" MinHeight="52" Padding="16,12">
+                            <TextBox.KeyBindings>
+                                <KeyBinding Gesture="Enter" Command="{Binding ScanCommand}" />
+                            </TextBox.KeyBindings>
+                        </TextBox>
+                    </Grid>
+                </Border>
+
+                <!-- The running figures, large. Somebody at a shelf with a
+                     scanner in one hand reads these across the room. -->
+                <Border Grid.Row="1" Classes="card" Padding="20,16" Margin="0,0,0,14">
+                    <StackPanel Spacing="12">
+                        <Grid ColumnDefinitions="*,*,*,*">
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Text="FOUND" Classes="label" />
+                                <TextBlock Text="{Binding Found}" Classes="figure" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="EXPECTED" Classes="label" />
+                                <TextBlock Text="{Binding Expected}" Classes="figure" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="2">
+                                <TextBlock Text="NOT IN REGISTER" Classes="label" />
+                                <TextBlock Text="{Binding Strangers}" Classes="figure"
+                                           Foreground="{DynamicResource Warn}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="3" Spacing="2">
+                                <TextBlock Text="SCANNED TWICE" Classes="label" />
+                                <TextBlock Text="{Binding Twice}" Classes="figure" Classes.faint="True" />
+                            </StackPanel>
+                        </Grid>
+
+                        <ProgressBar Value="{Binding Progress}" Maximum="1" Height="6" />
+
+                        <TextBlock Text="{Binding Outstanding}" Classes="faint" />
+
+                        <Border Classes="card" Padding="14,11"
+                                IsVisible="{Binding LastScan, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                Background="{Binding LastWasGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                            <TextBlock Text="{Binding LastScan}" TextWrapping="Wrap"
+                                       Foreground="{Binding LastWasGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+                        </Border>
+
+                        <StackPanel Orientation="Horizontal" Spacing="9" IsVisible="{Binding !Closing}">
+                            <Button Classes="primary" Content="Close the count" MinHeight="40"
+                                    Command="{Binding AskToCloseCommand}" />
+                            <Button Content="Abandon it" MinHeight="40"
+                                    Command="{Binding AbandonCommand}" />
+                        </StackPanel>
+
+                        <!-- Closing asks for the board reference first, because
+                             it is the one thing that cannot be added afterwards
+                             without reopening a closed count. -->
+                        <StackPanel Spacing="10" IsVisible="{Binding Closing}">
+                            <Rectangle Height="1" Fill="{DynamicResource Line}" />
+                            <TextBlock Text="BOARD REFERENCE" Classes="label" />
+                            <TextBox Text="{Binding BoardReference, UpdateSourceTrigger=PropertyChanged}"
+                                     PlaceholderText="The authority this count was held under — optional"
+                                     MinHeight="40" />
+                            <TextBlock Classes="faint" TextWrapping="Wrap"
+                                       Text="Closing reconciles what was scanned against the register as it stands now, and freezes the figures. It writes nothing off — that is the board's decision, through the withdrawal register." />
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                <Button Classes="primary" Content="Close it" MinHeight="40"
+                                        IsEnabled="{Binding !Busy}" Command="{Binding CloseCommand}" />
+                                <Button Content="Keep counting" MinHeight="40"
+                                        Command="{Binding KeepGoingCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="2" Classes="card" Padding="0" ClipToBounds="True">
+                    <Grid RowDefinitions="Auto,*">
+                        <Border Grid.Row="0" Classes="tableHead">
+                            <TextBlock Text="THE LAST FEW SCANS" Classes="label" Margin="20,0" />
+                        </Border>
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding Recent}" Classes="rows">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="vm:ScanRow">
+                                        <Grid ColumnDefinitions="*,150,60" Margin="20,9">
+                                            <TextBlock Grid.Column="0" Text="{Binding What}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Margin="0,0,12,0" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Verdict}"
+                                                       Foreground="{Binding WasFound, Converter={x:Static conv:Swatch.PlainOrBad}}" />
+                                            <TextBlock Grid.Column="2" Text="{Binding At}"
+                                                       Classes="mono faint" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ============================================== the outcome ==== -->
+            <Grid Grid.Row="1" RowDefinitions="Auto,*" IsVisible="{Binding IsFinished}">
+
+                <Border Grid.Row="0" Classes="card" Padding="20,16" Margin="0,0,0,14">
+                    <StackPanel Spacing="12">
+                        <Grid ColumnDefinitions="*,*,*,Auto">
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Text="EXPECTED" Classes="label" />
+                                <TextBlock Text="{Binding Expected}" Classes="figure" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="FOUND" Classes="label" />
+                                <TextBlock Text="{Binding Found}" Classes="figure" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="2">
+                                <TextBlock Text="NOT FOUND" Classes="label" />
+                                <TextBlock Text="{Binding MissingCount}" Classes="figure"
+                                           Foreground="{DynamicResource Bad}" />
+                            </StackPanel>
+                            <Button Grid.Column="3" Classes="primary withIcon"
+                                    Content="Shortage statement"
+                                    Tag="{StaticResource IconPrint}" MinHeight="42"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ShortageCommand}" />
+                        </Grid>
+
+                        <TextBlock Text="{Binding Verdict}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" Classes="card" Padding="0" ClipToBounds="True">
+                    <Grid RowDefinitions="Auto,*">
+                        <Border Grid.Row="0" Classes="tableHead">
+                            <Grid ColumnDefinitions="150,*,130,100" Margin="20,0">
+                                <TextBlock Grid.Column="0" Text="ACCESSION NO" Classes="label" />
+                                <TextBlock Grid.Column="1" Text="TITLE" Classes="label" />
+                                <TextBlock Grid.Column="2" Text="REGISTER SAYS" Classes="label" />
+                                <TextBlock Grid.Column="3" Text="COST" Classes="label" />
+                            </Grid>
+                        </Border>
+
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <ItemsControl ItemsSource="{Binding Missing}" Classes="rows">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="vm:MissingRow">
+                                            <Grid ColumnDefinitions="150,*,130,100" Margin="20,9">
+                                                <TextBlock Grid.Column="0" Text="{Binding Accession}" Classes="mono" />
+                                                <TextBlock Grid.Column="1" Text="{Binding Title}"
+                                                           TextTrimming="CharacterEllipsis" Margin="0,0,12,0" />
+                                                <TextBlock Grid.Column="2" Text="{Binding State}" Classes="faint" />
+                                                <TextBlock Grid.Column="3" Text="{Binding CostText}" Classes="mono" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <StackPanel Margin="20,26" Spacing="8" IsVisible="{Binding NothingMissing}">
+                                    <TextBlock Text="Everything was found" Classes="h2"
+                                               HorizontalAlignment="Center" />
+                                    <TextBlock Classes="faint" HorizontalAlignment="Center"
+                                               Text="Every copy the register expected on the shelf was on the shelf." />
+                                </StackPanel>
+
+                                <!-- Books on the shelf the register has never
+                                     heard of. A different problem from a book
+                                     the register knows and cannot find. -->
+                                <StackPanel Margin="20,18" Spacing="8" IsVisible="{Binding HasStrays}">
+                                    <Rectangle Height="1" Fill="{DynamicResource Line}" />
+                                    <TextBlock Text="ON THE SHELF BUT NOT IN THE REGISTER" Classes="label"
+                                               Foreground="{DynamicResource Warn}" />
+                                    <ItemsControl ItemsSource="{Binding Strays}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" Classes="mono" Margin="0,3" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

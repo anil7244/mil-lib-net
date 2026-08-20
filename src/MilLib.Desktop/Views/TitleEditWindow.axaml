@@ -1,0 +1,358 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MilLib.Desktop.ViewModels"
+        xmlns:local="using:MilLib.Desktop.Views"
+        xmlns:conv="using:MilLib.Desktop"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="820"
+        x:Class="MilLib.Desktop.Views.TitleEditWindow"
+        x:DataType="vm:TitleEditViewModel"
+        Icon="/Assets/library.ico"
+        Title="Catalogue a book"
+        Width="920" Height="840"
+        MinWidth="820" MinHeight="620"
+        Background="{DynamicResource Backdrop}"
+        WindowStartupLocation="CenterOwner">
+
+    <Panel>
+        <local:Backdrop />
+
+        <Grid RowDefinitions="Auto,*,Auto">
+
+            <Border Grid.Row="0"
+                    Background="{DynamicResource GlassSunken}"
+                    BorderBrush="{DynamicResource GlassEdge}"
+                    BorderThickness="0,0,0,1"
+                    Padding="26,18">
+                <StackPanel Spacing="3">
+                    <TextBlock Text="CATALOGUE" Classes="label" Foreground="{DynamicResource Accent}" />
+                    <TextBlock Text="{Binding Heading}" Classes="h2" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="26,22,26,22" Spacing="20">
+
+                    <Border Classes="card" Padding="16,13"
+                            IsVisible="{Binding HasProblems}"
+                            Background="{DynamicResource BadSoft}"
+                            BorderBrush="{DynamicResource Bad}">
+                        <ItemsControl ItemsSource="{Binding Problems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2"
+                                               Foreground="{DynamicResource Bad}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
+
+                    <!-- ===================================== the title page -->
+                    <Grid ColumnDefinitions="*,20,168">
+                        <StackPanel Grid.Column="0" Spacing="12">
+                            <TextBlock Text="THE TITLE PAGE" Classes="label" />
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Title" Classes="faint" />
+                                <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="42" FontSize="15" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Subtitle" Classes="faint" />
+                                <TextBox Text="{Binding Subtitle, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="40" />
+                            </StackPanel>
+
+                            <Grid ColumnDefinitions="1.7*,14,*">
+                                <StackPanel Grid.Column="0" Spacing="6">
+                                    <TextBlock Text="Statement of responsibility" Classes="faint" />
+                                    <TextBox Text="{Binding StatementOfResp, UpdateSourceTrigger=PropertyChanged}"
+                                             MinHeight="40" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="6">
+                                    <TextBlock Text="Edition" Classes="faint" />
+                                    <TextBox Text="{Binding Edition, UpdateSourceTrigger=PropertyChanged}"
+                                             MinHeight="40" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- The cover, beside the title rather than under
+                             everything: it is the fastest way to confirm this
+                             is the book in your hand. -->
+                        <StackPanel Grid.Column="2" Spacing="8">
+                            <TextBlock Text="COVER" Classes="label" />
+
+                            <Border Height="196" CornerRadius="6"
+                                    Background="{DynamicResource Glass}"
+                                    BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                <Panel>
+                                    <TextBlock Text="No cover" Classes="faint"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}" />
+                                    <Image Source="{Binding Cover}" Margin="8" Stretch="Uniform" />
+                                </Panel>
+                            </Border>
+
+                            <Button Content="Choose…" HorizontalAlignment="Stretch" MinHeight="34"
+                                    Command="{Binding ChooseCoverCommand}" />
+                            <Button Content="Remove" Classes="quiet" HorizontalAlignment="Stretch"
+                                    MinHeight="30"
+                                    Command="{Binding RemoveCoverCommand}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="{Binding CoverNote}" Classes="faint" FontSize="11"
+                               TextWrapping="Wrap" HorizontalAlignment="Right" />
+
+                    <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                    <!-- ========================================= the people -->
+                    <StackPanel Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="WHO WROTE IT" Classes="label"
+                                       VerticalAlignment="Center" />
+                            <Button Grid.Column="1" Content="Another person" Classes="quiet"
+                                    MinHeight="32" Command="{Binding AddAuthorCommand}" />
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding Authors}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="vm:AuthorRow">
+                                    <Grid ColumnDefinitions="120,10,*,10,150,10,Auto" Margin="0,4">
+                                        <TextBox Grid.Column="0" MinHeight="38"
+                                                 PlaceholderText="Rank"
+                                                 Text="{Binding Rank, UpdateSourceTrigger=PropertyChanged}" />
+
+                                        <TextBox Grid.Column="2" MinHeight="38"
+                                                 PlaceholderText="Name, as it is printed on the book"
+                                                 Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+
+                                        <ComboBox Grid.Column="4" MinHeight="38"
+                                                  HorizontalAlignment="Stretch"
+                                                  ItemsSource="{Binding Roles}"
+                                                  SelectedItem="{Binding Role}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={x:Static conv:Spoken.Instance}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+
+                                        <Button Grid.Column="6" Content="Remove" Classes="quiet"
+                                                MinHeight="38"
+                                                Command="{Binding $parent[ItemsControl].((vm:TitleEditViewModel)DataContext).RemoveAuthorCommand}"
+                                                CommandParameter="{Binding}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                   Text="In the order they are printed on the title page. The first is how the book is cited and how it sorts on a shelf list. A name that is new to this catalogue is added to it." />
+                    </StackPanel>
+
+                    <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                    <!-- ======================================== the imprint -->
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="WHO PUBLISHED IT, AND WHEN" Classes="label" />
+
+                        <Grid ColumnDefinitions="1.6*,14,*,14,110">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="Publisher" Classes="faint" />
+                                <AutoCompleteBox MinHeight="40"
+                                                 FilterMode="ContainsOrdinal"
+                                                 ItemsSource="{Binding KnownPublishers}"
+                                                 Text="{Binding Publisher, Mode=TwoWay}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="6">
+                                <TextBlock Text="Place" Classes="faint" />
+                                <TextBox Text="{Binding PubPlace, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="40" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="4" Spacing="6">
+                                <TextBlock Text="Year" Classes="faint" />
+                                <TextBox Text="{Binding PubYear, UpdateSourceTrigger=PropertyChanged}"
+                                         Classes="mono" MinHeight="40" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,14,*,14,*">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="ISBN" Classes="faint" />
+                                <TextBox Text="{Binding Isbn, UpdateSourceTrigger=PropertyChanged}"
+                                         Classes="mono" MinHeight="40" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="6">
+                                <TextBlock Text="Extent" Classes="faint" />
+                                <TextBox Text="{Binding Pages, UpdateSourceTrigger=PropertyChanged}"
+                                         PlaceholderText="xii, 340 p. : ill." MinHeight="40" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="4" Spacing="6">
+                                <TextBlock Text="Language" Classes="faint" />
+                                <AutoCompleteBox MinHeight="40"
+                                                 FilterMode="StartsWithOrdinal"
+                                                 ItemsSource="{Binding KnownLanguages}"
+                                                 Text="{Binding Language, Mode=TwoWay}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- The record read back as a catalogue card. Half a
+                             dozen boxes are far easier to check as one line
+                             than as half a dozen boxes. -->
+                        <Border Classes="card cool" Padding="14,12">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="AS A CATALOGUE CARD" Classes="label" />
+                                <TextBlock Text="{Binding AsACard}" TextWrapping="Wrap" FontSize="12.5" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                    <!-- =================================== where it stands -->
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="WHERE IT STANDS" Classes="label" />
+
+                        <Grid ColumnDefinitions="*,14,170,14,*">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="Classification number" Classes="faint" />
+                                <TextBox Text="{Binding ClassificationNo, UpdateSourceTrigger=PropertyChanged}"
+                                         Classes="mono" MinHeight="40" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="6">
+                                <TextBlock Text="Scheme" Classes="faint" />
+                                <ComboBox ItemsSource="{Binding Schemes}" SelectedItem="{Binding Scheme}"
+                                          MinHeight="40" HorizontalAlignment="Stretch">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Converter={x:Static conv:Spoken.Instance}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Grid.Column="4" Spacing="6">
+                                <TextBlock Text="Call number" Classes="faint" />
+                                <TextBox Text="{Binding CallNumber, UpdateSourceTrigger=PropertyChanged}"
+                                         Classes="mono" MinHeight="40" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,14,*">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="Kind of material" Classes="faint" />
+                                <ComboBox ItemsSource="{Binding Materials}" SelectedItem="{Binding Material}"
+                                          MinHeight="40" HorizontalAlignment="Stretch">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Converter={x:Static conv:Spoken.Instance}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="6">
+                                <TextBlock Text="Classification" Classes="faint" />
+                                <!-- Only up to the cataloguer's own clearance.
+                                     Marking a book Secret from an unclassified
+                                     account would make a record its author is
+                                     then refused sight of. -->
+                                <ComboBox ItemsSource="{Binding MayClassifyAs}" SelectedItem="{Binding Clearance}"
+                                          MinHeight="40" HorizontalAlignment="Stretch">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Converter={x:Static conv:Spoken.Instance}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                        </Grid>
+
+                        <CheckBox Content="Published by this unit" IsChecked="{Binding IsUnitPublication}" />
+                    </StackPanel>
+
+                    <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                    <!-- ==================================== what it is about -->
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="WHAT IT IS ABOUT" Classes="label" />
+
+                        <Border Classes="card" Padding="14,10" MaxHeight="180"
+                                IsVisible="{Binding HasSubjects}">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding Subjects}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="vm:SubjectRow">
+                                            <CheckBox Content="{Binding Name}" IsChecked="{Binding Chosen}"
+                                                      Margin="{Binding Inset}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+
+                        <!-- This library's catalogue came from a stock ledger,
+                             which carried no subject headings at all. An empty
+                             box with nothing said about it reads as a fault. -->
+                        <Border Classes="card cool" Padding="14,11"
+                                IsVisible="{Binding !HasSubjects}">
+                            <TextBlock TextWrapping="Wrap" FontSize="12"
+                                       Text="No subject headings have been set up yet, so there is nothing to tick. Use the free-text line below in the meantime — it is on the record either way." />
+                        </Border>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Subject headings" Classes="faint" />
+                            <TextBox Text="{Binding SubjectHeadings, UpdateSourceTrigger=PropertyChanged}"
+                                     PlaceholderText="Free text, as the book itself puts it" MinHeight="40" />
+                        </StackPanel>
+
+                        <Grid ColumnDefinitions="*,14,190">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="Amendment number" Classes="faint" />
+                                <TextBox Text="{Binding AmendmentNo, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="40" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="6">
+                                <TextBlock Text="Amended on" Classes="faint" />
+                                <CalendarDatePicker SelectedDate="{Binding AmendmentDate}"
+                                                    MinHeight="40" HorizontalAlignment="Stretch" />
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Notes" Classes="faint" />
+                            <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True" MinHeight="76" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Said once, at the foot. It is the thing about this form
+                         most likely to be misunderstood: a title is a
+                         description, and no book exists on any shelf until
+                         copies of it are accessioned. -->
+                    <Border Classes="card cool" Padding="14,12" IsVisible="{Binding IsNew}">
+                        <TextBlock TextWrapping="Wrap" FontSize="12"
+                                   Text="Saving this catalogues the work. It puts nothing on the accession register and creates no copies — do that on the book's own screen, where each physical copy gets its own number." />
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Border Grid.Row="2"
+                    Background="{DynamicResource GlassSunken}"
+                    BorderBrush="{DynamicResource GlassEdge}"
+                    BorderThickness="0,1,0,0"
+                    Padding="26,16">
+                <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                    <Button Content="Cancel" MinHeight="42" MinWidth="110"
+                            Command="{Binding CancelCommand}" />
+                    <Button Classes="primary" Content="Save" MinHeight="42" MinWidth="150"
+                            IsDefault="True"
+                            IsEnabled="{Binding !Busy}"
+                            Command="{Binding SaveCommand}" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Panel>
+</Window>

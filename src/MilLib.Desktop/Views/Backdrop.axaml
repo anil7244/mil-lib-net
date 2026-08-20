@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MilLib.Desktop.Views.Backdrop"
+             IsHitTestVisible="False"
+             ClipToBounds="True">
+
+    <!--
+        What the glass has to sit on.
+
+        Glass is not a colour, it is a relationship: a translucent surface is
+        only convincing when there is something varied behind it to show
+        through. A flat fill behind a translucent panel just produces a
+        slightly lighter flat fill, which is why so much of this style looks
+        cheap when it is applied to a plain background.
+
+        So: a graded ground, then two soft washes of colour placed where they
+        will be seen at the edges and never behind the figures. Nothing here
+        takes a click - the whole control is transparent to the mouse.
+    -->
+
+    <Panel>
+        <Border Background="{DynamicResource Backdrop}" />
+
+        <!-- Oversized and pushed past the corners, so what shows is the soft
+             middle of each wash rather than a circle with an edge to it. -->
+        <Border Background="{DynamicResource BloomWarm}"
+                Width="900" Height="900"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="0,-520,-430,0" />
+
+        <Border Background="{DynamicResource BloomCool}"
+                Width="1400" Height="1400"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Bottom"
+                Margin="-520,0,0,-680" />
+    </Panel>
+</UserControl>

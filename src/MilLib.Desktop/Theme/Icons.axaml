@@ -1,0 +1,89 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        The icons, drawn rather than fetched.
+
+        Every one is a centreline on a 24x24 field, stroked at a single weight
+        with round caps. That is what makes a set look like a set: not the
+        drawings themselves but the fact that no line is thicker, no corner
+        sharper and no shape larger than its neighbours.
+
+        They are geometry, not images and not a font — so there is no file to
+        ship, nothing to load at startup, and they stay sharp at any size and
+        take the colour of whatever they sit on.
+    -->
+
+    <!-- ==================================================== navigation == -->
+
+    <!-- Home: four panels, the shape of a summary screen -->
+    <StreamGeometry x:Key="IconDashboard">M4,4 H10 V11 H4 Z M14,4 H20 V8 H14 Z M14,12 H20 V20 H14 Z M4,15 H10 V20 H4 Z</StreamGeometry>
+
+    <!-- Books in library: three volumes standing on a shelf, one leaning -->
+    <StreamGeometry x:Key="IconBooks">M4,5 H7 V20 H4 Z M9,5 H12 V20 H9 Z M14.2,5.8 L17.1,5.1 L20.4,19.2 L17.5,19.9 Z</StreamGeometry>
+
+    <!-- Copies: one open book, the physical object rather than the work -->
+    <StreamGeometry x:Key="IconCopy">M12,6.5 C10.3,5.2 8.2,4.7 5,4.7 V17.7 C8.2,17.7 10.3,18.2 12,19.5 C13.7,18.2 15.8,17.7 19,17.7 V4.7 C15.8,4.7 13.7,5.2 12,6.5 Z M12,6.5 V19.5</StreamGeometry>
+
+    <!-- Issue and return: a book passing across a counter, both ways -->
+    <StreamGeometry x:Key="IconCirculation">M3,8.5 H15 M11.5,5 L15,8.5 L11.5,12 M21,15.5 H9 M12.5,12 L9,15.5 L12.5,19</StreamGeometry>
+
+    <!-- Members: a person, and a second behind -->
+    <StreamGeometry x:Key="IconMembers">M9.5,11.5 A3.3,3.3 0 1,0 9.5,4.9 A3.3,3.3 0 1,0 9.5,11.5 M3.2,20 C3.2,16.5 6,14.2 9.5,14.2 C13,14.2 15.8,16.5 15.8,20 M16.4,5.2 A3.1,3.1 0 0,1 16.4,11.2 M18,14.6 C19.9,15.4 21,17.4 21,20</StreamGeometry>
+
+    <!-- Reservations: a bookmark, a thing held for somebody -->
+    <StreamGeometry x:Key="IconReservations">M7,3.5 H17 V21 L12,16.8 L7,21 Z</StreamGeometry>
+
+    <!-- Lending rules: a balance. What one kind of member may have, weighed
+         against what another may — and the only screen in the application
+         where a number is a policy rather than a fact. -->
+    <StreamGeometry x:Key="IconRules">M12,4.4 V20.4 M7.6,20.4 H16.4 M4.4,7.6 H19.6 M12,4.4 A1,1 0 1,0 12,4.41 M6.6,7.8 L3.4,14.2 H9.8 Z M17.4,7.8 L14.2,14.2 H20.6 Z</StreamGeometry>
+
+    <!-- Fines: a coin with a rupee stroke -->
+    <StreamGeometry x:Key="IconFines">M12,3.4 A8.6,8.6 0 1,0 12,20.6 A8.6,8.6 0 1,0 12,3.4 M9,8 H15 M9,11 H15 M13.4,8 C13.4,11 11.6,12.2 9.4,12.2 L15,17</StreamGeometry>
+
+    <!-- Stock check: a clipboard with a tick -->
+    <StreamGeometry x:Key="IconStock">M9,4.2 H15 V6.6 H9 Z M9,5.4 H6.6 A1.6,1.6 0 0,0 5,7 V19.4 A1.6,1.6 0 0,0 6.6,21 H17.4 A1.6,1.6 0 0,0 19,19.4 V7 A1.6,1.6 0 0,0 17.4,5.4 H15 M8.8,13.6 L11.2,16 L15.6,10.6</StreamGeometry>
+
+    <!-- Withdrawals: a book with a line struck through it -->
+    <StreamGeometry x:Key="IconWithdrawal">M5,4.6 H16.4 A1.6,1.6 0 0,1 18,6.2 V19.4 A1.6,1.6 0 0,1 16.4,21 H5 A1.6,1.6 0 0,1 5,17.8 H18 M5,4.6 V17.8 M8.2,9.4 H14.8</StreamGeometry>
+
+    <!-- Register: the accession ledger, ruled and numbered -->
+    <StreamGeometry x:Key="IconRegister">M5,3.6 H19 V20.4 H5 Z M9,3.6 V20.4 M12,8 H16.4 M12,12 H16.4 M12,16 H16.4</StreamGeometry>
+
+    <!-- Reports: bars, because that is what a report of numbers looks like -->
+    <StreamGeometry x:Key="IconReports">M4,20 H20 M7.4,20 V13 M12,20 V6.6 M16.6,20 V10</StreamGeometry>
+
+    <!-- Labels: a tag with its eyelet -->
+    <StreamGeometry x:Key="IconLabels">M11.2,3.6 H19.2 A1.2,1.2 0 0,1 20.4,4.8 V12.8 L11.6,21.6 A1.2,1.2 0 0,1 9.9,21.6 L2.4,14.1 A1.2,1.2 0 0,1 2.4,12.4 Z M16.2,8.4 H16.21</StreamGeometry>
+
+    <!-- Activity: a pulse, newest at the right -->
+    <StreamGeometry x:Key="IconActivity">M3,12.6 H7.2 L9.6,6.4 L13.2,17.6 L15.6,12.6 H21</StreamGeometry>
+
+    <!-- Users: a person with a key beside them -->
+    <StreamGeometry x:Key="IconUsers">M10,11.6 A3.4,3.4 0 1,0 10,4.8 A3.4,3.4 0 1,0 10,11.6 M3.6,20.4 C3.6,16.7 6.4,14.4 10,14.4 C11.5,14.4 12.9,14.8 14,15.5 M17.6,14 A2,2 0 1,0 17.6,18 A2,2 0 1,0 17.6,14 M19.4,15.2 L22.4,12.2 M20.6,13.9 L21.8,15.1</StreamGeometry>
+
+    <!-- Settings: a slider bank, not a cog. Settings are things set to a
+         value, and a cog says machinery. -->
+    <StreamGeometry x:Key="IconSettings">M5,7 H19 M5,12 H19 M5,17 H19 M9.4,7 A1.7,1.7 0 1,0 9.4,7.01 M15,12 A1.7,1.7 0 1,0 15,12.01 M8,17 A1.7,1.7 0 1,0 8,17.01</StreamGeometry>
+
+    <!-- The records themselves: a stack of discs -->
+    <StreamGeometry x:Key="IconDatabase">M12,3.6 C16,3.6 19.2,4.8 19.2,6.4 C19.2,8 16,9.2 12,9.2 C8,9.2 4.8,8 4.8,6.4 C4.8,4.8 8,3.6 12,3.6 Z M4.8,6.4 V17.6 C4.8,19.2 8,20.4 12,20.4 C16,20.4 19.2,19.2 19.2,17.6 V6.4 M4.8,12 C4.8,13.6 8,14.8 12,14.8 C16,14.8 19.2,13.6 19.2,12</StreamGeometry>
+
+    <!-- Licence: a shield, because a licence is a permission that is checked -->
+    <StreamGeometry x:Key="IconLicence">M12,3 L20,6 V11.5 C20,16.2 16.6,19.8 12,21.2 C7.4,19.8 4,16.2 4,11.5 V6 Z M8.8,12 L11,14.2 L15.4,9.8</StreamGeometry>
+
+    <!-- ======================================================= actions == -->
+
+    <StreamGeometry x:Key="IconSearch">M11,4.4 A6.6,6.6 0 1,0 11,17.6 A6.6,6.6 0 1,0 11,4.4 M15.8,15.8 L20.4,20.4</StreamGeometry>
+    <StreamGeometry x:Key="IconAdd">M12,5 V19 M5,12 H19</StreamGeometry>
+    <StreamGeometry x:Key="IconEdit">M16.5,3.9 L20.1,7.5 L8.4,19.2 L4,20 L4.8,15.6 Z M14.7,5.7 L18.3,9.3</StreamGeometry>
+    <StreamGeometry x:Key="IconSignIn">M14,4 H18.4 A1.6,1.6 0 0,1 20,5.6 V18.4 A1.6,1.6 0 0,1 18.4,20 H14 M10.4,15.6 L14,12 L10.4,8.4 M14,12 H3.6</StreamGeometry>
+    <StreamGeometry x:Key="IconSignOut">M10,4 H5.6 A1.6,1.6 0 0,0 4,5.6 V18.4 A1.6,1.6 0 0,0 5.6,20 H10 M16.4,15.6 L20,12 L16.4,8.4 M20,12 H9.6</StreamGeometry>
+    <StreamGeometry x:Key="IconMenu">M4,7 H20 M4,12 H20 M4,17 H20</StreamGeometry>
+    <StreamGeometry x:Key="IconBarcode">M4,5 V19 M7,5 V19 M10,5 V15 M13,5 V19 M16.5,5 V15 M20,5 V19</StreamGeometry>
+    <StreamGeometry x:Key="IconPrint">M7,9 V4 H17 V9 M7,17 H5.4 A1.4,1.4 0 0,1 4,15.6 V10.4 A1.4,1.4 0 0,1 5.4,9 H18.6 A1.4,1.4 0 0,1 20,10.4 V15.6 A1.4,1.4 0 0,1 18.6,17 H17 M7,14 H17 V20 H7 Z</StreamGeometry>
+    <StreamGeometry x:Key="IconOverdue">M12,4 A8,8 0 1,0 12,20 A8,8 0 1,0 12,4 M12,7.6 V12 L15,14</StreamGeometry>
+    <StreamGeometry x:Key="IconWarning">M12,4 L21,19.4 H3 Z M12,10 V14.2 M12,16.8 H12.01</StreamGeometry>
+
+</ResourceDictionary>

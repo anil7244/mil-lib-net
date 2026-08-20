@@ -1,0 +1,226 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:conv="using:MilLib.Desktop"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+             x:Class="MilLib.Desktop.Views.LendingRulesView"
+             x:DataType="vm:LendingRulesViewModel">
+
+    <Grid ColumnDefinitions="*,460">
+
+        <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*" Margin="0,0,20,0">
+
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+                <StackPanel Grid.Column="0" Spacing="3">
+                    <TextBlock Text="What each kind of member may borrow" Classes="h2" />
+                    <TextBlock Classes="sub" TextWrapping="Wrap"
+                               Text="Every loan period, borrowing limit and fine rate the library uses is on this screen. Nothing about lending is fixed in the software." />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                            VerticalAlignment="Top" Margin="14,0,0,0">
+                    <Button Classes="primary withIcon" Content="New category"
+                            Tag="{StaticResource IconAdd}" MinHeight="42"
+                            IsVisible="{Binding MayManage}"
+                            Command="{Binding AddCommand}" />
+                </StackPanel>
+            </Grid>
+
+            <Border Grid.Row="1" Classes="card" Margin="0,0,0,14" Padding="16,12"
+                    IsVisible="{Binding HasSaid}"
+                    Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                <TextBlock Text="{Binding Said}" TextWrapping="Wrap"
+                           Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+            </Border>
+
+            <Border Grid.Row="2" Classes="card bad" IsVisible="{Binding HasProblem}"
+                    VerticalAlignment="Top" Padding="18,14">
+                <TextBlock Text="{Binding Problem}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource Bad}" />
+            </Border>
+
+            <Border Grid.Row="2" Classes="card" Padding="0" ClipToBounds="True"
+                    IsVisible="{Binding !HasProblem}">
+                <Grid RowDefinitions="Auto,*">
+                    <Border Grid.Row="0" Classes="tableHead">
+                        <!-- Three columns. With four, the category name — the
+                             one thing anybody reads — was squeezed to nothing
+                             and ran into the allowance beside it. How many
+                             members it governs sits under the name instead. -->
+                        <Grid ColumnDefinitions="*,150,110" Margin="20,0">
+                            <TextBlock Grid.Column="0" Text="CATEGORY" Classes="label" />
+                            <TextBlock Grid.Column="1" Text="ALLOWANCE" Classes="label" />
+                            <TextBlock Grid.Column="2" Text="LATE FEE" Classes="label" />
+                        </Grid>
+                    </Border>
+
+                    <ListBox Grid.Row="1" Classes="table"
+                             ItemsSource="{Binding Rules}"
+                             SelectedItem="{Binding Selected}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:RuleRow">
+                                <Grid ColumnDefinitions="*,150,110" Margin="20,11">
+                                    <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,14,0">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="{Binding Name}" FontWeight="Medium"
+                                                       VerticalAlignment="Center" />
+                                            <Border Classes="pill warn" VerticalAlignment="Center"
+                                                    IsVisible="{Binding IsClassified}">
+                                                <TextBlock Text="{Binding Clearance}" />
+                                            </Border>
+                                            <Border Classes="pill" VerticalAlignment="Center"
+                                                    IsVisible="{Binding IsRetired}">
+                                                <TextBlock Text="Retired" />
+                                            </Border>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Belonging}" Classes="faint" FontSize="11" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1" Text="{Binding Allowance}"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Fine}"
+                                               VerticalAlignment="Center" Classes="faint" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ================================================= the editor ==== -->
+        <Border Grid.Column="1" Classes="card" Padding="0" ClipToBounds="True">
+          <!-- Two states in the same frame; a Border holds one child. -->
+          <Panel>
+
+            <StackPanel VerticalAlignment="Center" Spacing="8" Margin="30"
+                        IsVisible="{Binding !Editing}">
+                <Path Classes="icon big" Data="{StaticResource IconSettings}"
+                      Stroke="{DynamicResource InkFaint}" HorizontalAlignment="Center" />
+                <TextBlock Text="Pick a category, or make one" Classes="sub" TextAlignment="Center" />
+                <TextBlock Classes="faint" TextAlignment="Center" TextWrapping="Wrap"
+                           Text="Changing a rule here changes what those members may borrow from the next issue onwards." />
+            </StackPanel>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" IsVisible="{Binding Editing}">
+                <StackPanel Margin="24,22,24,24" Spacing="18">
+
+                    <TextBlock Text="{Binding EditHeading}" Classes="h2" TextWrapping="Wrap" />
+
+                    <Border Classes="card" Padding="16,13"
+                            IsVisible="{Binding HasProblems}"
+                            Background="{DynamicResource BadSoft}"
+                            BorderBrush="{DynamicResource Bad}">
+                        <ItemsControl ItemsSource="{Binding Problems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2"
+                                               Foreground="{DynamicResource Bad}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
+
+                    <Grid ColumnDefinitions="1.7*,12,*">
+                        <StackPanel Grid.Column="0" Spacing="6">
+                            <TextBlock Text="Name" Classes="faint" />
+                            <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" MinHeight="40" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="6">
+                            <TextBlock Text="Code" Classes="faint" />
+                            <TextBox Text="{Binding Code, UpdateSourceTrigger=PropertyChanged}" MinHeight="40" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="HOW MUCH, AND FOR HOW LONG" Classes="label" />
+
+                        <Grid ColumnDefinitions="*,12,*,12,*">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="Books at a time" Classes="faint" />
+                                <NumericUpDown Value="{Binding MaxBooks}" Minimum="0" Maximum="99"
+                                               FormatString="0" MinHeight="40" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="6">
+                                <TextBlock Text="Days a loan" Classes="faint" />
+                                <NumericUpDown Value="{Binding LoanDays}" Minimum="1" Maximum="365"
+                                               FormatString="0" MinHeight="40" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="4" Spacing="6">
+                                <TextBlock Text="Renewals" Classes="faint" />
+                                <NumericUpDown Value="{Binding MaxRenewals}" Minimum="0" Maximum="20"
+                                               FormatString="0" MinHeight="40" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,12,*">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="Fine a day" Classes="faint" />
+                                <TextBox Text="{Binding FinePerDay, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="40" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="6">
+                                <TextBlock Text="Days of grace" Classes="faint" />
+                                <NumericUpDown Value="{Binding GraceDays}" Minimum="0" Maximum="99"
+                                               FormatString="0" MinHeight="40" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- The rule read back as a sentence. Two numbers in two
+                             boxes are easy to get wrong; the same rule written
+                             out is not. -->
+                        <Border Classes="card cool" Padding="14,12">
+                            <TextBlock Text="{Binding InPlainWords}" TextWrapping="Wrap" FontSize="12.5" />
+                        </Border>
+                    </StackPanel>
+
+                    <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="WHAT ELSE THEY MAY DO" Classes="label" />
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Cleared up to" Classes="faint" />
+                            <ComboBox ItemsSource="{Binding Clearances}"
+                                      SelectedItem="{Binding MaxClearance}"
+                                      MinHeight="40" HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                            <TextBlock Text="{Binding Converter={x:Static conv:Spoken.Instance}}" />
+                            </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                       Text="A ceiling, not a grant. A member's own clearance is capped at this, and a book above it is refused outright." />
+                        </StackPanel>
+
+                        <CheckBox Content="May place a hold on a book that is out" IsChecked="{Binding CanReserve}" />
+                        <CheckBox Content="Still in use" IsChecked="{Binding IsActive}" />
+
+                        <CheckBox Content="A deposit is held" IsChecked="{Binding RequiresDeposit}" />
+                        <StackPanel Spacing="6" IsVisible="{Binding RequiresDeposit}" Margin="26,0,0,0">
+                            <TextBlock Text="How much" Classes="faint" />
+                            <TextBox Text="{Binding DepositAmount, UpdateSourceTrigger=PropertyChanged}"
+                                     MinHeight="40" HorizontalAlignment="Left" MinWidth="160" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="9" IsVisible="{Binding MayManage}">
+                        <Button Classes="primary" Content="Save" MinHeight="42" MinWidth="120"
+                                IsEnabled="{Binding !Busy}"
+                                Command="{Binding SaveCommand}" />
+                        <Button Content="Cancel" MinHeight="42" Command="{Binding CancelCommand}" />
+                        <Button Content="Remove" MinHeight="42"
+                                Command="{Binding RemoveCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+          </Panel>
+        </Border>
+    </Grid>
+</UserControl>

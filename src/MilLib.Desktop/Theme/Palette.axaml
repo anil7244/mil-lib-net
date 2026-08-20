@@ -1,0 +1,291 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        The palette, carried over from the company's printed and web material
+        so the desktop application is recognisably the same product: warm paper
+        rather than white, near-black text rather than grey, and a single
+        crimson that belongs to the company and is spent sparingly.
+
+        Crimson is reserved for two things: the mark itself, and the one action
+        on a screen that matters most. Used on anything else it stops meaning
+        anything.
+    -->
+
+    <ResourceDictionary.ThemeDictionaries>
+
+        <ResourceDictionary x:Key="Light">
+            <!-- Ground -->
+            <Color x:Key="BgColor">#F5F4EE</Color>
+            <Color x:Key="SurfaceColor">#FCFBF7</Color>
+            <Color x:Key="SurfaceSunkenColor">#F2F0E7</Color>
+            <Color x:Key="SurfaceRaisedColor">#EAE8DC</Color>
+
+            <!-- Lines -->
+            <Color x:Key="BorderColor">#E2DED2</Color>
+            <Color x:Key="BorderStrongColor">#D2CCBB</Color>
+
+            <!-- Ink -->
+            <Color x:Key="TextColor">#16191D</Color>
+            <Color x:Key="TextMutedColor">#4A525D</Color>
+            <Color x:Key="TextFaintColor">#616B78</Color>
+            <Color x:Key="TextOnDarkColor">#F5F4EE</Color>
+
+            <!-- The company's crimson -->
+            <Color x:Key="AccentColor">#C8102E</Color>
+            <Color x:Key="AccentOnDarkColor">#E8536B</Color>
+            <Color x:Key="AccentHoverColor">#AB0D27</Color>
+            <Color x:Key="AccentSoftColor">#FBEDEF</Color>
+
+            <!-- The navigation rail: deliberately dark, so the working area
+                 reads as paper and the rail as the frame around it -->
+            <Color x:Key="RailColor">#14171B</Color>
+            <Color x:Key="RailRaisedColor">#252C35</Color>
+
+            <!-- Bright enough to be read without effort.
+                 A menu is not a place for restraint: it is the one part of the
+                 window a person looks at when they already know what they want
+                 and simply need to find it. Muted greys on a near-black ground
+                 read as disabled, and a menu that looks disabled looks
+                 unfinished. -->
+            <Color x:Key="RailTextColor">#C6CEDA</Color>
+
+            <!-- The glyph leads, the word follows.
+                 The earlier arrangement had the icon a step quieter than its
+                 label on the theory that the word carries the meaning. On a
+                 dark rail that is simply wrong: the glyph is what the eye
+                 lands on first and it has to be the brightest thing in the
+                 row, with the label a shade behind it. -->
+            <Color x:Key="RailIconColor">#DCE3EC</Color>
+            <Color x:Key="RailIconHoverColor">#FFFFFF</Color>
+            <Color x:Key="RailLabelColor">#78838F</Color>
+
+            <!-- States. Used for licence health above all, so they must be
+                 distinguishable without relying on colour alone; every place
+                 they appear carries a word as well. -->
+            <Color x:Key="GoodColor">#1B7F4B</Color>
+            <Color x:Key="GoodSoftColor">#EAF6EF</Color>
+            <Color x:Key="WarnColor">#B54708</Color>
+            <Color x:Key="WarnSoftColor">#FDF2E7</Color>
+            <Color x:Key="BadColor">#B42318</Color>
+            <Color x:Key="BadSoftColor">#FDEDEA</Color>
+            <Color x:Key="InfoColor">#175CD3</Color>
+            <Color x:Key="InfoSoftColor">#EEF4FF</Color>
+
+            <!-- Glass.
+                 Panels are tinted white and let the ground show through, which
+                 is what makes them read as material rather than as paint. The
+                 numbers are chosen for legibility first: a table of licence
+                 keys has to stay as readable as it was on solid paper, so the
+                 surfaces that carry data are the least transparent things on
+                 the screen and the chrome around them is the most. -->
+            <Color x:Key="GlassColor">#B5FFFFFF</Color>
+            <Color x:Key="GlassRaisedColor">#D6FFFFFF</Color>
+            <Color x:Key="GlassSunkenColor">#5CFFFFFF</Color>
+            <Color x:Key="GlassEdgeColor">#B8FFFFFF</Color>
+            <Color x:Key="GlassRailColor">#E812161B</Color>
+            <Color x:Key="GlassRailRaisedColor">#3DFFFFFF</Color>
+
+            <!-- The ground the glass sits on. Three washes of colour rather
+                 than one flat fill, because glass over a flat colour looks
+                 like a lighter flat colour. -->
+            <!-- Tables.
+                 The heading is a band, not a row: a stronger fill than
+                 anything below it and a rule top and bottom, so the eye can
+                 see where the table starts without reading a word of it. The
+                 alternating row is barely there on purpose — enough to keep
+                 an eye travelling along a wide row on the right line, not
+                 enough to look like stripes. -->
+            <Color x:Key="TableHeadColor">#D6E6E1D2</Color>
+            <Color x:Key="TableRuleColor">#B5A99A</Color>
+            <Color x:Key="RowAltColor">#3DFFFFFF</Color>
+
+            <!-- Card tints.
+                 Not decoration: each one says what kind of figure it carries,
+                 so a screen of six cards can be read by colour before it is
+                 read by word. They are all the same lightness, which is what
+                 keeps six tinted cards looking like a set rather than a
+                 paintbox. -->
+            <Color x:Key="CardGoodColor">#BFE6F4EA</Color>
+            <Color x:Key="CardWarnColor">#BFFCF1E2</Color>
+            <Color x:Key="CardBadColor">#BFFCEBE7</Color>
+            <Color x:Key="CardInfoColor">#BFE8F0FD</Color>
+            <Color x:Key="CardCoolColor">#BFEAEDF2</Color>
+
+            <Color x:Key="BackdropTopColor">#F2EFE6</Color>
+            <Color x:Key="BackdropMidColor">#E8E9EC</Color>
+            <Color x:Key="BackdropEndColor">#EFE9E6</Color>
+            <!-- Faint enough that nobody looking at the screen would describe
+                 it as coloured. Its whole job is to stop the ground being
+                 flat, and the moment it is strong enough to name it has
+                 stopped being a backdrop and started being decoration. -->
+            <Color x:Key="BloomWarmColor">#1FC8102E</Color>
+            <Color x:Key="BloomCoolColor">#2B3F5C8C</Color>
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Dark">
+            <Color x:Key="BgColor">#121417</Color>
+            <Color x:Key="SurfaceColor">#191C21</Color>
+            <Color x:Key="SurfaceSunkenColor">#15181C</Color>
+            <Color x:Key="SurfaceRaisedColor">#22262D</Color>
+
+            <Color x:Key="BorderColor">#2A2F37</Color>
+            <Color x:Key="BorderStrongColor">#3A4049</Color>
+
+            <Color x:Key="TextColor">#ECEAE3</Color>
+            <Color x:Key="TextMutedColor">#AEB5BE</Color>
+            <Color x:Key="TextFaintColor">#8B939D</Color>
+            <Color x:Key="TextOnDarkColor">#F5F4EE</Color>
+
+            <Color x:Key="AccentColor">#E8264A</Color>
+            <Color x:Key="AccentOnDarkColor">#F27D91</Color>
+            <Color x:Key="AccentHoverColor">#F04463</Color>
+            <Color x:Key="AccentSoftColor">#2A1419</Color>
+
+            <Color x:Key="RailColor">#0E1013</Color>
+            <Color x:Key="RailRaisedColor">#181C22</Color>
+            <Color x:Key="RailTextColor">#8B939D</Color>
+            <Color x:Key="RailIconColor">#65707F</Color>
+            <Color x:Key="RailIconHoverColor">#A6B1BF</Color>
+            <Color x:Key="RailLabelColor">#525A64</Color>
+
+            <Color x:Key="GoodColor">#4ADE80</Color>
+            <Color x:Key="GoodSoftColor">#122019</Color>
+            <Color x:Key="WarnColor">#FDBA74</Color>
+            <Color x:Key="WarnSoftColor">#231809</Color>
+            <Color x:Key="BadColor">#FCA5A5</Color>
+            <Color x:Key="BadSoftColor">#241213</Color>
+            <Color x:Key="InfoColor">#93C5FD</Color>
+            <Color x:Key="InfoSoftColor">#101A2B</Color>
+
+            <!-- Dark glass is tinted with light, not with black: a dark panel
+                 made darker disappears, whereas a dark panel lifted slightly
+                 reads as something lying on top. -->
+            <Color x:Key="GlassColor">#14FFFFFF</Color>
+            <Color x:Key="GlassRaisedColor">#24FFFFFF</Color>
+            <Color x:Key="GlassSunkenColor">#0AFFFFFF</Color>
+            <Color x:Key="GlassEdgeColor">#26FFFFFF</Color>
+            <Color x:Key="GlassRailColor">#E60B0D10</Color>
+            <Color x:Key="GlassRailRaisedColor">#26FFFFFF</Color>
+
+            <Color x:Key="TableHeadColor">#1F242B</Color>
+            <Color x:Key="TableRuleColor">#3D454F</Color>
+            <Color x:Key="RowAltColor">#0AFFFFFF</Color>
+
+            <Color x:Key="CardGoodColor">#1A1F2A22</Color>
+            <Color x:Key="CardWarnColor">#1A2A2118</Color>
+            <Color x:Key="CardBadColor">#1A2A1B19</Color>
+            <Color x:Key="CardInfoColor">#1A18202E</Color>
+            <Color x:Key="CardCoolColor">#1A1B1F26</Color>
+
+            <Color x:Key="BackdropTopColor">#101216</Color>
+            <Color x:Key="BackdropMidColor">#14171D</Color>
+            <Color x:Key="BackdropEndColor">#171418</Color>
+            <Color x:Key="BloomWarmColor">#3DC8102E</Color>
+            <Color x:Key="BloomCoolColor">#333F5C8C</Color>
+        </ResourceDictionary>
+
+    </ResourceDictionary.ThemeDictionaries>
+
+    <!-- Brushes, so the whole application refers to one name per colour -->
+    <SolidColorBrush x:Key="Bg" Color="{DynamicResource BgColor}" />
+    <SolidColorBrush x:Key="Surface" Color="{DynamicResource SurfaceColor}" />
+    <SolidColorBrush x:Key="SurfaceSunken" Color="{DynamicResource SurfaceSunkenColor}" />
+    <SolidColorBrush x:Key="SurfaceRaised" Color="{DynamicResource SurfaceRaisedColor}" />
+
+    <SolidColorBrush x:Key="Line" Color="{DynamicResource BorderColor}" />
+    <SolidColorBrush x:Key="LineStrong" Color="{DynamicResource BorderStrongColor}" />
+
+    <SolidColorBrush x:Key="Ink" Color="{DynamicResource TextColor}" />
+    <SolidColorBrush x:Key="InkMuted" Color="{DynamicResource TextMutedColor}" />
+    <SolidColorBrush x:Key="InkFaint" Color="{DynamicResource TextFaintColor}" />
+    <SolidColorBrush x:Key="InkOnDark" Color="{DynamicResource TextOnDarkColor}" />
+
+    <SolidColorBrush x:Key="Accent" Color="{DynamicResource AccentColor}" />
+    <SolidColorBrush x:Key="AccentHover" Color="{DynamicResource AccentHoverColor}" />
+    <SolidColorBrush x:Key="AccentSoft" Color="{DynamicResource AccentSoftColor}" />
+
+    <!-- The accent as writing on the near-black bar, lifted until it reads.
+         Used instead of Accent anywhere the ground is that bar rather than the
+         page, because the unit's colour is theirs to choose and a dark one is
+         a perfectly reasonable choice. -->
+    <SolidColorBrush x:Key="AccentOnDark" Color="{DynamicResource AccentOnDarkColor}" />
+
+    <SolidColorBrush x:Key="Rail" Color="{DynamicResource RailColor}" />
+    <SolidColorBrush x:Key="RailRaised" Color="{DynamicResource RailRaisedColor}" />
+    <SolidColorBrush x:Key="RailInk" Color="{DynamicResource RailTextColor}" />
+    <SolidColorBrush x:Key="RailIcon" Color="{DynamicResource RailIconColor}" />
+    <SolidColorBrush x:Key="RailIconHover" Color="{DynamicResource RailIconHoverColor}" />
+    <SolidColorBrush x:Key="RailLabel" Color="{DynamicResource RailLabelColor}" />
+
+    <SolidColorBrush x:Key="Good" Color="{DynamicResource GoodColor}" />
+    <SolidColorBrush x:Key="GoodSoft" Color="{DynamicResource GoodSoftColor}" />
+    <SolidColorBrush x:Key="Warn" Color="{DynamicResource WarnColor}" />
+    <SolidColorBrush x:Key="WarnSoft" Color="{DynamicResource WarnSoftColor}" />
+    <SolidColorBrush x:Key="Bad" Color="{DynamicResource BadColor}" />
+    <SolidColorBrush x:Key="BadSoft" Color="{DynamicResource BadSoftColor}" />
+    <SolidColorBrush x:Key="Info" Color="{DynamicResource InfoColor}" />
+    <SolidColorBrush x:Key="InfoSoft" Color="{DynamicResource InfoSoftColor}" />
+
+    <!-- Glass -->
+    <SolidColorBrush x:Key="Glass" Color="{DynamicResource GlassColor}" />
+    <SolidColorBrush x:Key="GlassRaised" Color="{DynamicResource GlassRaisedColor}" />
+    <SolidColorBrush x:Key="GlassSunken" Color="{DynamicResource GlassSunkenColor}" />
+    <SolidColorBrush x:Key="GlassEdge" Color="{DynamicResource GlassEdgeColor}" />
+    <SolidColorBrush x:Key="GlassRail" Color="{DynamicResource GlassRailColor}" />
+    <SolidColorBrush x:Key="GlassRailRaised" Color="{DynamicResource GlassRailRaisedColor}" />
+
+    <SolidColorBrush x:Key="TableHead" Color="{DynamicResource TableHeadColor}" />
+    <SolidColorBrush x:Key="TableRule" Color="{DynamicResource TableRuleColor}" />
+    <SolidColorBrush x:Key="RowAlt" Color="{DynamicResource RowAltColor}" />
+
+    <SolidColorBrush x:Key="CardGood" Color="{DynamicResource CardGoodColor}" />
+    <SolidColorBrush x:Key="CardWarn" Color="{DynamicResource CardWarnColor}" />
+    <SolidColorBrush x:Key="CardBad" Color="{DynamicResource CardBadColor}" />
+    <SolidColorBrush x:Key="CardInfo" Color="{DynamicResource CardInfoColor}" />
+    <SolidColorBrush x:Key="CardCool" Color="{DynamicResource CardCoolColor}" />
+
+    <!--
+        The ground.
+
+        Every window is painted with this, so a dialog opening over the main
+        window looks like another pane of the same thing rather than a
+        different application. The stops are close together on purpose: a
+        gradient you can name the colours of is a gradient that has become the
+        subject.
+    -->
+    <LinearGradientBrush x:Key="Backdrop" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Offset="0" Color="{DynamicResource BackdropTopColor}" />
+        <GradientStop Offset="0.55" Color="{DynamicResource BackdropMidColor}" />
+        <GradientStop Offset="1" Color="{DynamicResource BackdropEndColor}" />
+    </LinearGradientBrush>
+
+    <!-- The two washes of colour that keep the ground from reading as flat.
+         Placed, not scattered: warm where the company's mark is, cool at the
+         far corner, and nothing in the middle where the data lives. -->
+    <RadialGradientBrush x:Key="BloomWarm" Center="50%,50%" GradientOrigin="50%,50%" RadiusX="50%" RadiusY="50%">
+        <GradientStop Offset="0" Color="{DynamicResource BloomWarmColor}" />
+        <GradientStop Offset="1" Color="#00C8102E" />
+    </RadialGradientBrush>
+
+    <RadialGradientBrush x:Key="BloomCool" Center="50%,50%" GradientOrigin="50%,50%" RadiusX="50%" RadiusY="50%">
+        <GradientStop Offset="0" Color="{DynamicResource BloomCoolColor}" />
+        <GradientStop Offset="1" Color="#003F5C8C" />
+    </RadialGradientBrush>
+
+    <!-- The bright edge along the top of a pane of glass, which is most of
+         what tells the eye it is looking at something with thickness -->
+    <LinearGradientBrush x:Key="GlassSheen" StartPoint="0%,0%" EndPoint="0%,100%">
+        <GradientStop Offset="0" Color="#59FFFFFF" />
+        <GradientStop Offset="0.5" Color="#0DFFFFFF" />
+        <GradientStop Offset="1" Color="#00FFFFFF" />
+    </LinearGradientBrush>
+
+    <!-- Spacing rhythm: everything is a multiple of four -->
+    <Thickness x:Key="PagePadding">28,24,28,24</Thickness>
+    <Thickness x:Key="CardPadding">20</Thickness>
+    <CornerRadius x:Key="CardRadius">10</CornerRadius>
+    <CornerRadius x:Key="ControlRadius">7</CornerRadius>
+    <CornerRadius x:Key="PillRadius">999</CornerRadius>
+
+</ResourceDictionary>

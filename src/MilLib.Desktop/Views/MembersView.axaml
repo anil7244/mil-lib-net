@@ -1,0 +1,290 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:conv="using:MilLib.Desktop"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+             x:Class="MilLib.Desktop.Views.MembersView"
+             x:DataType="vm:MembersViewModel">
+
+    <Grid ColumnDefinitions="*,440">
+
+        <!-- ================================================== the roll ==== -->
+        <Grid Grid.Column="0" RowDefinitions="Auto,*" Margin="0,0,20,0">
+
+            <!-- The search on its own line, the buttons under it.
+                 Beside it they squeezed the box to a third of its width and
+                 clipped the count to "1 men": this pane is only what is left
+                 after the 440px detail panel, and three buttons do not fit
+                 across it beside anything. -->
+            <Grid Grid.Row="0" RowDefinitions="Auto,Auto" Margin="0,0,0,16">
+                <TextBox Grid.Row="0"
+                         Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"
+                         PlaceholderText="Search by name, membership number, personnel number or unit"
+                         MinHeight="42" FontSize="14" Padding="14,9" />
+
+                <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,10,0,0">
+                    <StackPanel Grid.Column="0" Spacing="3" VerticalAlignment="Center"
+                                Margin="0,0,12,0">
+                        <CheckBox Content="Include closed and posted-out"
+                                  IsChecked="{Binding ShowClosed}"
+                                  FontSize="12" />
+                        <TextBlock Text="{Binding Tally}" Classes="faint" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                                VerticalAlignment="Center">
+                    <Button Classes="primary withIcon" Content="Enrol"
+                            Tag="{StaticResource IconAdd}" MinHeight="42"
+                            IsVisible="{Binding MayManage}"
+                            Command="{Binding AddCommand}" />
+                    <!-- Everybody the search is showing, because enrolment
+                         happens in intakes and so does printing: search for the
+                         company, print the sheet, cut it up. -->
+                    <Button Classes="withIcon" Content="Print passes"
+                            Tag="{StaticResource IconPrint}" MinHeight="42"
+                            ToolTip.Tip="A pass for everybody in the list below, laid out to be cut up"
+                            IsVisible="{Binding MayManage}"
+                            Command="{Binding PassesCommand}" />
+                    <Button Classes="quiet" Content="Refresh" MinHeight="42"
+                            Command="{Binding RefreshCommand}" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+
+            <Border Grid.Row="1" Classes="card bad" IsVisible="{Binding HasProblem}"
+                    VerticalAlignment="Top" Padding="18,14">
+                <TextBlock Text="{Binding Problem}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource Bad}" />
+            </Border>
+
+            <Border Grid.Row="1" Classes="card" Padding="0" ClipToBounds="True"
+                    IsVisible="{Binding !HasProblem}">
+                <Grid RowDefinitions="Auto,*">
+
+                    <Border Grid.Row="0" Classes="tableHead">
+                        <!-- Four columns, not five. The pane is narrow and the
+                             name is the column people read; with the category
+                             beside it the name was squeezed to nothing. It sits
+                             under the name instead, where there was already
+                             room. -->
+                        <Grid ColumnDefinitions="*,110,110,64" Margin="20,0">
+                            <TextBlock Grid.Column="0" Text="MEMBER" Classes="label" />
+                            <TextBlock Grid.Column="1" Text="NUMBER" Classes="label" />
+                            <TextBlock Grid.Column="2" Text="STANDING" Classes="label" />
+                            <TextBlock Grid.Column="3" Text="OUT" Classes="label" />
+                        </Grid>
+                    </Border>
+
+                    <ListBox Grid.Row="1" Classes="table"
+                             ItemsSource="{Binding Shown}"
+                             SelectedItem="{Binding Selected}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:MemberRow">
+                                <Grid ColumnDefinitions="*,110,110,64" Margin="20,10">
+                                    <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,14,0">
+                                        <TextBlock Text="{Binding Name}" FontWeight="Medium"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Belonging}" Classes="faint" FontSize="11"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1" Text="{Binding Number}" Classes="mono"
+                                               VerticalAlignment="Center" />
+
+                                    <!-- Only an unusual standing is coloured. A
+                                         column of green "Active" pills teaches
+                                         the eye to skip the column entirely. -->
+                                    <TextBlock Grid.Column="2" Text="{Binding StatusText}"
+                                               VerticalAlignment="Center"
+                                               Foreground="{Binding IsActive, Converter={x:Static conv:Swatch.PlainOrBad}}" />
+
+                                    <TextBlock Grid.Column="3" Text="{Binding HeldText}"
+                                               VerticalAlignment="Center"
+                                               FontWeight="Medium"
+                                               IsVisible="{Binding HoldsAnything}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Grid.Row="1" IsVisible="{Binding Nothing}"
+                                VerticalAlignment="Center" Spacing="8">
+                        <TextBlock Text="Nobody matches that" Classes="h2" HorizontalAlignment="Center" />
+                        <TextBlock Classes="faint" HorizontalAlignment="Center"
+                                   Text="Try fewer words, or include closed members." />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ================================================ one member ==== -->
+        <Border Grid.Column="1" Classes="card" Padding="0" ClipToBounds="True">
+          <!-- Two states in the same frame, so the panel keeps its shape
+               whether or not somebody is picked. A Border holds one child, so
+               they share a Panel rather than being stacked. -->
+          <Panel>
+
+            <StackPanel VerticalAlignment="Center" Spacing="8" Margin="30"
+                        IsVisible="{Binding !HasSelection}">
+                <Path Classes="icon big" Data="{StaticResource IconMembers}"
+                      Stroke="{DynamicResource InkFaint}" HorizontalAlignment="Center" />
+                <TextBlock Text="Pick somebody from the list" Classes="sub" TextAlignment="Center" />
+                <TextBlock Classes="faint" TextAlignment="Center" TextWrapping="Wrap"
+                           Text="What they hold, what they owe, and whether they can be signed off." />
+            </StackPanel>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" IsVisible="{Binding HasSelection}">
+                <StackPanel Margin="24,22,24,24" Spacing="18">
+
+                    <Grid ColumnDefinitions="Auto,*">
+                        <!-- The face on the pass, where there is one. A member
+                             without a photo simply starts at their name; an
+                             empty grey square labelled "no photo" is worse than
+                             nothing. -->
+                        <Border Grid.Column="0" Width="76" Height="92"
+                                Margin="0,0,16,0" CornerRadius="6"
+                                ClipToBounds="True" VerticalAlignment="Top"
+                                IsVisible="{Binding HasPhoto}"
+                                Background="{DynamicResource SurfaceSunken}"
+                                BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                            <Image Source="{Binding Photo}" Stretch="UniformToFill" />
+                        </Border>
+
+                        <StackPanel Grid.Column="1" Spacing="5">
+                            <TextBlock Text="{Binding Who}" FontSize="20" FontWeight="SemiBold"
+                                       TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding Number}" Classes="mono" />
+                            <TextBlock Text="{Binding Unit}" Classes="faint" TextWrapping="Wrap"
+                                       IsVisible="{Binding Unit, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            <TextBlock Text="{Binding Contact}" Classes="faint" TextWrapping="Wrap"
+                                       IsVisible="{Binding Contact, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
+                                <Border Classes="pill bad" IsVisible="{Binding !StandingIsPlain}">
+                                    <TextBlock Text="{Binding Standing}" />
+                                </Border>
+                                <Border Classes="pill warn" IsVisible="{Binding IsClassified}">
+                                    <TextBlock Text="{Binding Clearance}" />
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Classes="card cool" Padding="16,13">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="{Binding Category}" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding Rules}" Classes="faint" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding Enrolled}" Classes="faint" FontSize="11"
+                                       Margin="0,4,0,0" />
+                            <!-- A deposit is the unit's money, held against the
+                                 pass and returned at sign-off — worth saying on
+                                 the screen that signs people off. -->
+                            <TextBlock Text="{Binding Deposit}" Classes="faint" FontSize="11"
+                                       IsVisible="{Binding HasDeposit}" />
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Spacing="6" IsVisible="{Binding HasRemarks}">
+                        <TextBlock Text="REMARKS" Classes="label" />
+                        <TextBlock Text="{Binding Remarks}" TextWrapping="Wrap" Classes="faint" />
+                    </StackPanel>
+
+                    <Border Classes="card" Padding="14,11"
+                            IsVisible="{Binding HasSaid}"
+                            Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                        <TextBlock Text="{Binding Said}" TextWrapping="Wrap"
+                                   Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+                    </Border>
+
+                    <!-- What they have. Late books say so; a book quietly
+                         accruing a fine says how much, because that is the
+                         figure somebody will be asked for at the counter. -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="HOLDING NOW" Classes="label" />
+
+                        <ItemsControl ItemsSource="{Binding Holding}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="vm:HoldingRow">
+                                    <Grid ColumnDefinitions="*,Auto" Margin="0,7">
+                                        <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,10,0">
+                                            <TextBlock Text="{Binding Title}" TextWrapping="Wrap"
+                                                       MaxLines="2" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding Accession}" Classes="mono" FontSize="11" />
+                                            <TextBlock Text="{Binding DueText}" FontSize="11"
+                                                       Foreground="{Binding IsLate, Converter={x:Static conv:Swatch.LateOrNot}}" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding Accruing}"
+                                                   VerticalAlignment="Center"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource Bad}"
+                                                   IsVisible="{Binding HasAccrued}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="Nothing out" Classes="faint"
+                                   IsVisible="{Binding NothingHeld}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="8" IsVisible="{Binding OwesAnything}">
+                        <Rectangle Height="1" Fill="{DynamicResource Line}" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="OWES" Classes="label"
+                                       Foreground="{DynamicResource Bad}" />
+                            <TextBlock Grid.Column="1" Text="{Binding Owed}"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource Bad}" />
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding Owing}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="vm:OwedRow">
+                                    <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5">
+                                        <TextBlock Grid.Column="0" Text="{Binding Type}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding RaisedText}"
+                                                   Classes="faint" FontSize="11" Margin="0,0,12,0"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Amount}" FontWeight="Medium" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- The no-dues position, stated whichever way it falls, so
+                         somebody being posted out is told what is in the way
+                         rather than just refused. -->
+                    <Border Classes="card" Padding="16,13"
+                            Background="{Binding MayBeCleared, Converter={x:Static conv:Swatch.GoodOrPlain}}">
+                        <StackPanel Spacing="9">
+                            <TextBlock Text="NO DUES" Classes="label" />
+                            <TextBlock Text="{Binding ClearanceVerdict}" TextWrapping="Wrap" />
+                            <Button Classes="primary" Content="Sign off — nothing outstanding"
+                                    HorizontalAlignment="Left" MinHeight="38"
+                                    IsVisible="{Binding MayBeCleared}"
+                                    Command="{Binding ClearCommand}" />
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Orientation="Horizontal" Spacing="9"
+                                IsVisible="{Binding MayManage}">
+                        <Button Classes="withIcon" Content="Edit details"
+                                Tag="{StaticResource IconEdit}" MinHeight="40"
+                                Command="{Binding ReviseCommand}" />
+                        <Button Classes="withIcon" Content="Print the pass"
+                                Tag="{StaticResource IconPrint}" MinHeight="40"
+                                Command="{Binding PassCommand}" />
+                        <Button Content="Reissue pass" MinHeight="40"
+                                ToolTip.Tip="Issues a new code and kills every printed copy of the old pass"
+                                Command="{Binding ReissuePassCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+          </Panel>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,156 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:conv="using:MilLib.Desktop"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+             x:Class="MilLib.Desktop.Views.LicenceView"
+             x:DataType="vm:LicenceViewModel">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid ColumnDefinitions="*,20,420">
+
+            <StackPanel Grid.Column="0" Spacing="16">
+
+                <!-- Where this installation stands. The largest thing on the
+                     screen, because it is the question somebody came here
+                     with. -->
+                <Border Classes="card" Padding="24,22"
+                        Background="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGoodSoft}}"
+                        BorderBrush="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{Binding Headline}" FontSize="21" FontWeight="SemiBold"
+                                   TextWrapping="Wrap"
+                                   Foreground="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}" />
+                        <TextBlock Text="{Binding What}" TextWrapping="Wrap" FontSize="13"
+                                   IsVisible="{Binding What, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        <TextBlock Text="{Binding Installed}" Classes="faint" FontSize="11"
+                                   IsVisible="{Binding Installed, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- What to send, and what to type back. -->
+                <Border Classes="card" Padding="24,22">
+                    <StackPanel Spacing="18">
+                        <StackPanel Spacing="3">
+                            <TextBlock Text="Getting a licence key" Classes="h2" />
+                            <TextBlock Classes="sub" TextWrapping="Wrap"
+                                       Text="A key is issued against this machine and works on no other. Send the hardware ID below; type the key that comes back." />
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="THIS MACHINE" Classes="label" />
+                            <SelectableTextBlock Text="{Binding HardwareId}" Classes="mono"
+                                                 FontSize="20" />
+                            <TextBlock Text="{Binding MachineSource}" Classes="faint" FontSize="11"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <Border Classes="card cool" Padding="16,13">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="WHAT TO SEND" Classes="label" />
+                                <!-- One block, copied in one go. A hardware ID
+                                     read out over a telephone and typed back
+                                     in wrong is the commonest way this goes
+                                     wrong. -->
+                                <SelectableTextBlock Text="{Binding ToSend}" Classes="mono"
+                                                     FontSize="11.5" TextWrapping="Wrap" />
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button Content="Copy this" MinHeight="36"
+                                            Command="{Binding CopyDetailsCommand}" />
+                                    <TextBlock Text="Copied." Classes="faint"
+                                               VerticalAlignment="Center"
+                                               IsVisible="{Binding Copied}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                        <StackPanel Spacing="8" IsVisible="{Binding MayActivate}">
+                            <TextBlock Text="The licence key" Classes="faint" />
+                            <TextBox Text="{Binding Key, UpdateSourceTrigger=PropertyChanged}"
+                                     PlaceholderText="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX-NNNNNN"
+                                     Classes="mono" FontSize="16" MinHeight="46" Padding="14,9">
+                                <TextBox.KeyBindings>
+                                    <!-- Enter submits. A key is pasted in and
+                                         the next thing anybody does is press
+                                         Enter. -->
+                                    <KeyBinding Gesture="Enter" Command="{Binding ActivateCommand}" />
+                                </TextBox.KeyBindings>
+                            </TextBox>
+                            <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                       Text="Dashes and capitals do not matter. There is no letter O or I in a key — those are a zero and a one." />
+
+                            <Border Classes="card" Padding="16,13"
+                                    IsVisible="{Binding HasSaid}"
+                                    Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                                <TextBlock Text="{Binding Said}" TextWrapping="Wrap"
+                                           Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+                            </Border>
+
+                            <Button Classes="primary" Content="Activate" MinHeight="44"
+                                    MinWidth="160" HorizontalAlignment="Left"
+                                    IsEnabled="{Binding !Busy}"
+                                    Command="{Binding ActivateCommand}" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="6" IsVisible="{Binding Licensed}">
+                            <TextBlock Text="THE KEY ON THIS MACHINE" Classes="label" />
+                            <SelectableTextBlock Text="{Binding CurrentKey}" Classes="mono"
+                                                 FontSize="12.5" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Who to ask. -->
+            <Border Grid.Column="2" Classes="card" Padding="24,22" VerticalAlignment="Top">
+                <StackPanel Spacing="16">
+                    <StackPanel Spacing="3">
+                        <TextBlock Text="Who to ask" Classes="h2" />
+                        <TextBlock Text="{Binding Product}" Classes="faint" FontSize="11.5" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="12">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="COMPANY" Classes="label" />
+                            <TextBlock Text="{Binding Company}" FontWeight="Medium" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="TELEPHONE" Classes="label" />
+                            <SelectableTextBlock Text="{Binding Phone}" Classes="mono" FontSize="12.5" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="EMAIL" Classes="label" />
+                            <SelectableTextBlock Text="{Binding Email}" FontSize="12.5" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="WHERE" Classes="label" />
+                            <TextBlock Text="{Binding Address}" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="ONLINE" Classes="label" />
+                            <SelectableTextBlock Text="{Binding Website}" FontSize="12.5" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                    <!-- The reassurance, said plainly and kept on the screen
+                         rather than only in the banner. Somebody reading this
+                         page while their trial has run out needs it. -->
+                    <Border Classes="card cool" Padding="14,12">
+                        <TextBlock TextWrapping="Wrap" FontSize="11.5"
+                                   Text="A licence controls whether the application opens. It has nothing to do with the records themselves — every book, member and loan stays exactly where it is, and entering a key puts everything back as it was." />
+                    </Border>
+
+                    <Button Content="Check again" Classes="quiet" MinHeight="38"
+                            HorizontalAlignment="Left"
+                            Command="{Binding RefreshCommand}" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

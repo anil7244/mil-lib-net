@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
+             x:Class="MilLib.Desktop.Views.NotBuiltYetView"
+             x:DataType="vm:NotBuiltYetViewModel">
+
+    <Border Classes="card" Padding="0">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                    MaxWidth="480" Spacing="12" Margin="40,70">
+
+            <Path Classes="icon big"
+                  Data="{StaticResource IconWarning}"
+                  Stroke="{DynamicResource InkFaint}"
+                  HorizontalAlignment="Center" />
+
+            <TextBlock Text="{Binding Section}" Classes="h2"
+                       TextAlignment="Center" />
+
+            <TextBlock Text="{Binding Explanation}" Classes="sub"
+                       TextWrapping="Wrap" TextAlignment="Center" />
+        </StackPanel>
+    </Border>
+</UserControl>

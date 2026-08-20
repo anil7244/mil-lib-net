@@ -1,0 +1,172 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:conv="using:MilLib.Desktop"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+             x:Class="MilLib.Desktop.Views.ReservationsView"
+             x:DataType="vm:ReservationsViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,14">
+            <StackPanel Grid.Column="0" Spacing="3">
+                <TextBlock Text="Who is waiting for what" Classes="h2" />
+                <TextBlock Classes="sub" TextWrapping="Wrap"
+                           Text="A hold is placed on the book, not on one particular copy — whichever comes back first goes to whoever is next." />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                        VerticalAlignment="Top" Margin="14,0,0,0">
+                <Button Classes="primary withIcon" Content="Place a hold"
+                        Tag="{StaticResource IconAdd}" MinHeight="42"
+                        IsVisible="{Binding MayManage}"
+                        Command="{Binding PlaceCommand}" />
+                <Button Classes="quiet" Content="Refresh" MinHeight="42"
+                        Command="{Binding RefreshCommand}" />
+            </StackPanel>
+        </Grid>
+
+        <StackPanel Grid.Row="1" Spacing="12" Margin="0,0,0,14">
+            <Border Classes="card" Padding="14,11"
+                    IsVisible="{Binding HasSaid}"
+                    Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                <TextBlock Text="{Binding Said}" TextWrapping="Wrap"
+                           Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+            </Border>
+
+            <Border Classes="card" Padding="20,16" IsVisible="{Binding Placing}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="A NEW HOLD" Classes="label" Foreground="{DynamicResource Accent}" />
+
+                    <Grid ColumnDefinitions="*,12,*">
+                        <StackPanel Grid.Column="0" Spacing="6">
+                            <TextBlock Text="The book" Classes="faint" />
+                            <TextBox Text="{Binding Book, UpdateSourceTrigger=PropertyChanged}"
+                                     PlaceholderText="Accession number, or the title"
+                                     MinHeight="40" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="6">
+                            <TextBlock Text="For whom" Classes="faint" />
+                            <TextBox Text="{Binding Member, UpdateSourceTrigger=PropertyChanged}"
+                                     PlaceholderText="Membership number, pass, or name"
+                                     MinHeight="40">
+                                <TextBox.KeyBindings>
+                                    <KeyBinding Gesture="Enter" Command="{Binding ConfirmCommand}" />
+                                </TextBox.KeyBindings>
+                            </TextBox>
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Spacing="9">
+                        <Button Classes="primary" Content="Place it" MinHeight="42"
+                                IsEnabled="{Binding !Busy}" Command="{Binding ConfirmCommand}" />
+                        <Button Content="Cancel" MinHeight="42" Command="{Binding NeverCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <Border Grid.Row="2" Classes="card bad" IsVisible="{Binding HasProblem}"
+                VerticalAlignment="Top" Padding="18,14">
+            <TextBlock Text="{Binding Problem}" TextWrapping="Wrap"
+                       Foreground="{DynamicResource Bad}" />
+        </Border>
+
+        <!-- Two lists, because they are two different jobs. The left is worked
+             through today; the right cannot be acted on at all. -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" IsVisible="{Binding !HasProblem}">
+
+            <Border Grid.Column="0" Classes="card" Padding="0" ClipToBounds="True" Margin="0,0,10,0">
+                <Grid RowDefinitions="Auto,Auto,*">
+                    <Border Grid.Row="0" Classes="tableHead">
+                        <TextBlock Text="ON THE HOLD SHELF" Classes="label" Margin="20,0" />
+                    </Border>
+
+                    <TextBlock Grid.Row="1" Text="{Binding ReadyTally}" Classes="faint"
+                               Margin="20,10,20,4" TextWrapping="Wrap" />
+
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <ItemsControl ItemsSource="{Binding Ready}" Classes="rows">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="vm:HoldRow">
+                                        <Grid ColumnDefinitions="*,Auto" Margin="20,10">
+                                            <StackPanel Grid.Column="0" Spacing="3" Margin="0,0,10,0">
+                                                <TextBlock Text="{Binding Title}" FontWeight="Medium"
+                                                           TextWrapping="Wrap" MaxLines="2"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Classes="faint" FontSize="11">
+                                                    <Run Text="{Binding Member}" />
+                                                    <Run Text="·" />
+                                                    <Run Text="{Binding Number}" />
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding Keeping}" FontSize="11"
+                                                           Foreground="{Binding IsUrgent, Converter={x:Static conv:Swatch.LateOrNot}}" />
+                                            </StackPanel>
+                                            <Button Grid.Column="1" Classes="quiet" Content="Cancel"
+                                                    VerticalAlignment="Center"
+                                                    IsVisible="{Binding $parent[ItemsControl].((vm:ReservationsViewModel)DataContext).MayManage}"
+                                                    Command="{Binding $parent[ItemsControl].((vm:ReservationsViewModel)DataContext).CancelCommand}"
+                                                    CommandParameter="{Binding}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock Text="Nothing is being kept for anybody." Classes="faint"
+                                       Margin="20,20" TextAlignment="Center"
+                                       IsVisible="{Binding NothingReady}" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" Classes="card" Padding="0" ClipToBounds="True" Margin="10,0,0,0">
+                <Grid RowDefinitions="Auto,Auto,*">
+                    <Border Grid.Row="0" Classes="tableHead">
+                        <TextBlock Text="QUEUING FOR A BOOK THAT IS OUT" Classes="label" Margin="20,0" />
+                    </Border>
+
+                    <TextBlock Grid.Row="1" Text="{Binding WaitingTally}" Classes="faint"
+                               Margin="20,10,20,4" TextWrapping="Wrap" />
+
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <ItemsControl ItemsSource="{Binding Waiting}" Classes="rows">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="vm:HoldRow">
+                                        <Grid ColumnDefinitions="*,Auto" Margin="20,10">
+                                            <StackPanel Grid.Column="0" Spacing="3" Margin="0,0,10,0">
+                                                <TextBlock Text="{Binding Title}" FontWeight="Medium"
+                                                           TextWrapping="Wrap" MaxLines="2"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Classes="faint" FontSize="11">
+                                                    <Run Text="{Binding Member}" />
+                                                    <Run Text="·" />
+                                                    <Run Text="{Binding Position}" />
+                                                    <Run Text="·" />
+                                                    <Run Text="{Binding Since}" />
+                                                </TextBlock>
+                                            </StackPanel>
+                                            <Button Grid.Column="1" Classes="quiet" Content="Cancel"
+                                                    VerticalAlignment="Center"
+                                                    IsVisible="{Binding $parent[ItemsControl].((vm:ReservationsViewModel)DataContext).MayManage}"
+                                                    Command="{Binding $parent[ItemsControl].((vm:ReservationsViewModel)DataContext).CancelCommand}"
+                                                    CommandParameter="{Binding}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock Text="Nobody is waiting." Classes="faint"
+                                       Margin="20,20" TextAlignment="Center"
+                                       IsVisible="{Binding NothingWaiting}" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

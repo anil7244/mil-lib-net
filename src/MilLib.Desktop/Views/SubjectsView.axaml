@@ -1,0 +1,202 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:conv="using:MilLib.Desktop"
+             xmlns:core="using:MilLib.Core.Data"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+             x:Class="MilLib.Desktop.Views.SubjectsView"
+             x:DataType="vm:SubjectsViewModel">
+
+    <Grid ColumnDefinitions="*,420">
+
+        <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*" Margin="0,0,20,0">
+
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+                <StackPanel Grid.Column="0" Spacing="3">
+                    <TextBlock Text="What books are filed under" Classes="h2" />
+                    <TextBlock Classes="sub" TextWrapping="Wrap"
+                               Text="The library's own subject scheme. Headings can sit under one another, and a book filed under a narrow heading is found under the broad one above it." />
+                    <TextBlock Text="{Binding Tally}" Classes="faint" Margin="0,4,0,0" />
+                </StackPanel>
+
+                <Button Grid.Column="1" Classes="primary withIcon" Content="New heading"
+                        Tag="{StaticResource IconAdd}" MinHeight="42"
+                        VerticalAlignment="Top" Margin="14,0,0,0"
+                        IsVisible="{Binding MayManage}"
+                        Command="{Binding AddCommand}" />
+            </Grid>
+
+            <Border Grid.Row="1" Classes="card" Margin="0,0,0,14" Padding="16,12"
+                    IsVisible="{Binding HasSaid}"
+                    Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                <TextBlock Text="{Binding Said}" TextWrapping="Wrap"
+                           Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+            </Border>
+
+            <Border Grid.Row="1" Classes="card bad" Margin="0,0,0,14" Padding="16,12"
+                    IsVisible="{Binding HasProblem}">
+                <TextBlock Text="{Binding Problem}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource Bad}" />
+            </Border>
+
+            <Border Grid.Row="2" Classes="card" Padding="0" ClipToBounds="True">
+                <Grid RowDefinitions="Auto,*">
+                    <Border Grid.Row="0" Classes="tableHead">
+                        <Grid ColumnDefinitions="*,130,130" Margin="20,0">
+                            <TextBlock Grid.Column="0" Text="HEADING" Classes="label" />
+                            <TextBlock Grid.Column="1" Text="FILED HERE" Classes="label" />
+                            <TextBlock Grid.Column="2" Text="BELOW IT" Classes="label" />
+                        </Grid>
+                    </Border>
+
+                    <Panel Grid.Row="1">
+                        <!-- The empty state, which on this install is what
+                             everybody will see first: the catalogue came from a
+                             stock ledger and carried no subjects at all. -->
+                        <StackPanel VerticalAlignment="Center" Spacing="10" Margin="40"
+                                    IsVisible="{Binding Nothing}">
+                            <Path Classes="icon big" Data="{StaticResource IconLabels}"
+                                  Stroke="{DynamicResource InkFaint}" HorizontalAlignment="Center" />
+                            <TextBlock Text="No subject headings yet" Classes="h2"
+                                       TextAlignment="Center" />
+                            <TextBlock Classes="sub" TextAlignment="Center" TextWrapping="Wrap"
+                                       MaxWidth="520"
+                                       Text="This catalogue was imported from a stock ledger, which carried the books but not what they are about. Add the headings this library actually uses — a dozen broad ones is a good start — and they can be ticked on any book's record from then on." />
+                        </StackPanel>
+
+                        <ListBox Classes="table"
+                                 ItemsSource="{Binding Headings}"
+                                 SelectedItem="{Binding Selected}"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 IsVisible="{Binding !Nothing}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="core:SubjectNode">
+                                    <Grid ColumnDefinitions="*,130,130" Margin="20,10">
+                                        <!-- Indented by its depth, which is the
+                                             only thing that makes a flat list
+                                             read as a tree. -->
+                                        <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                                   VerticalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Margin="{Binding Depth, Converter={x:Static conv:Indent.Instance}}"
+                                                   FontWeight="{Binding IsRoot, Converter={x:Static conv:Weight.MediumOrNormal}}" />
+
+                                        <TextBlock Grid.Column="1" Text="{Binding Titles}"
+                                                   VerticalAlignment="Center" Classes="mono" FontSize="12" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Below}"
+                                                   VerticalAlignment="Center" Classes="mono faint"
+                                                   FontSize="12" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Panel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ================================================= the editor ==== -->
+        <Border Grid.Column="1" Classes="card" Padding="0" ClipToBounds="True">
+          <Panel>
+
+            <StackPanel VerticalAlignment="Center" Spacing="8" Margin="30"
+                        IsVisible="{Binding !Editing}">
+                <Path Classes="icon big" Data="{StaticResource IconLabels}"
+                      Stroke="{DynamicResource InkFaint}" HorizontalAlignment="Center" />
+                <TextBlock Text="Pick a heading, or make one" Classes="sub" TextAlignment="Center" />
+                <TextBlock Classes="faint" TextAlignment="Center" TextWrapping="Wrap"
+                           Text="Adding one under whichever heading is picked, which is nearly always where it belongs." />
+            </StackPanel>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" IsVisible="{Binding Editing}">
+                <StackPanel Margin="24,22,24,24" Spacing="18">
+
+                    <TextBlock Text="{Binding EditHeading}" Classes="h2" TextWrapping="Wrap" />
+
+                    <Border Classes="card" Padding="16,13"
+                            IsVisible="{Binding HasProblems}"
+                            Background="{DynamicResource BadSoft}"
+                            BorderBrush="{DynamicResource Bad}">
+                        <ItemsControl ItemsSource="{Binding Problems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2"
+                                               Foreground="{DynamicResource Bad}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Heading" Classes="faint" />
+                        <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                                 MinHeight="42" FontSize="14"
+                                 IsEnabled="{Binding MayManage}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Filed under" Classes="faint" />
+                        <ComboBox ItemsSource="{Binding Parents}" SelectedItem="{Binding Under}"
+                                  MinHeight="40" HorizontalAlignment="Stretch"
+                                  IsEnabled="{Binding MayManage}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate DataType="vm:ParentChoice">
+                                    <TextBlock Text="{Binding Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <!-- A heading cannot be put beneath itself, and the way
+                             that rule is kept is by not offering the move. -->
+                        <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                   Text="Anything already under this heading is left off the list — a heading filed beneath itself would make both unreachable." />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Position among its neighbours" Classes="faint" />
+                        <NumericUpDown Value="{Binding Position}" Minimum="0" Maximum="999"
+                                       FormatString="0" MinHeight="40"
+                                       HorizontalAlignment="Left" MinWidth="140"
+                                       IsEnabled="{Binding MayManage}" />
+                        <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                   Text="Lower comes first. Leave them all at zero and they sort by name." />
+                    </StackPanel>
+
+                    <Rectangle Height="1" Fill="{DynamicResource Line}"
+                               IsVisible="{Binding HasFiling}" />
+
+                    <StackPanel Spacing="8" IsVisible="{Binding HasFiling}">
+                        <TextBlock Text="WHAT IS FILED HERE" Classes="label" />
+                        <TextBlock Text="{Binding FiledHere}" Classes="faint" TextWrapping="Wrap" />
+
+                        <Border Classes="card" Padding="12,9" MaxHeight="200"
+                                IsVisible="{Binding HasBooks}">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding Books}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" TextWrapping="Wrap"
+                                                       FontSize="12" Margin="0,3" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="9" IsVisible="{Binding MayManage}">
+                        <Button Classes="primary" Content="Save" MinHeight="42" MinWidth="120"
+                                IsEnabled="{Binding !Busy}"
+                                Command="{Binding SaveCommand}" />
+                        <Button Content="Cancel" MinHeight="42" Command="{Binding CancelCommand}" />
+                        <Button Content="Remove" MinHeight="42"
+                                IsVisible="{Binding MayRemove}"
+                                Command="{Binding RemoveCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+          </Panel>
+        </Border>
+    </Grid>
+</UserControl>

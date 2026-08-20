@@ -1,0 +1,334 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MilLib.Desktop.ViewModels"
+        xmlns:local="using:MilLib.Desktop.Views"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="620"
+        x:Class="MilLib.Desktop.Views.LoginWindow"
+        x:DataType="vm:LoginViewModel"
+        Icon="/Assets/library.ico"
+        Title="Library Management System"
+        Width="1000" Height="620"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen">
+
+    <Design.DataContext>
+        <vm:LoginViewModel />
+    </Design.DataContext>
+
+    <!--
+        The same sign-in screen as the web application's, deliberately.
+
+        Somebody who has been using mil-lib in a browser should not have to
+        learn a second front door. So the layout, the wording and the palette
+        are the web one's: the two-panel card, the unit on the left and the
+        form on the right, the accent hairline over the crest, the licence line
+        under the button.
+
+        The colours are written here rather than taken from the application
+        theme, for the same reason the web keeps its own auth tokens: this
+        screen is dark whatever the rest of the application is set to, because
+        it is the one screen seen before anybody has chosen anything.
+    -->
+    <Window.Resources>
+        <SolidColorBrush x:Key="AuthText" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="AuthHeading2" Color="#D9FFFFFF" />
+        <SolidColorBrush x:Key="AuthMuted" Color="#6BFFFFFF" />
+        <SolidColorBrush x:Key="AuthFaint" Color="#40FFFFFF" />
+        <SolidColorBrush x:Key="AuthGhost" Color="#1FFFFFFF" />
+        <SolidColorBrush x:Key="AuthHairline" Color="#0FFFFFFF" />
+        <SolidColorBrush x:Key="AuthPanel" Color="#05FFFFFF" />
+        <SolidColorBrush x:Key="AuthPanel2" Color="#08FFFFFF" />
+        <SolidColorBrush x:Key="AuthInputBg" Color="#0DFFFFFF" />
+        <SolidColorBrush x:Key="AuthInputBorder" Color="#1AFFFFFF" />
+
+        <LinearGradientBrush x:Key="AuthBackdrop" StartPoint="10%,0%" EndPoint="90%,100%">
+            <GradientStop Offset="0" Color="#0A0A0A" />
+            <GradientStop Offset="0.4" Color="#1A1A1A" />
+            <GradientStop Offset="1" Color="#111111" />
+        </LinearGradientBrush>
+    </Window.Resources>
+
+    <Window.Styles>
+        <!-- The card rises once, in under half a second. An animation a person
+             notices twice is too slow, and this screen is seen daily. -->
+        <Style Selector="Border.entry">
+            <Style.Animations>
+                <Animation Duration="0:0:0.45" FillMode="Forward" Easing="CubicEaseOut">
+                    <KeyFrame Cue="0%"><Setter Property="Opacity" Value="0" /></KeyFrame>
+                    <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1" /></KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <!-- The fields, as the web draws them: flat, thin-bordered, square,
+             and taking the accent when they have the cursor. -->
+        <Style Selector="TextBox.auth">
+            <Setter Property="Foreground" Value="{StaticResource AuthText}" />
+            <Setter Property="CaretBrush" Value="{StaticResource AuthText}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="14,10" />
+            <Setter Property="MinHeight" Value="40" />
+        </Style>
+
+        <Style Selector="TextBox.auth /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="{StaticResource AuthInputBg}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AuthInputBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="0" />
+        </Style>
+
+        <Style Selector="TextBox.auth:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="{StaticResource AuthInputBg}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AuthGhost}" />
+        </Style>
+
+        <Style Selector="TextBox.auth:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#24C0392B" />
+            <Setter Property="BorderBrush" Value="#C0392B" />
+        </Style>
+
+        <!-- Small, wide-tracked, upper case: the register the whole screen is
+             written in. -->
+        <Style Selector="TextBlock.authLabel">
+            <Setter Property="FontSize" Value="9" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="LetterSpacing" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource AuthMuted}" />
+        </Style>
+
+        <Style Selector="Button.auth">
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="LetterSpacing" Value="1.5" />
+            <Setter Property="MinHeight" Value="42" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="Button.auth /template/ ContentPresenter">
+            <Setter Property="CornerRadius" Value="0" />
+        </Style>
+
+        <Style Selector="CheckBox.auth">
+            <Setter Property="Foreground" Value="{StaticResource AuthMuted}" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="MinHeight" Value="0" />
+        </Style>
+    </Window.Styles>
+
+    <Panel Background="{StaticResource AuthBackdrop}">
+
+        <Grid RowDefinitions="*,Auto">
+
+            <!-- ================================================= the card -->
+            <Border Grid.Row="0" Classes="entry" Opacity="0"
+                    Width="880" Margin="20,20,20,0"
+                    VerticalAlignment="Center" HorizontalAlignment="Center"
+                    BorderBrush="{StaticResource AuthHairline}" BorderThickness="1">
+
+                <Grid ColumnDefinitions="1*,1*">
+
+                    <!-- ============================== the unit's side -->
+                    <Border Grid.Column="0"
+                            Background="{StaticResource AuthPanel}"
+                            BorderBrush="{StaticResource AuthHairline}"
+                            BorderThickness="0,0,1,0"
+                            Padding="40">
+                        <Panel>
+                            <!-- The hairline over the crest. Small, and the
+                                 first thing that says whose screen this is. -->
+                            <Rectangle Width="40" Height="1" Opacity="0.5"
+                                       Fill="{Binding Accent}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Top" />
+
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+
+                                <Border Width="104" Height="104" CornerRadius="999"
+                                        HorizontalAlignment="Center"
+                                        Background="{Binding CrestGround}"
+                                        BorderBrush="{Binding CrestEdge}"
+                                        BorderThickness="2"
+                                        ClipToBounds="True"
+                                        Margin="0,0,0,16">
+                                    <Image Source="{Binding Crest}" Stretch="Uniform" Margin="7" />
+                                </Border>
+
+                                <!-- The product leads, so anybody at the
+                                     terminal sees the system first. -->
+                                <TextBlock Text="{Binding LibraryName}"
+                                           FontSize="22" FontWeight="ExtraBold"
+                                           LetterSpacing="2" LineHeight="27"
+                                           TextAlignment="Center" TextWrapping="Wrap"
+                                           Foreground="{StaticResource AuthText}" />
+
+                                <TextBlock Text="{Binding Version}"
+                                           FontSize="9" FontWeight="Bold" LetterSpacing="2"
+                                           TextAlignment="Center" Margin="0,5,0,0"
+                                           Foreground="{Binding Accent}" />
+
+                                <Rectangle Width="40" Height="2" Margin="0,14"
+                                           HorizontalAlignment="Center"
+                                           Fill="{Binding Accent}" />
+
+                                <!-- The unit and its motto: the second
+                                     identity, under the product's. -->
+                                <StackPanel Orientation="Horizontal" Spacing="5"
+                                            HorizontalAlignment="Center"
+                                            IsVisible="{Binding HasOrganisation}">
+                                    <TextBlock Text="DEPLOYED FOR"
+                                               FontSize="10" FontWeight="SemiBold" LetterSpacing="2"
+                                               Foreground="{StaticResource AuthMuted}" />
+                                    <TextBlock Text="{Binding Organisation}"
+                                               FontSize="10" FontWeight="ExtraBold" LetterSpacing="2.5"
+                                               Foreground="{StaticResource AuthHeading2}" />
+                                </StackPanel>
+
+                                <TextBlock Text="{Binding Motto}"
+                                           IsVisible="{Binding HasMotto}"
+                                           FontSize="10" FontWeight="SemiBold" LetterSpacing="3"
+                                           TextAlignment="Center" TextWrapping="Wrap"
+                                           Margin="0,4,0,0"
+                                           Foreground="{StaticResource AuthFaint}" />
+
+                                <!-- What the software does, so nobody has to
+                                     sign in to find out what it is. -->
+                                <TextBlock Margin="0,10,0,0"
+                                           FontSize="10" LineHeight="17" LetterSpacing="0.5"
+                                           TextAlignment="Center"
+                                           Foreground="{StaticResource AuthFaint}">
+                                    Catalogue &amp; Accession • Members &amp; Passes<LineBreak />
+                                    Issue &amp; Return • Stock Verification<LineBreak />
+                                    QR Passes • Reports
+                                </TextBlock>
+                            </StackPanel>
+                        </Panel>
+                    </Border>
+
+                    <!-- ==================================== the form -->
+                    <Border Grid.Column="1"
+                            Background="{StaticResource AuthPanel2}"
+                            Padding="40">
+                        <StackPanel VerticalAlignment="Center">
+
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Path Data="{StaticResource IconLicence}"
+                                      Fill="{Binding Accent}"
+                                      Stretch="Uniform" Width="15" Height="15"
+                                      VerticalAlignment="Center" />
+                                <TextBlock Text="SIGN IN"
+                                           FontSize="15" FontWeight="ExtraBold" LetterSpacing="1"
+                                           Foreground="{StaticResource AuthText}" />
+                            </StackPanel>
+
+                            <TextBlock Text="AUTHORISED PERSONNEL ONLY"
+                                       FontSize="10" LetterSpacing="1" Margin="0,2,0,24"
+                                       Foreground="{StaticResource AuthFaint}" />
+
+                            <!-- Said before anything else, because there is
+                                 nothing to sign in to without it. -->
+                            <Border IsVisible="{Binding DataFileMissing}"
+                                    Background="#24C0392B"
+                                    BorderBrush="{Binding Accent}" BorderThickness="1"
+                                    Padding="11,9" Margin="0,0,0,14">
+                                <StackPanel Spacing="3">
+                                    <TextBlock Text="The data file could not be found"
+                                               FontSize="11" FontWeight="SemiBold"
+                                               Foreground="{StaticResource AuthText}" />
+                                    <SelectableTextBlock Text="{Binding DataFile}"
+                                                         FontFamily="Consolas" FontSize="10"
+                                                         TextWrapping="Wrap"
+                                                         Foreground="{StaticResource AuthMuted}" />
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock Text="USERNAME" Classes="authLabel" Margin="0,0,0,4" />
+                            <TextBox Name="UsernameBox" Classes="auth"
+                                     Watermark="Enter your username"
+                                     Margin="0,0,0,16"
+                                     Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <TextBlock Text="PASSWORD" Classes="authLabel" Margin="0,0,0,4" />
+                            <TextBox Name="PasswordBox" Classes="auth"
+                                     Watermark="Enter password"
+                                     PasswordChar="•"
+                                     Margin="0,0,0,16"
+                                     Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <CheckBox Classes="auth" Content="Remember me"
+                                      IsChecked="{Binding Remember}"
+                                      Margin="0,0,0,16"
+                                      ToolTip.Tip="Fills in the username next time. Never the password — closing the application always signs you out." />
+
+                            <!-- In the flow rather than floated over the
+                                 fields, so nothing jumps when it appears. -->
+                            <Border IsVisible="{Binding HasProblem}"
+                                    Background="#24C0392B"
+                                    BorderBrush="{Binding Accent}" BorderThickness="1"
+                                    Padding="11,8" Margin="0,0,0,14">
+                                <TextBlock Text="{Binding Problem}" FontSize="11"
+                                           TextWrapping="Wrap"
+                                           Foreground="{StaticResource AuthText}" />
+                            </Border>
+
+                            <Button Classes="auth" IsDefault="True"
+                                    Background="{Binding Accent}"
+                                    HorizontalAlignment="Stretch"
+                                    IsEnabled="{Binding !Busy}"
+                                    Command="{Binding EnterCommand}"
+                                    AutomationProperties.Name="Login">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Path Data="{StaticResource IconSignIn}"
+                                          Stroke="#FFFFFF" StrokeThickness="1.8"
+                                          Stretch="Uniform" Width="14" Height="14"
+                                          VerticalAlignment="Center" />
+                                    <TextBlock Text="LOGIN" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <!-- The licence, on the same line the web puts it,
+                                 with the accent bar down the left. -->
+                            <Border IsVisible="{Binding HasLicence}"
+                                    BorderBrush="{StaticResource AuthHairline}"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    ClipToBounds="True"
+                                    Margin="0,14,0,0">
+                                <Grid ColumnDefinitions="3,*">
+                                    <Rectangle Grid.Column="0"
+                                               Fill="{Binding Accent}"
+                                               HorizontalAlignment="Stretch"
+                                               VerticalAlignment="Stretch" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="7"
+                                                Margin="11,8">
+                                        <Path Data="{StaticResource IconLicence}"
+                                              Fill="{Binding Accent}"
+                                              Stretch="Uniform" Width="12" Height="12"
+                                              VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Licence}" FontSize="11.5"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource AuthMuted}" />
+                                        <TextBlock Text="Activate" FontSize="11.5"
+                                                   VerticalAlignment="Center"
+                                                   IsVisible="{Binding MayActivate}"
+                                                   TextDecorations="Underline"
+                                                   Foreground="{Binding Accent}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- The vendor credit, and nothing else. -->
+            <TextBlock Grid.Row="1" Text="{Binding VendorLine}"
+                       FontSize="10" FontWeight="SemiBold" LetterSpacing="0.6"
+                       TextAlignment="Center" Margin="0,14,0,12"
+                       Foreground="{StaticResource AuthMuted}" />
+        </Grid>
+    </Panel>
+</Window>

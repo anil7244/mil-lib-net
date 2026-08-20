@@ -1,0 +1,21 @@
+bin/
+obj/
+
+# The staged handover copy — a self-contained executable and a unit's
+# real data. Built on demand by tools\publish.ps1, never checked in.
+publish/
+
+# The records. A library's catalogue and its members are not source code, and a
+# copy of this repository must not carry a unit's data with it.
+app/data/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# Written only when something goes wrong, and only on the machine it went wrong on.
+errors.log
+installation.json
+
+# The real licence salt — the shared secret of the licensing scheme.
+# A public copy of this repository must never carry it.
+src/MilLib.Desktop/Services/LicenceSecret.cs

@@ -1,0 +1,282 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MilLib.Desktop.ViewModels"
+        xmlns:core="using:MilLib.Core.Data"
+        xmlns:conv="using:MilLib.Desktop"
+        xmlns:local="using:MilLib.Desktop.Views"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="800"
+        x:Class="MilLib.Desktop.Views.KioskWindow"
+        x:DataType="vm:KioskViewModel"
+        Icon="/Assets/library.ico"
+        Title="Library catalogue"
+        WindowState="FullScreen"
+        WindowDecorations="None"
+        Background="{DynamicResource Backdrop}">
+
+    <Panel>
+        <local:Backdrop />
+
+        <Grid RowDefinitions="Auto,Auto,*">
+
+            <!-- ================================================ the head -->
+            <Border Grid.Row="0"
+                    Background="{DynamicResource GlassSunken}"
+                    BorderBrush="{DynamicResource GlassEdge}"
+                    BorderThickness="0,0,0,1"
+                    Padding="40,22">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Spacing="3">
+                        <TextBlock Text="{Binding Organisation}" Classes="label"
+                                   Foreground="{DynamicResource Accent}" />
+                        <TextBlock Text="{Binding LibraryName}" FontSize="26" FontWeight="SemiBold" />
+                        <TextBlock Text="Search the catalogue. Scan your pass to see your own books."
+                                   Classes="sub" />
+                    </StackPanel>
+
+                    <!-- Deliberately small and plain. Closing the terminal is
+                         not something a member should be invited to try. -->
+                    <Button Grid.Column="1" Classes="quiet" Content="Staff" MinHeight="36"
+                            VerticalAlignment="Top"
+                            Command="{Binding AskToLeaveCommand}" />
+                </Grid>
+            </Border>
+
+            <!-- ============================================ what was said -->
+            <Border Grid.Row="1" Classes="card" Margin="40,18,40,0" Padding="22,16"
+                    IsVisible="{Binding HasSaid}"
+                    Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                <TextBlock Text="{Binding Said}" TextWrapping="Wrap" FontSize="16"
+                           Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+            </Border>
+
+            <Grid Grid.Row="2" ColumnDefinitions="*,24,420" Margin="40,18,40,32">
+
+                <!-- ========================================== the catalogue -->
+                <Grid Grid.Column="0" RowDefinitions="Auto,*">
+
+                    <TextBox Grid.Row="0" Name="SearchBox"
+                             Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="Type part of a title, an author, or the number on the spine"
+                             FontSize="19" MinHeight="60" Padding="20,12"
+                             Margin="0,0,0,16" />
+
+                    <Border Grid.Row="1" Classes="card" Padding="0" ClipToBounds="True">
+                        <Grid RowDefinitions="Auto,*">
+                            <Border Grid.Row="0" Classes="tableHead">
+                                <Grid ColumnDefinitions="*,150,190" Margin="22,0">
+                                    <TextBlock Grid.Column="0" Text="BOOK" Classes="label" />
+                                    <TextBlock Grid.Column="1" Text="ON THE SPINE" Classes="label" />
+                                    <TextBlock Grid.Column="2" Text="IS IT IN?" Classes="label" />
+                                </Grid>
+                            </Border>
+
+                            <Panel Grid.Row="1">
+                                <StackPanel VerticalAlignment="Center" Spacing="10" Margin="40"
+                                            IsVisible="{Binding Nothing}">
+                                    <Path Classes="icon big" Data="{StaticResource IconSearch}"
+                                          Stroke="{DynamicResource InkFaint}" HorizontalAlignment="Center" />
+                                    <TextBlock Text="Nothing found" Classes="h2" TextAlignment="Center" />
+                                    <TextBlock Classes="sub" TextAlignment="Center" TextWrapping="Wrap"
+                                               Text="Try fewer words, or ask at the counter." />
+                                </StackPanel>
+
+                                <ListBox Classes="table" ItemsSource="{Binding Found}"
+                                         SelectedItem="{Binding Chosen}"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                         IsVisible="{Binding !Nothing}">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate DataType="core:OnTheShelf">
+                                            <Grid ColumnDefinitions="*,150,190" Margin="22,13">
+                                                <StackPanel Grid.Column="0" Spacing="3" Margin="0,0,16,0">
+                                                    <TextBlock Text="{Binding Title}" FontSize="15"
+                                                               FontWeight="Medium" TextWrapping="Wrap" />
+                                                    <TextBlock Text="{Binding Authors}" Classes="faint"
+                                                               FontSize="12.5"
+                                                               IsVisible="{Binding Authors, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                </StackPanel>
+
+                                                <TextBlock Grid.Column="1" Text="{Binding Where}"
+                                                           Classes="mono" FontSize="13"
+                                                           VerticalAlignment="Center" />
+
+                                                <!-- The one thing somebody at a
+                                                     terminal came to find out,
+                                                     in words rather than two
+                                                     numbers to work out. -->
+                                                <TextBlock Grid.Column="2" Text="{Binding Standing}"
+                                                           FontSize="13" VerticalAlignment="Center"
+                                                           TextWrapping="Wrap"
+                                                           Foreground="{Binding In, Converter={x:Static conv:Swatch.GoodOrPlainInk}}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Panel>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <!-- =============================================== the member -->
+                <Border Grid.Column="2" Classes="card" Padding="0" ClipToBounds="True">
+                    <Panel>
+
+                        <!-- Nobody has scanned in. -->
+                        <StackPanel VerticalAlignment="Center" Spacing="16" Margin="30"
+                                    IsVisible="{Binding !SignedIn}">
+                            <Path Classes="icon big" Data="{StaticResource IconBarcode}"
+                                  Stroke="{DynamicResource InkFaint}" HorizontalAlignment="Center" />
+                            <TextBlock Text="Scan your pass" Classes="h2" TextAlignment="Center" />
+                            <TextBlock Classes="sub" TextAlignment="Center" TextWrapping="Wrap"
+                                       Text="To see what you have out, when it is due, and to join the queue for a book that is on loan." />
+
+                            <TextBox Text="{Binding Scan, UpdateSourceTrigger=PropertyChanged}"
+                                     PlaceholderText="Scan, or type your membership number"
+                                     FontSize="16" MinHeight="52" Padding="16,10"
+                                     HorizontalAlignment="Stretch">
+                                <TextBox.KeyBindings>
+                                    <!-- A scanner types the token and presses
+                                         Enter. Without this the pass does
+                                         nothing and there is nobody to ask. -->
+                                    <KeyBinding Gesture="Enter" Command="{Binding IdentifyCommand}" />
+                                </TextBox.KeyBindings>
+                            </TextBox>
+
+                            <TextBlock Classes="faint" TextAlignment="Center" TextWrapping="Wrap"
+                                       FontSize="11"
+                                       Text="Nothing about you is shown until you do, and the screen clears itself when you walk away." />
+                        </StackPanel>
+
+                        <!-- Somebody has. -->
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" IsVisible="{Binding SignedIn}">
+                            <StackPanel Margin="26,24" Spacing="18">
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Grid.Column="0" Spacing="3" Margin="0,0,10,0">
+                                        <TextBlock Text="{Binding Who}" Classes="h2"
+                                                   TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Allowance}" Classes="faint"
+                                                   FontSize="11.5" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="Done" MinHeight="38"
+                                            VerticalAlignment="Top"
+                                            Command="{Binding DoneCommand}" />
+                                </Grid>
+
+                                <TextBlock Text="{Binding ClearedTo}" Classes="faint" FontSize="11"
+                                           TextWrapping="Wrap"
+                                           IsVisible="{Binding ClearedTo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                                <Border Classes="card" Padding="14,11"
+                                        IsVisible="{Binding Owes}"
+                                        Background="{DynamicResource BadSoft}"
+                                        BorderBrush="{DynamicResource Bad}">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="{Binding Owed}" FontSize="16"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource Bad}" />
+                                        <TextBlock Text="owing — settle it at the counter"
+                                                   FontSize="11.5" Foreground="{DynamicResource Bad}" />
+                                    </StackPanel>
+                                </Border>
+
+                                <StackPanel Spacing="8" IsVisible="{Binding HasBooks}">
+                                    <TextBlock Text="WHAT YOU HAVE OUT" Classes="label" />
+                                    <ItemsControl ItemsSource="{Binding MyBooks}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="core:MyBook">
+                                                <StackPanel Spacing="2" Margin="0,5">
+                                                    <TextBlock Text="{Binding Title}" TextWrapping="Wrap"
+                                                               FontSize="12.5" />
+                                                    <TextBlock Text="{Binding When}" FontSize="11"
+                                                               Foreground="{Binding Late, Converter={x:Static conv:Swatch.BadOrPlain}}" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+
+                                <TextBlock Text="You have nothing out at the moment."
+                                           Classes="faint" FontSize="12"
+                                           IsVisible="{Binding !HasBooks}" />
+
+                                <StackPanel Spacing="8" IsVisible="{Binding HasHolds}">
+                                    <TextBlock Text="BOOKS YOU ARE WAITING FOR" Classes="label" />
+                                    <ItemsControl ItemsSource="{Binding MyHolds}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" TextWrapping="Wrap"
+                                                           FontSize="12" Margin="0,3" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+
+                                <Rectangle Height="1" Fill="{DynamicResource Line}"
+                                           IsVisible="{Binding Chosen, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+                                <!-- The chosen book, and whether it can be held.
+                                     The refusal is shown instead of the button
+                                     rather than after it — a terminal that
+                                     accepts a request and then refuses it is a
+                                     terminal somebody complains about. -->
+                                <StackPanel Spacing="8"
+                                            IsVisible="{Binding Chosen, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                    <TextBlock Text="THE BOOK YOU PICKED" Classes="label" />
+                                    <TextBlock Text="{Binding Chosen.Title}" TextWrapping="Wrap"
+                                               FontWeight="Medium" />
+                                    <TextBlock Text="{Binding Chosen.Standing}" Classes="faint"
+                                               FontSize="11.5" />
+
+                                    <Button Classes="primary" Content="Join the queue for it"
+                                            MinHeight="44" HorizontalAlignment="Stretch"
+                                            IsVisible="{Binding MayHold}"
+                                            Command="{Binding HoldCommand}" />
+
+                                    <TextBlock Text="{Binding HoldRefusal}" TextWrapping="Wrap"
+                                               FontSize="11.5" Classes="faint"
+                                               IsVisible="{Binding RefusedHold}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Panel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ===================================== letting a member of staff out -->
+        <Border IsVisible="{Binding Asking}"
+                Background="#B0000000">
+            <Border Classes="card solid" Width="440" Padding="30,26"
+                    VerticalAlignment="Center" HorizontalAlignment="Center">
+                <StackPanel Spacing="16">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Close the catalogue terminal" Classes="h2" />
+                        <TextBlock Classes="sub" TextWrapping="Wrap"
+                                   Text="This gives the whole library system back. Type the password of the account this terminal was opened with." />
+                    </StackPanel>
+
+                    <TextBox Text="{Binding LeaveWord, UpdateSourceTrigger=PropertyChanged}"
+                             PasswordChar="•" MinHeight="44" FontSize="15">
+                        <TextBox.KeyBindings>
+                            <KeyBinding Gesture="Enter" Command="{Binding LeaveCommand}" />
+                        </TextBox.KeyBindings>
+                    </TextBox>
+
+                    <TextBlock Text="{Binding LeaveProblem}" TextWrapping="Wrap"
+                               Foreground="{DynamicResource Bad}" FontSize="12"
+                               IsVisible="{Binding LeaveProblem, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                        <Button Content="Stay here" MinHeight="42" MinWidth="120"
+                                Command="{Binding StayHereCommand}" />
+                        <Button Classes="primary" Content="Close it" MinHeight="42" MinWidth="130"
+                                IsDefault="True"
+                                Command="{Binding LeaveCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Panel>
+</Window>
