@@ -40,6 +40,12 @@ public partial class MainViewModel : ViewModelBase
 
     private readonly Dictionary<string, ViewModelBase> _screens = [];
 
+    /// <summary>
+    /// Whether the application is on its dark theme — drives the one toggle at
+    /// the top of the window, a sun when it is dark and a moon when it is light.
+    /// </summary>
+    [ObservableProperty] private bool _isDark;
+
     public MainViewModel(string? startAt = null)
     {
         DataFile = Workspace.DatabasePath;
@@ -54,6 +60,8 @@ public partial class MainViewModel : ViewModelBase
         // rather than at start-up because the settings are not readable until
         // somebody is in — this is the first moment the accent is known.
         Theming.Apply(Session.Preferences);
+
+        IsDark = Theming.Dark;
 
         // And again whenever it is changed on the Settings screen, so the
         // person choosing it is looking at the result while they choose.
@@ -129,6 +137,35 @@ public partial class MainViewModel : ViewModelBase
 
     [RelayCommand]
     private void ReadingRoom() => OpenKiosk?.Invoke();
+
+    /// <summary>
+    /// Light and dark, from the one icon at the top. It changes immediately —
+    /// Avalonia repaints every open window — and is written to the settings so
+    /// it is the same the next time the application is opened.
+    /// </summary>
+    [RelayCommand]
+    private async Task ToggleThemeAsync()
+    {
+        IsDark = !IsDark;
+
+        Theming.UseVariant(IsDark);
+
+        try
+        {
+            await using var db = Workspace.Open();
+
+            await new Setup(db).SetAsync("branding.default_theme",
+                IsDark ? "dark" : "light", "branding", "Default theme");
+
+            Session.Refresh(await Preferences.ReadAsync(db));
+        }
+        catch (Exception ex)
+        {
+            // The theme has already changed on screen; failing to remember it is
+            // not worth stopping the person, only worth writing down.
+            Faults.Record("saving the theme choice", ex);
+        }
+    }
 
     /// <summary>Raised when the person signs out, for the shell to act on.</summary>
     public event Action? SignedOut;

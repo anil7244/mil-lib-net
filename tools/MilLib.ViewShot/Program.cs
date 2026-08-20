@@ -269,6 +269,13 @@ internal static class Program
             Shoot(Path.Combine(outDir, "admin-activity.png"),
                 new ActivityView { DataContext = activity });
 
+            // The dark theme, to show the dual palette — the same view models,
+            // repainted by the variant switch, nothing rebuilt.
+            Theming.UseVariant(true);
+            Shoot(Path.Combine(outDir, "dashboard-dark.png"), new DashboardView { DataContext = dash });
+            Shoot(Path.Combine(outDir, "books-dark.png"), new BooksView { DataContext = books });
+            Theming.UseVariant(false);
+
             ShootKiosk(Path.Combine(outDir, "kiosk.png"));
         }
 
@@ -762,6 +769,23 @@ internal static class Program
         // Not closed on purpose: the kiosk refuses to. The tool exits after.
     }
 
+    /// <summary>The page ground for whichever theme is on, so a dark render is
+    /// dark rather than dark text washed out on a light board.</summary>
+    private static IBrush Ground()
+    {
+        var variant = Theming.Dark
+            ? Avalonia.Styling.ThemeVariant.Dark
+            : Avalonia.Styling.ThemeVariant.Light;
+
+        if (Application.Current?.TryGetResource("Bg", variant, out var found) == true
+            && found is IBrush brush)
+        {
+            return brush;
+        }
+
+        return new SolidColorBrush(Color.Parse(Theming.Dark ? "#121417" : "#F4F5F7"));
+    }
+
     private static void Shoot(string path, object content)
     {
         const int width = 1180;
@@ -771,7 +795,7 @@ internal static class Program
         {
             Width = width,
             Height = height,
-            Background = new SolidColorBrush(Color.Parse("#F4F5F7")),
+            Background = Ground(),
             Content = content,
             Padding = new Thickness(20),
         };

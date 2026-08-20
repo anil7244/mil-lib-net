@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Media;
+using Avalonia.Styling;
 using MilLib.Core.Data;
 
 namespace MilLib.Desktop.Services;
@@ -24,6 +25,15 @@ public static class Theming
 
     public static Color Accent { get; private set; } = Color.Parse(DefaultAccent);
 
+    /// <summary>Whether the application is on its dark theme right now.</summary>
+    public static bool Dark { get; private set; }
+
+    /// <summary>
+    /// The accent last applied, so switching light and dark can re-derive the
+    /// soft tints for the new ground without being handed the colour again.
+    /// </summary>
+    private static string _lastColour = DefaultAccent;
+
     /// <summary>
     /// Recolour the application from the settings.
     ///
@@ -40,10 +50,27 @@ public static class Theming
     /// </summary>
     public static event Action? Changed;
 
-    public static void Apply(Preferences preferences) => Apply(preferences.AccentColour);
+    public static void Apply(Preferences preferences)
+    {
+        Dark = preferences.DefaultTheme != "light";
+        Apply(preferences.AccentColour);
+    }
+
+    /// <summary>
+    /// Switch light and dark at the touch of the toggle. The variant changes,
+    /// and the accent-derived tints are mixed again for the new ground so a
+    /// selected row and a focused field read on both.
+    /// </summary>
+    public static void UseVariant(bool dark)
+    {
+        Dark = dark;
+        Apply(_lastColour);
+    }
 
     public static void Apply(string colour)
     {
+        _lastColour = colour;
+
         var accent = Parse(colour) ?? Color.Parse(DefaultAccent);
 
         Accent = accent;
@@ -52,6 +79,11 @@ public static class Theming
         {
             return;
         }
+
+        // The one place the theme variant is set. Avalonia swaps the whole
+        // palette — every colour keyed under Light/Dark in Palette.axaml — the
+        // moment this changes, and repaints every open window.
+        app.RequestedThemeVariant = Dark ? ThemeVariant.Dark : ThemeVariant.Light;
 
         // The whole family, derived. A unit picks one colour and these follow,
         // because a unit that had to choose a hover shade would choose one that
@@ -64,7 +96,7 @@ public static class Theming
         // to work on both a cream page and a near-black one. Mixed against the
         // page rather than given a fixed lightness, or it disappears on one
         // theme and glares on the other.
-        var dark = IsDark(app);
+        var dark = Dark;
 
         app.Resources["AccentSoftColor"] = Mix(accent, dark ? Color.Parse("#101215") : Colors.White,
             dark ? 0.82 : 0.90);

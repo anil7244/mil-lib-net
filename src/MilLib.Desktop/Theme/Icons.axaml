@@ -81,6 +81,9 @@
     <StreamGeometry x:Key="IconSignIn">M14,4 H18.4 A1.6,1.6 0 0,1 20,5.6 V18.4 A1.6,1.6 0 0,1 18.4,20 H14 M10.4,15.6 L14,12 L10.4,8.4 M14,12 H3.6</StreamGeometry>
     <StreamGeometry x:Key="IconSignOut">M10,4 H5.6 A1.6,1.6 0 0,0 4,5.6 V18.4 A1.6,1.6 0 0,0 5.6,20 H10 M16.4,15.6 L20,12 L16.4,8.4 M20,12 H9.6</StreamGeometry>
     <StreamGeometry x:Key="IconMenu">M4,7 H20 M4,12 H20 M4,17 H20</StreamGeometry>
+    <!-- Light / dark toggle. A sun with rays; a crescent moon. -->
+    <StreamGeometry x:Key="IconSun">M12,8.2 A3.8,3.8 0 1,0 12,15.8 A3.8,3.8 0 1,0 12,8.2 M12,3 V5 M12,19 V21 M4.2,4.2 L5.6,5.6 M18.4,18.4 L19.8,19.8 M3,12 H5 M19,12 H21 M4.2,19.8 L5.6,18.4 M18.4,5.6 L19.8,4.2</StreamGeometry>
+    <StreamGeometry x:Key="IconMoon">M20.5,14.2 A8.2,8.2 0 1,1 9.8,3.5 A6.4,6.4 0 1,0 20.5,14.2 Z</StreamGeometry>
     <StreamGeometry x:Key="IconBarcode">M4,5 V19 M7,5 V19 M10,5 V15 M13,5 V19 M16.5,5 V15 M20,5 V19</StreamGeometry>
     <StreamGeometry x:Key="IconPrint">M7,9 V4 H17 V9 M7,17 H5.4 A1.4,1.4 0 0,1 4,15.6 V10.4 A1.4,1.4 0 0,1 5.4,9 H18.6 A1.4,1.4 0 0,1 20,10.4 V15.6 A1.4,1.4 0 0,1 18.6,17 H17 M7,14 H17 V20 H7 Z</StreamGeometry>
     <StreamGeometry x:Key="IconOverdue">M12,4 A8,8 0 1,0 12,20 A8,8 0 1,0 12,4 M12,7.6 V12 L15,14</StreamGeometry>

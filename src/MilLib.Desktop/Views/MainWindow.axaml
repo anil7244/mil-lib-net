@@ -205,6 +205,23 @@
                                        TextAlignment="Right" Foreground="{DynamicResource AccentOnDark}" />
                         </StackPanel>
 
+                        <!-- Light / dark, from one icon. A moon while the
+                             application is light (press it to go dark), a sun
+                             while it is dark. It changes at once and is
+                             remembered. -->
+                        <Button Classes="chrome" Command="{Binding ToggleThemeCommand}"
+                                ToolTip.Tip="Switch between the light and dark theme"
+                                AutomationProperties.Name="Switch theme">
+                            <Panel Width="16" Height="16">
+                                <Path Data="{StaticResource IconMoon}" Stroke="{DynamicResource RailInk}"
+                                      StrokeThickness="1.7" Width="16" Height="16" Stretch="Uniform"
+                                      IsVisible="{Binding !IsDark}" />
+                                <Path Data="{StaticResource IconSun}" Stroke="{DynamicResource RailInk}"
+                                      StrokeThickness="1.7" Width="16" Height="16" Stretch="Uniform"
+                                      IsVisible="{Binding IsDark}" />
+                            </Panel>
+                        </Button>
+
                         <Button Classes="chrome"
                                 IsVisible="{Binding MayOpenKiosk}"
                                 Command="{Binding ReadingRoomCommand}"
