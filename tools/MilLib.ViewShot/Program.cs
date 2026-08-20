@@ -85,6 +85,12 @@ internal static class Program
                 ShootWindow(Path.Combine(outDir, "book-show.png"), window);
             }
 
+            var dash = new DashboardViewModel();
+
+            SettleWhile(() => dash.Busy);
+
+            Shoot(Path.Combine(outDir, "dashboard.png"), new DashboardView { DataContext = dash });
+
             var reports = new ReportsViewModel();
 
             SettleWhile(() => reports.Busy);

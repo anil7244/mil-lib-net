@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:conv="using:MilLib.Desktop"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
@@ -13,7 +14,7 @@
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,20">
             <StackPanel Grid.Column="0" Spacing="3">
                 <TextBlock Text="{Binding Greeting}" Classes="h2" />
-                <TextBlock Classes="sub" Text="Here is where the library stands today." />
+                <TextBlock Text="{Binding Standing}" Classes="faint" />
             </StackPanel>
 
             <Button Grid.Column="1" Classes="quiet"
@@ -36,57 +37,41 @@
              it is read by word — and the one that means trouble is the only red
              thing on the screen.
         -->
-        <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,22">
+        <!--
+             The figures.
 
-            <Border Classes="card cool" Margin="0,0,9,9" Padding="20">
-                <StackPanel Spacing="5">
-                    <TextBlock Text="BOOKS IN LIBRARY" Classes="label" />
-                    <TextBlock Text="{Binding Titles}" Classes="figure" />
-                    <TextBlock Classes="faint" Text="separate works in the catalogue" />
-                </StackPanel>
-            </Border>
-
-            <Border Classes="card cool" Margin="9,0,9,9" Padding="20">
-                <StackPanel Spacing="5">
-                    <TextBlock Text="COPIES ON THE REGISTER" Classes="label" />
-                    <TextBlock Text="{Binding Copies}" Classes="figure" />
-                    <TextBlock Classes="faint" Text="physical books, each with its own number" />
-                </StackPanel>
-            </Border>
-
-            <Border Classes="card info" Margin="9,0,0,9" Padding="20">
-                <StackPanel Spacing="5">
-                    <TextBlock Text="MEMBERS" Classes="label" />
-                    <TextBlock Text="{Binding Members}" Classes="figure" />
-                    <TextBlock Classes="faint" Text="currently enrolled and active" />
-                </StackPanel>
-            </Border>
-
-            <Border Classes="card good" Margin="0,9,9,0" Padding="20">
-                <StackPanel Spacing="5">
-                    <TextBlock Text="OUT ON LOAN" Classes="label" />
-                    <TextBlock Text="{Binding Issued}" Classes="figure" />
-                    <TextBlock Classes="faint" Text="books with somebody at the moment" />
-                </StackPanel>
-            </Border>
-
-            <Border Classes="card good" Margin="9,9,9,0" Padding="20">
-                <StackPanel Spacing="5">
-                    <TextBlock Text="ISSUED TODAY" Classes="label" />
-                    <TextBlock Text="{Binding IssuedToday}" Classes="figure" />
-                    <TextBlock Classes="faint" Text="handed over the counter since midnight" />
-                </StackPanel>
-            </Border>
-
-            <Border Classes="card bad" Margin="9,9,0,0" Padding="20">
-                <StackPanel Spacing="5">
-                    <TextBlock Text="OVERDUE" Classes="label" />
-                    <TextBlock Text="{Binding Overdue}" Classes="figure"
-                               Foreground="{DynamicResource Bad}" />
-                    <TextBlock Classes="faint" Text="past their due date and still out" />
-                </StackPanel>
-            </Border>
-        </UniformGrid>
+             Built from the view model, because which ones appear depends on
+             what this person may see and what the unit has switched on. Each is
+             a card that is also a way in: the number is the button, and clicking
+             the figure walks to the screen it is about. Those that are running
+             totals rather than screens of their own are plain.
+        -->
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding Stats}" Margin="0,0,0,22">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="3" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:StatCard">
+                    <Border Classes="card tile" Margin="5" Padding="20"
+                            Classes.cool="{Binding IsCool}"
+                            Classes.info="{Binding IsInfo}"
+                            Classes.good="{Binding IsGood}"
+                            Classes.warn="{Binding IsWarn}"
+                            Classes.bad="{Binding IsBad}"
+                            Classes.open="{Binding CanOpen}"
+                            Tapped="OnStatTapped">
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="{Binding Label}" Classes="label" />
+                            <TextBlock Text="{Binding Value}" Classes="figure"
+                                       Foreground="{Binding IsBad, Converter={x:Static conv:Swatch.BadOrPlain}}" />
+                            <TextBlock Text="{Binding Note}" Classes="faint" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
 
         <!--
              What should have come back and hasn't.

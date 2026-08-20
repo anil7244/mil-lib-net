@@ -26,19 +26,35 @@ public partial class DashboardViewModel : ViewModelBase
     [ObservableProperty] private int _overdue;
     [ObservableProperty] private int _members;
     [ObservableProperty] private int _issuedToday;
+    [ObservableProperty] private int _dueToday;
+    [ObservableProperty] private int _holdsReady;
+    [ObservableProperty] private int _holdsWaiting;
+    [ObservableProperty] private decimal _pendingFines;
 
     [ObservableProperty] private string _greeting = "";
+
+    /// <summary>Who is signed in and to what — the same line the web console carries.</summary>
+    [ObservableProperty] private string _standing = "";
 
     public DashboardViewModel(Action<string>? go = null)
     {
         _go = go ?? (_ => { });
 
         Greeting = Welcome();
+        Standing = WhoAndWhen();
 
         _ = LoadAsync();
     }
 
     public bool HasProblem => Problem.Length > 0;
+
+    /// <summary>
+    /// The figures, as cards. A list rather than a fixed grid because which
+    /// figures appear depends on what this person may see and what the unit has
+    /// turned on — a counter clerk with no reservations feature gets a shorter
+    /// row, not a row with holes in it.
+    /// </summary>
+    public System.Collections.ObjectModel.ObservableCollection<StatCard> Stats { get; } = [];
 
     public List<OverdueRow> Overdues { get; } = [];
 
@@ -77,6 +93,22 @@ public partial class DashboardViewModel : ViewModelBase
             Overdue = await open.CountAsync(l => l.DueOn < today);
 
             IssuedToday = await db.Loans.CountAsync(l => l.IssuedOn >= DateTime.Today);
+            DueToday = await open.CountAsync(l => l.DueOn == today);
+
+            if (Session.Has(Feature.Reservations))
+            {
+                HoldsReady = await db.Reservations.CountAsync(r => r.Status == ReservationStatus.READY);
+                HoldsWaiting = await db.Reservations.CountAsync(r => r.Status == ReservationStatus.WAITING);
+            }
+
+            if (Session.Has(Feature.Fines))
+            {
+                PendingFines = await db.Fines
+                    .Where(f => f.Status == FineStatus.PENDING)
+                    .SumAsync(f => (decimal?)f.Amount) ?? 0m;
+            }
+
+            BuildCards();
 
             Overdues.Clear();
 
@@ -121,6 +153,64 @@ public partial class DashboardViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// The figures worth showing this person, in the order a librarian asks for
+    /// them, each pointing at the screen where something can be done about it.
+    /// </summary>
+    private void BuildCards()
+    {
+        Stats.Clear();
+
+        var money = Session.Preferences;
+
+        if (Session.Can(Ability.CatalogueView))
+        {
+            Add("BOOKS IN LIBRARY", $"{Titles:N0}", "separate works in the catalogue", "cool", "Books in Library");
+            Add("COPIES ON THE REGISTER", $"{Copies:N0}", "physical books, each with its own number", "cool", "Books in Library");
+        }
+
+        if (Session.Can(Ability.MembersView))
+        {
+            Add("MEMBERS", $"{Members:N0}", "currently enrolled and active", "info", "Members");
+        }
+
+        Add("OUT ON LOAN", $"{Issued:N0}", "books with somebody at the moment", "good", "");
+        Add("ISSUED TODAY", $"{IssuedToday:N0}", "handed over the counter since midnight", "good", "");
+
+        if (Session.Can(Ability.CirculationOperate))
+        {
+            Add("DUE BACK TODAY", $"{DueToday:N0}", "should come back over the counter today", "info", "Issue & Return");
+        }
+
+        if (Session.Has(Feature.Reservations) && Session.Can(Ability.ReservationsManage))
+        {
+            Add("HOLDS READY", $"{HoldsReady:N0}",
+                HoldsWaiting == 1 ? "1 more waiting in queue" : $"{HoldsWaiting} more waiting in queue",
+                HoldsReady > 0 ? "warn" : "cool", "Reservations");
+        }
+
+        if (Session.Has(Feature.Fines) && Session.Can(Ability.FinesManage))
+        {
+            Add("UNPAID FINES", money.Money(PendingFines), "settled at the counter",
+                PendingFines > 0 ? "bad" : "cool", "Fines");
+        }
+
+        Add("OVERDUE", $"{Overdue:N0}", "past their due date and still out",
+            Overdue > 0 ? "bad" : "cool", "");
+    }
+
+    private void Add(string label, string value, string note, string tone, string target) =>
+        Stats.Add(new StatCard(label, value, note, tone, target, _go));
+
+    /// <summary>Role, clearance and the date — the console's context line.</summary>
+    private static string WhoAndWhen()
+    {
+        var role = Session.User is { } u ? Words.Any(u.Role) : "";
+        var cleared = Words.Of(Session.User?.ClearanceLevel ?? SecurityClass.UNCLASSIFIED);
+
+        return $"{role}  ·  cleared to {cleared}  ·  {DateTime.Now:dddd, dd MMMM yyyy}";
+    }
+
+    /// <summary>
     /// The time of day, said once. Not a personality — a small
     /// acknowledgement that a person opened this, at an hour, to do a job.
     /// </summary>
@@ -131,6 +221,61 @@ public partial class DashboardViewModel : ViewModelBase
         var part = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
         return $"{part}, {Session.Name}";
+    }
+}
+
+/// <summary>
+/// One figure on the dashboard.
+///
+/// It carries where it goes as well as what it says, so the card is the button
+/// — a number somebody reads and then walks into, rather than a number beside a
+/// button that does the walking. A card with nowhere to go (a running total
+/// that is not itself a screen) simply is not clickable.
+/// </summary>
+public partial class StatCard : ObservableObject
+{
+    private readonly Action<string> _go;
+
+    public StatCard(string label, string value, string note, string tone, string target, Action<string> go)
+    {
+        Label = label;
+        Value = value;
+        Note = note;
+        Tone = tone;
+        Target = target;
+        _go = go;
+    }
+
+    public string Label { get; }
+
+    public string Value { get; }
+
+    public string Note { get; }
+
+    /// <summary>The card class — cool / info / good / warn / bad — for its tint.</summary>
+    public string Tone { get; }
+
+    public bool IsCool => Tone == "cool";
+
+    public bool IsInfo => Tone == "info";
+
+    public bool IsGood => Tone == "good";
+
+    public bool IsWarn => Tone == "warn";
+
+    public bool IsBad => Tone == "bad";
+
+    public string Target { get; }
+
+    public bool CanOpen => Target.Length > 0;
+
+    [RelayCommand]
+    private void Open()
+    {
+        if (CanOpen)
+        {
+            _go(Target);
+        }
     }
 }
 

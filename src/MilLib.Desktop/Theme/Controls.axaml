@@ -331,6 +331,22 @@
         <Setter Property="Background" Value="{DynamicResource CardCool}" />
     </Style>
 
+    <!-- A figure that is also a way in. The card looks the same until the
+         pointer is over one that leads somewhere — then the accent edge and the
+         hand say so. A card with nowhere to go carries neither. -->
+    <Style Selector="Border.tile.open">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.12" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Border.tile.open:pointerover">
+        <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+    </Style>
+
     <!-- ========================================================== pills == -->
 
     <Style Selector="Border.pill">
