@@ -81,15 +81,16 @@
                 IsVisible="{Binding !HasProblem}">
             <Grid RowDefinitions="Auto,*">
                 <Border Grid.Row="0" Classes="tableHead">
-                    <Grid ColumnDefinitions="130,90,90,2*,3*,110,80,90" Margin="20,0">
+                    <Grid ColumnDefinitions="130,90,90,1.6*,2.6*,1.7*,90,70,90" Margin="20,0">
                         <TextBlock Grid.Column="0" Text="ACCESSION NO" Classes="label" />
                         <TextBlock Grid.Column="1" Text="BOOK NO" Classes="label" />
                         <TextBlock Grid.Column="2" Text="DATE" Classes="label" />
                         <TextBlock Grid.Column="3" Text="AUTHOR" Classes="label" />
                         <TextBlock Grid.Column="4" Text="TITLE" Classes="label" />
-                        <TextBlock Grid.Column="5" Text="SOURCE" Classes="label" />
-                        <TextBlock Grid.Column="6" Text="COST" Classes="label" />
-                        <TextBlock Grid.Column="7" Text="REMARKS" Classes="label" />
+                        <TextBlock Grid.Column="5" Text="LEDGER" Classes="label" />
+                        <TextBlock Grid.Column="6" Text="SOURCE" Classes="label" />
+                        <TextBlock Grid.Column="7" Text="COST" Classes="label" />
+                        <TextBlock Grid.Column="8" Text="REMARKS" Classes="label" />
                     </Grid>
                 </Border>
 
@@ -98,7 +99,7 @@
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemTemplate>
                         <DataTemplate DataType="vm:RegisterLine">
-                            <Grid ColumnDefinitions="130,90,90,2*,3*,110,80,90" Margin="20,8">
+                            <Grid ColumnDefinitions="130,90,90,1.6*,2.6*,1.7*,90,70,90" Margin="20,8">
                                 <TextBlock Grid.Column="0" Text="{Binding Accession}" Classes="mono"
                                            VerticalAlignment="Center" />
                                 <TextBlock Grid.Column="1" Text="{Binding BookNo}" Classes="mono"
@@ -111,11 +112,14 @@
                                 <TextBlock Grid.Column="4" Text="{Binding Title}"
                                            VerticalAlignment="Center" Margin="0,0,12,0"
                                            TextTrimming="CharacterEllipsis" />
-                                <TextBlock Grid.Column="5" Text="{Binding Source}" Classes="faint"
+                                <TextBlock Grid.Column="5" Text="{Binding Ledger}" Classes="faint"
+                                           VerticalAlignment="Center" Margin="0,0,12,0"
+                                           TextTrimming="CharacterEllipsis" />
+                                <TextBlock Grid.Column="6" Text="{Binding Source}" Classes="faint"
                                            VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="6" Text="{Binding Cost}" Classes="mono"
+                                <TextBlock Grid.Column="7" Text="{Binding Cost}" Classes="mono"
                                            VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="7" Text="{Binding Remarks}"
+                                <TextBlock Grid.Column="8" Text="{Binding Remarks}"
                                            VerticalAlignment="Center"
                                            FontWeight="Medium"
                                            IsVisible="{Binding HasRemark}"

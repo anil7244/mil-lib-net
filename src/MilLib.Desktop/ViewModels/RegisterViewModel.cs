@@ -214,6 +214,13 @@ public record RegisterLine(RegisterEntry Entry)
 
     public string Publisher => Entry.Publisher ?? "";
 
+    /// <summary>
+    /// The physical ledger book this entry came from — heavily used in an
+    /// imported register, and on the printed sheet, so it earns a column on the
+    /// screen too.
+    /// </summary>
+    public string Ledger => Entry.Ledger ?? "";
+
     public string Source => Words.Of(Entry.Source);
 
     public string Cost => Entry.Cost is null ? "" : Entry.Cost.Value.ToString("N2");

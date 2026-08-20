@@ -85,6 +85,20 @@ internal static class Program
                 ShootWindow(Path.Combine(outDir, "book-show.png"), window);
             }
 
+            var reg = new RegisterViewModel();
+
+            SettleWhile(() => reg.Busy);
+
+            Shoot(Path.Combine(outDir, "register.png"), new RegisterView { DataContext = reg });
+
+            // The printed ledger, exactly as it prints, so the full statutory
+            // columns can be checked.
+            var regDoc = ShootRegister();
+            if (regDoc is not null)
+            {
+                File.WriteAllBytes(Path.Combine(outDir, "register-print.png"), regDoc);
+            }
+
             var dash = new DashboardViewModel();
 
             SettleWhile(() => dash.Busy);
@@ -291,6 +305,28 @@ internal static class Program
             .FirstOrDefault();
 
         return unit ?? classified ?? any;
+    }
+
+    /// <summary>The first page of the printed accession register, as an image.</summary>
+    private static byte[]? ShootRegister()
+    {
+        using var db = Workspace.Open();
+
+        var reg = new Register(db, Session.Preferences);
+
+        var (first, _) = reg.ExtentAsync().GetAwaiter().GetResult();
+
+        var entries = reg.ReadAsync(first, first + 9).GetAwaiter().GetResult();
+
+        if (entries.Count == 0)
+        {
+            return null;
+        }
+
+        return new AccessionRegisterDocument(Letterheads.Current(), entries,
+                "1 to 8", Session.Preferences.CurrencySymbol)
+            .GenerateImages(new QuestPDF.Infrastructure.ImageGenerationSettings { RasterDpi = 170 })
+            .First();
     }
 
     /// <summary>A ready hold and two waiting ones, for the Reservations shot.</summary>
