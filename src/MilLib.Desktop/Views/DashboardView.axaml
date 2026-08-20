@@ -8,7 +8,29 @@
              x:Class="MilLib.Desktop.Views.DashboardView"
              x:DataType="vm:DashboardViewModel">
 
-    <Grid RowDefinitions="Auto,Auto,*">
+<UserControl.Styles>
+        <!-- One day on the mini calendar. Today gets an accent disc; the days
+             from the months either side are dimmed so the current month reads
+             as one block. -->
+        <Style Selector="Border.calday">
+            <Setter Property="Height" Value="30" />
+            <Setter Property="CornerRadius" Value="15" />
+            <Setter Property="Margin" Value="1" />
+        </Style>
+        <Style Selector="Border.calday.today">
+            <Setter Property="Background" Value="{DynamicResource Accent}" />
+        </Style>
+        <Style Selector="Border.calday.today TextBlock">
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="Border.calday.dim TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource InkFaint}" />
+            <Setter Property="Opacity" Value="0.5" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*">
 
         <!-- Who, and when. One line, and then out of the way. -->
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,20">
@@ -28,6 +50,66 @@
                        Foreground="{DynamicResource Bad}" />
         </Border>
 
+        <!-- A clock that moves and the month at a glance — the two things a
+             screen left open on a counter all day should carry. -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,300" Margin="0,0,0,18">
+
+            <!-- ================================================= the clock -->
+            <Border Grid.Column="0" Classes="card" Padding="30,22" Margin="0,0,16,0">
+                <Grid ColumnDefinitions="Auto,*">
+                    <Border Grid.Column="0" Width="3" CornerRadius="2" Margin="0,2,22,2"
+                            Background="{DynamicResource Accent}" />
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                        <TextBlock Text="THE TIME NOW" Classes="label" />
+                        <TextBlock Text="{Binding Clock}" FontSize="54" FontWeight="Light"
+                                   LineHeight="58"
+                                   FontFamily="Consolas, Cascadia Mono, monospace" />
+                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,2,0,0">
+                            <TextBlock Text="{Binding ClockDay}" FontWeight="SemiBold" FontSize="15" />
+                            <TextBlock Text="{Binding ClockDate}" Classes="faint" FontSize="15"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ============================================== the calendar -->
+            <Border Grid.Column="1" Classes="card" Padding="18,16">
+                <StackPanel Spacing="9">
+                    <TextBlock Text="{Binding MonthTitle}" FontWeight="SemiBold" FontSize="14"
+                               HorizontalAlignment="Center" />
+
+                    <ItemsControl ItemsSource="{Binding Weekdays}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><UniformGrid Columns="7" /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" Classes="faint" FontSize="10.5"
+                                           HorizontalAlignment="Center" Margin="0,0,0,2" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <ItemsControl ItemsSource="{Binding Days}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><UniformGrid Columns="7" /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:CalendarDay">
+                                <Border Classes="calday"
+                                        Classes.today="{Binding IsToday}"
+                                        Classes.dim="{Binding !InMonth}">
+                                    <TextBlock Text="{Binding Text}" HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" FontSize="12" />
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </Grid>
+
         <!--
              The figures.
 
@@ -46,7 +128,7 @@
              the figure walks to the screen it is about. Those that are running
              totals rather than screens of their own are plain.
         -->
-        <ItemsControl Grid.Row="1" ItemsSource="{Binding Stats}" Margin="0,0,0,22">
+        <ItemsControl Grid.Row="2" ItemsSource="{Binding Stats}" Margin="0,0,0,22">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <UniformGrid Columns="3" />
@@ -80,7 +162,7 @@
              somebody to do something today. Oldest first — the book that is
              three months late matters more than the one that is a day late.
         -->
-        <Border Grid.Row="2" Classes="card" Padding="0" ClipToBounds="True">
+        <Border Grid.Row="3" Classes="card" Padding="0" ClipToBounds="True">
             <Grid RowDefinitions="Auto,*">
 
                 <Border Grid.Row="0" Classes="tableHead">

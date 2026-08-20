@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +35,14 @@ public partial class DashboardViewModel : ViewModelBase
 
     [ObservableProperty] private string _greeting = "";
 
+    // ------------------------------------------------------------- the clock
+    [ObservableProperty] private string _clock = "";
+    [ObservableProperty] private string _clockDay = "";
+    [ObservableProperty] private string _clockDate = "";
+    [ObservableProperty] private string _monthTitle = "";
+
+    private readonly DispatcherTimer _tick = new() { Interval = TimeSpan.FromSeconds(1) };
+
     /// <summary>Who is signed in and to what — the same line the web console carries.</summary>
     [ObservableProperty] private string _standing = "";
 
@@ -42,6 +52,14 @@ public partial class DashboardViewModel : ViewModelBase
 
         Greeting = Welcome();
         Standing = WhoAndWhen();
+
+        BuildCalendar();
+        Tock();
+
+        // A second hand. The dashboard is the screen left open on a counter all
+        // day, so a clock on it that does not move is a clock nobody trusts.
+        _tick.Tick += (_, _) => Tock();
+        _tick.Start();
 
         _ = LoadAsync();
     }
@@ -57,6 +75,12 @@ public partial class DashboardViewModel : ViewModelBase
     public System.Collections.ObjectModel.ObservableCollection<StatCard> Stats { get; } = [];
 
     public List<OverdueRow> Overdues { get; } = [];
+
+    /// <summary>The month, as a grid of days with today marked.</summary>
+    public ObservableCollection<CalendarDay> Days { get; } = [];
+
+    /// <summary>The weekday headings over the calendar, starting Monday.</summary>
+    public string[] Weekdays { get; } = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
     public bool NothingOverdue => !Busy && Overdues.Count == 0;
 
@@ -210,6 +234,45 @@ public partial class DashboardViewModel : ViewModelBase
         return $"{role}  ·  cleared to {cleared}  ·  {DateTime.Now:dddd, dd MMMM yyyy}";
     }
 
+    /// <summary>Set the clock to now — called every second, and once up front.</summary>
+    private void Tock()
+    {
+        var now = DateTime.Now;
+
+        Clock = now.ToString("HH:mm:ss");
+        ClockDay = now.ToString("dddd");
+        ClockDate = now.ToString("dd MMMM yyyy");
+    }
+
+    /// <summary>
+    /// The current month as six weeks of days, Monday first, with the days that
+    /// belong to the months either side dimmed and today marked. Built once —
+    /// a calendar does not need a second hand.
+    /// </summary>
+    private void BuildCalendar()
+    {
+        var today = DateTime.Today;
+        var first = new DateTime(today.Year, today.Month, 1);
+
+        MonthTitle = first.ToString("MMMM yyyy");
+
+        // Monday is column zero; DayOfWeek has Sunday as zero, so it is shifted.
+        var lead = ((int)first.DayOfWeek + 6) % 7;
+        var start = first.AddDays(-lead);
+
+        Days.Clear();
+
+        for (var i = 0; i < 42; i++)
+        {
+            var day = start.AddDays(i);
+
+            Days.Add(new CalendarDay(
+                day.Day,
+                day.Date == today,
+                day.Month == today.Month));
+        }
+    }
+
     /// <summary>
     /// The time of day, said once. Not a personality — a small
     /// acknowledgement that a person opened this, at an hour, to do a job.
@@ -285,4 +348,10 @@ public record OverdueRow(string Member, string Book, string Accession, DateOnly 
     public string DueText => Due.ToString("dd MMM yyyy");
 
     public string DaysText => Days == 1 ? "1 day" : $"{Days} days";
+}
+
+/// <summary>One square on the mini calendar.</summary>
+public record CalendarDay(int Day, bool IsToday, bool InMonth)
+{
+    public string Text => Day.ToString();
 }
