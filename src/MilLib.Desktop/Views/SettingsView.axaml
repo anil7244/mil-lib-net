@@ -25,368 +25,327 @@
                        Foreground="{DynamicResource Bad}" />
         </Border>
 
-        <Grid Grid.Row="2" ColumnDefinitions="*,420" IsVisible="{Binding !HasProblem}">
+        <!-- One screen, four cards, no scroll.
 
-            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="0,0,20,0">
-                <StackPanel Spacing="16">
+             Branding is the wide card across the top — the unit's identity on
+             the left, how it looks on the right, saved as one. Numbering and
+             labels sit beneath it, and the screens-on-off list runs full height
+             down the side, saving each tick as it is made. Everything a unit
+             sets up on the day it is installed is in view at once. -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,14,*,16,340"
+              RowDefinitions="Auto,14,*" IsVisible="{Binding !HasProblem}">
 
-                    <!-- ============================================ branding -->
-                    <Border Classes="card" Padding="22,20">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="3">
-                                <TextBlock Text="What this library is called" Classes="h2" />
-                                <TextBlock Classes="sub" TextWrapping="Wrap"
-                                           Text="These names and this crest head every page the library prints — the register, the reports, the condemnation certificates." />
+            <!-- ==================================================== branding -->
+            <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
+                    Classes="card" Padding="18,15">
+                <StackPanel Spacing="13">
+                    <TextBlock Text="Branding" Classes="h2" />
+
+                    <Grid ColumnDefinitions="1.02*,18,1*">
+
+                        <!-- the unit's identity -->
+                        <Grid Grid.Column="0" ColumnDefinitions="Auto,14,*">
+                            <StackPanel Grid.Column="0" Spacing="6" Width="104">
+                                <Border Width="104" Height="104" CornerRadius="8"
+                                        Background="{DynamicResource Glass}"
+                                        BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                    <Panel>
+                                        <TextBlock Text="No crest" Classes="faint" FontSize="11"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   IsVisible="{Binding Crest, Converter={x:Static ObjectConverters.IsNull}}" />
+                                        <Image Source="{Binding Crest}" Margin="9" Stretch="Uniform"
+                                               RenderOptions.BitmapInterpolationMode="HighQuality" />
+                                    </Panel>
+                                </Border>
+
+                                <Button Content="Choose…" HorizontalAlignment="Stretch" MinHeight="32"
+                                        IsEnabled="{Binding MayManage}"
+                                        Command="{Binding ChooseCrestCommand}" />
+                                <Button Content="Remove" Classes="quiet" HorizontalAlignment="Stretch"
+                                        MinHeight="28"
+                                        IsEnabled="{Binding MayManage}"
+                                        Command="{Binding RemoveCrestCommand}" />
                             </StackPanel>
 
-                            <Grid ColumnDefinitions="Auto,20,*">
-                                <StackPanel Grid.Column="0" Spacing="8" Width="132">
-                                    <Border Width="132" Height="132" CornerRadius="8"
-                                            Background="{DynamicResource Glass}"
-                                            BorderBrush="{DynamicResource Line}" BorderThickness="1">
-                                        <Panel>
-                                            <TextBlock Text="No crest" Classes="faint"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                       IsVisible="{Binding Crest, Converter={x:Static ObjectConverters.IsNull}}" />
-                                            <Image Source="{Binding Crest}" Margin="10"
-                                                   Stretch="Uniform" />
-                                        </Panel>
-                                    </Border>
-
-                                    <Button Content="Choose…" HorizontalAlignment="Stretch" MinHeight="36"
-                                            IsEnabled="{Binding MayManage}"
-                                            Command="{Binding ChooseCrestCommand}" />
-                                    <Button Content="Remove" Classes="quiet" HorizontalAlignment="Stretch"
-                                            MinHeight="32"
-                                            IsEnabled="{Binding MayManage}"
-                                            Command="{Binding RemoveCrestCommand}" />
+                            <StackPanel Grid.Column="2" Spacing="9">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Library name" Classes="faint" />
+                                    <TextBox Text="{Binding LibraryName, UpdateSourceTrigger=PropertyChanged}"
+                                             MinHeight="38" IsEnabled="{Binding MayManage}" />
                                 </StackPanel>
-
-                                <StackPanel Grid.Column="2" Spacing="14">
-                                    <StackPanel Spacing="6">
-                                        <TextBlock Text="Library name" Classes="faint" />
-                                        <TextBox Text="{Binding LibraryName, UpdateSourceTrigger=PropertyChanged}"
-                                                 MinHeight="40" IsEnabled="{Binding MayManage}" />
-                                    </StackPanel>
-
-                                    <StackPanel Spacing="6">
-                                        <TextBlock Text="Organisation" Classes="faint" />
-                                        <TextBox Text="{Binding Organisation, UpdateSourceTrigger=PropertyChanged}"
-                                                 MinHeight="40" IsEnabled="{Binding MayManage}" />
-                                    </StackPanel>
-
-                                    <StackPanel Spacing="6">
-                                        <TextBlock Text="Motto" Classes="faint" />
-                                        <TextBox Text="{Binding Motto, UpdateSourceTrigger=PropertyChanged}"
-                                                 MinHeight="40" IsEnabled="{Binding MayManage}" />
-                                    </StackPanel>
-
-                                    <TextBlock Text="{Binding CrestNote}" Classes="faint" FontSize="11"
-                                               TextWrapping="Wrap" />
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Organisation" Classes="faint" />
+                                    <TextBox Text="{Binding Organisation, UpdateSourceTrigger=PropertyChanged}"
+                                             MinHeight="38" IsEnabled="{Binding MayManage}" />
                                 </StackPanel>
-                            </Grid>
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Motto" Classes="faint" />
+                                    <TextBox Text="{Binding Motto, UpdateSourceTrigger=PropertyChanged}"
+                                             MinHeight="38" IsEnabled="{Binding MayManage}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
 
-                            <Rectangle Height="1" Fill="{DynamicResource Line}" />
+                        <!-- how it looks: the two colours and the bar -->
+                        <StackPanel Grid.Column="2" Spacing="10">
 
-                            <Grid ColumnDefinitions="*,16,*">
-                                <StackPanel Grid.Column="0" Spacing="8">
+                            <Grid ColumnDefinitions="*,12,Auto">
+                                <StackPanel Grid.Column="0" Spacing="6">
                                     <TextBlock Text="Accent colour" Classes="faint" />
-                                    <Grid ColumnDefinitions="Auto,10,*">
-                                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="6"
+                                    <Grid ColumnDefinitions="Auto,8,*">
+                                        <Border Grid.Column="0" Width="38" Height="38" CornerRadius="6"
                                                 BorderBrush="{DynamicResource Line}" BorderThickness="1"
                                                 Background="{Binding AccentBrush}" />
-                                        <TextBox Grid.Column="2" Classes="mono" MinHeight="40"
+                                        <TextBox Grid.Column="2" Classes="mono" MinHeight="38"
                                                  Text="{Binding Accent, UpdateSourceTrigger=PropertyChanged}"
                                                  IsEnabled="{Binding MayManage}" />
                                     </Grid>
-
                                     <ItemsControl ItemsSource="{Binding Palettes}">
                                         <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <WrapPanel />
-                                            </ItemsPanelTemplate>
+                                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Button Padding="0" Margin="0,0,6,6"
+                                                <Button Padding="0" Margin="0,0,5,5"
                                                         Background="Transparent" BorderThickness="0"
                                                         ToolTip.Tip="{Binding Name}"
                                                         Command="{Binding ChooseCommand}">
-                                                    <Border Width="26" Height="26" CornerRadius="5"
+                                                    <Border Width="22" Height="22" CornerRadius="4"
                                                             Background="{Binding Swatch}"
-                                                            BorderBrush="{DynamicResource Line}"
-                                                            BorderThickness="1" />
+                                                            BorderBrush="{DynamicResource Line}" BorderThickness="1" />
                                                 </Button>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="2" Spacing="6">
-                                    <TextBlock Text="Circle behind the crest" Classes="faint" />
-                                    <Grid ColumnDefinitions="Auto,10,*">
-                                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="20"
+                                <StackPanel Grid.Column="2" Spacing="6" Width="118">
+                                    <TextBlock Text="Crest circle" Classes="faint" />
+                                    <Grid ColumnDefinitions="Auto,8,*">
+                                        <Border Grid.Column="0" Width="38" Height="38" CornerRadius="19"
                                                 BorderBrush="{DynamicResource Line}" BorderThickness="1"
                                                 Background="{Binding CircleBrush}" />
-                                        <TextBox Grid.Column="2" Classes="mono" MinHeight="40"
+                                        <TextBox Grid.Column="2" Classes="mono" MinHeight="38" FontSize="12"
                                                  Text="{Binding CrestCircleColour, UpdateSourceTrigger=PropertyChanged}"
                                                  IsEnabled="{Binding MayManage}" />
                                     </Grid>
                                 </StackPanel>
                             </Grid>
 
-                            <Rectangle Height="1" Fill="{DynamicResource Line}" />
-
-                            <!-- The colour of the strip across the top of the window.
-                                 Its own setting, separate from the accent: a unit can
-                                 paint the bar in its own colour and keep the accent for
-                                 the buttons and printed pages, or the other way about.
-                                 The preview under it is the real bar, so the choice is
-                                 made by eye before it is saved. -->
-                            <StackPanel Spacing="8">
+                            <StackPanel Spacing="6">
                                 <TextBlock Text="Top bar colour" Classes="faint" />
-                                <Grid ColumnDefinitions="Auto,10,*">
-                                    <Border Grid.Column="0" Width="40" Height="40" CornerRadius="6"
+                                <Grid ColumnDefinitions="Auto,8,*,12,Auto">
+                                    <Border Grid.Column="0" Width="38" Height="38" CornerRadius="6"
                                             BorderBrush="{DynamicResource Line}" BorderThickness="1"
                                             Background="{Binding BarBrush}" />
-                                    <TextBox Grid.Column="2" Classes="mono" MinHeight="40"
+                                    <TextBox Grid.Column="2" Classes="mono" MinHeight="38"
                                              Text="{Binding BarColour, UpdateSourceTrigger=PropertyChanged}"
                                              IsEnabled="{Binding MayManage}" />
-                                </Grid>
 
+                                    <!-- The strip as it will look, in miniature, right
+                                         beside the box so the colour is judged by eye. -->
+                                    <Border Grid.Column="4" CornerRadius="5" ClipToBounds="True" Width="150"
+                                            BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                        <StackPanel Background="{Binding BarBrush}">
+                                            <Grid ColumnDefinitions="*,Auto" Margin="9,6">
+                                                <TextBlock Grid.Column="0" Text="{Binding LibraryName}"
+                                                           FontWeight="Bold" FontSize="10" Foreground="#F2F2F2"
+                                                           VerticalAlignment="Center"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Grid.Column="1" Text="20:25" FontWeight="SemiBold"
+                                                           FontSize="12" Foreground="#F4F4F4"
+                                                           VerticalAlignment="Center" />
+                                            </Grid>
+                                            <Rectangle Height="2.5" Fill="{Binding AccentBrush}" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
                                 <ItemsControl ItemsSource="{Binding BarPalettes}">
                                     <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel />
-                                        </ItemsPanelTemplate>
+                                        <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Button Padding="0" Margin="0,0,6,6"
+                                            <Button Padding="0" Margin="0,0,5,5"
                                                     Background="Transparent" BorderThickness="0"
                                                     ToolTip.Tip="{Binding Name}"
                                                     Command="{Binding ChooseCommand}">
-                                                <Border Width="26" Height="26" CornerRadius="5"
+                                                <Border Width="22" Height="22" CornerRadius="4"
                                                         Background="{Binding Swatch}"
-                                                        BorderBrush="{DynamicResource Line}"
-                                                        BorderThickness="1" />
+                                                        BorderBrush="{DynamicResource Line}" BorderThickness="1" />
                                             </Button>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-
-                                <!-- The strip as it will look, in miniature. -->
-                                <Border CornerRadius="6" ClipToBounds="True"
-                                        BorderBrush="{DynamicResource Line}" BorderThickness="1">
-                                    <StackPanel Background="{Binding BarBrush}">
-                                        <Grid ColumnDefinitions="*,Auto" Margin="14,9">
-                                            <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding LibraryName}" FontWeight="Bold"
-                                                           FontSize="12" Foreground="#F2F2F2"
-                                                           TextTrimming="CharacterEllipsis" />
-                                                <TextBlock Text="{Binding Organisation}" FontSize="8.5"
-                                                           LetterSpacing="1.4" Foreground="#94FFFFFF"
-                                                           TextTrimming="CharacterEllipsis" />
-                                            </StackPanel>
-                                            <TextBlock Grid.Column="1" Text="20:25" FontWeight="SemiBold"
-                                                       FontSize="15" Foreground="#F4F4F4"
-                                                       VerticalAlignment="Center" />
-                                        </Grid>
-                                        <Rectangle Height="3" Fill="{Binding AccentBrush}" />
-                                    </StackPanel>
-                                </Border>
                             </StackPanel>
 
-                            <StackPanel Spacing="8">
-                                <CheckBox Content="Set the crest in a circle"
+                            <StackPanel Orientation="Horizontal" Spacing="20">
+                                <CheckBox Content="Crest in a circle"
                                           IsChecked="{Binding CrestInCircle}"
                                           IsEnabled="{Binding MayManage}" />
                                 <CheckBox Content="Open in the dark theme"
                                           IsChecked="{Binding DarkByDefault}"
                                           IsEnabled="{Binding MayManage}" />
                             </StackPanel>
-
-                            <Button Classes="primary" Content="Save the branding" MinHeight="42"
-                                    HorizontalAlignment="Left" MinWidth="180"
-                                    IsEnabled="{Binding MayManage}"
-                                    Command="{Binding SaveBrandingCommand}" />
                         </StackPanel>
-                    </Border>
+                    </Grid>
 
-                    <!-- =========================================== accession -->
-                    <Border Classes="card" Padding="22,20">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="3">
-                                <TextBlock Text="How books are numbered" Classes="h2" />
-                                <TextBlock Classes="sub" TextWrapping="Wrap"
-                                           Text="Every physical copy gets one accession number, in order, for as long as the library exists." />
-                            </StackPanel>
-
-                            <Grid ColumnDefinitions="*,14,Auto,14,Auto">
-                                <StackPanel Grid.Column="0" Spacing="6">
-                                    <TextBlock Text="Prefix" Classes="faint" />
-                                    <TextBox Text="{Binding Prefix, UpdateSourceTrigger=PropertyChanged}"
-                                             Classes="mono" MinHeight="40"
-                                             IsEnabled="{Binding MayManage}" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2" Spacing="6" Width="130">
-                                    <TextBlock Text="Digits" Classes="faint" />
-                                    <NumericUpDown Value="{Binding PadLength}" Minimum="1" Maximum="12"
-                                                   FormatString="0" MinHeight="40"
-                                                   IsEnabled="{Binding MayManage}" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="4" Spacing="6" Width="150">
-                                    <TextBlock Text="Start from" Classes="faint" />
-                                    <NumericUpDown Value="{Binding StartFrom}" Minimum="1" Maximum="99999999"
-                                                   FormatString="0" MinHeight="40"
-                                                   IsEnabled="{Binding MayChangeStart}" />
-                                </StackPanel>
-                            </Grid>
-
-                            <CheckBox Content="Show the prefix on screens and labels"
-                                      IsChecked="{Binding ShowPrefix}"
-                                      IsEnabled="{Binding MayManage}" />
-
-                            <!-- The shape of a number, as the boxes above stand.
-                                 Three fields decide what goes on every label and
-                                 into a statutory register; showing the result as
-                                 it is typed is the difference between getting it
-                                 right and printing five hundred labels to find
-                                 out. -->
-                            <Border Classes="card cool" Padding="16,13">
-                                <StackPanel Spacing="6">
-                                    <TextBlock Text="A NUMBER WILL LOOK LIKE" Classes="label" />
-                                    <TextBlock Text="{Binding SampleNumber}" Classes="mono"
-                                               FontSize="19" />
-                                    <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
-                                               Text="{Binding LockNote}" />
-                                </StackPanel>
-                            </Border>
-
-                            <Grid ColumnDefinitions="Auto,*">
-                                <Button Grid.Column="0" Classes="primary" Content="Save the numbering"
-                                        MinHeight="42" MinWidth="180"
-                                        IsEnabled="{Binding MayManage}"
-                                        Command="{Binding SaveAccessionCommand}" />
-                                <StackPanel Grid.Column="1" Spacing="2" Margin="18,0,0,0"
-                                            VerticalAlignment="Center">
-                                    <TextBlock Text="NEXT NUMBER TO BE GIVEN" Classes="label" />
-                                    <TextBlock Text="{Binding NextNumber}" Classes="mono" />
-                                </StackPanel>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- ============================================== labels -->
-                    <Border Classes="card" Padding="22,20">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="3">
-                                <TextBlock Text="Label stock" Classes="h2" />
-                                <TextBlock Classes="sub" TextWrapping="Wrap"
-                                           Text="Millimetres, measured off the sticker in the printer. Nothing here assumes a make of printer — a sheet of A4 stickers and a thermal roll are both just sizes." />
-                            </StackPanel>
-
-                            <Grid ColumnDefinitions="*,14,*,14,*,14,*">
-                                <StackPanel Grid.Column="0" Spacing="6">
-                                    <TextBlock Text="Pocket width" Classes="faint" />
-                                    <NumericUpDown Value="{Binding PocketWidth}" Minimum="5" Maximum="300"
-                                                   Increment="0.5" FormatString="0.##" MinHeight="40"
-                                                   IsEnabled="{Binding MayManage}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2" Spacing="6">
-                                    <TextBlock Text="Pocket height" Classes="faint" />
-                                    <NumericUpDown Value="{Binding PocketHeight}" Minimum="5" Maximum="300"
-                                                   Increment="0.5" FormatString="0.##" MinHeight="40"
-                                                   IsEnabled="{Binding MayManage}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="4" Spacing="6">
-                                    <TextBlock Text="Spine width" Classes="faint" />
-                                    <NumericUpDown Value="{Binding SpineWidth}" Minimum="5" Maximum="300"
-                                                   Increment="0.5" FormatString="0.##" MinHeight="40"
-                                                   IsEnabled="{Binding MayManage}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="6" Spacing="6">
-                                    <TextBlock Text="Spine height" Classes="faint" />
-                                    <NumericUpDown Value="{Binding SpineHeight}" Minimum="5" Maximum="300"
-                                                   Increment="0.5" FormatString="0.##" MinHeight="40"
-                                                   IsEnabled="{Binding MayManage}" />
-                                </StackPanel>
-                            </Grid>
-
-                            <StackPanel Spacing="6">
-                                <TextBlock Text="What goes on a pocket label" Classes="faint" />
-                                <ComboBox ItemsSource="{Binding Codes}"
-                                          SelectedItem="{Binding ChosenCode}"
-                                          MinHeight="40" HorizontalAlignment="Stretch"
-                                          IsEnabled="{Binding MayManage}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate DataType="vm:CodeChoice">
-                                            <TextBlock Text="{Binding Name}" />
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                            </StackPanel>
-
-                            <CheckBox Content="Print one label per page (a label printer) rather than a sheet"
-                                      IsChecked="{Binding OneLabelPerPage}"
-                                      IsEnabled="{Binding MayManage}" />
-
-                            <!-- The one thing about a thermal printer that
-                                 changes what every dimension means. The same
-                                 label sent to a 300 dpi printer as though it
-                                 were 203 comes out two thirds the size. -->
-                            <CheckBox Content="The thermal printer is a 300 dpi one (most are 203)"
-                                      IsChecked="{Binding FinePrinter}"
-                                      IsEnabled="{Binding MayManage}" />
-
-                            <Button Classes="primary" Content="Save the label sizes" MinHeight="42"
-                                    HorizontalAlignment="Left" MinWidth="180"
-                                    IsEnabled="{Binding MayManage}"
-                                    Command="{Binding SaveLabelsCommand}" />
-                        </StackPanel>
-                    </Border>
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Button Grid.Column="0" Classes="primary" Content="Save the branding"
+                                MinHeight="40" MinWidth="170"
+                                IsEnabled="{Binding MayManage}"
+                                Command="{Binding SaveBrandingCommand}" />
+                        <TextBlock Grid.Column="1" Text="{Binding CrestNote}" Classes="faint" FontSize="11"
+                                   VerticalAlignment="Center" Margin="16,0,0,0"
+                                   TextTrimming="CharacterEllipsis" />
+                    </Grid>
                 </StackPanel>
-            </ScrollViewer>
+            </Border>
 
-            <!-- ============================================ feature flags -->
-            <Border Grid.Column="1" Classes="card" Padding="0" ClipToBounds="True">
+            <!-- =================================================== accession -->
+            <Border Grid.Row="2" Grid.Column="0" Classes="card" Padding="18,15"
+                    VerticalAlignment="Top">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="How books are numbered" Classes="h2" />
+
+                    <Grid ColumnDefinitions="*,12,Auto,12,Auto">
+                        <StackPanel Grid.Column="0" Spacing="5">
+                            <TextBlock Text="Prefix" Classes="faint" />
+                            <TextBox Text="{Binding Prefix, UpdateSourceTrigger=PropertyChanged}"
+                                     Classes="mono" MinHeight="38" IsEnabled="{Binding MayManage}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="5" Width="96">
+                            <TextBlock Text="Digits" Classes="faint" />
+                            <NumericUpDown Value="{Binding PadLength}" Minimum="1" Maximum="12"
+                                           FormatString="0" MinHeight="38" IsEnabled="{Binding MayManage}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="4" Spacing="5" Width="128">
+                            <TextBlock Text="Start from" Classes="faint" />
+                            <NumericUpDown Value="{Binding StartFrom}" Minimum="1" Maximum="99999999"
+                                           FormatString="0" MinHeight="38" IsEnabled="{Binding MayChangeStart}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <CheckBox Content="Show the prefix on screens and labels"
+                              IsChecked="{Binding ShowPrefix}" IsEnabled="{Binding MayManage}" />
+
+                    <Border Classes="card cool" Padding="14,10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0" Spacing="3">
+                                <TextBlock Text="A NUMBER WILL LOOK LIKE" Classes="label" />
+                                <TextBlock Text="{Binding SampleNumber}" Classes="mono" FontSize="18" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                <TextBlock Text="NEXT TO BE GIVEN" Classes="label" TextAlignment="Right" />
+                                <TextBlock Text="{Binding NextNumber}" Classes="mono" TextAlignment="Right" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                               Text="{Binding LockNote}" />
+
+                    <Button Classes="primary" Content="Save the numbering" MinHeight="40"
+                            HorizontalAlignment="Left" MinWidth="170"
+                            IsEnabled="{Binding MayManage}"
+                            Command="{Binding SaveAccessionCommand}" />
+                </StackPanel>
+            </Border>
+
+            <!-- ====================================================== labels -->
+            <Border Grid.Row="2" Grid.Column="2" Classes="card" Padding="18,15"
+                    VerticalAlignment="Top">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Label stock" Classes="h2" />
+
+                    <Grid ColumnDefinitions="*,10,*,10,*,10,*">
+                        <StackPanel Grid.Column="0" Spacing="5">
+                            <TextBlock Text="Pkt W" Classes="faint" />
+                            <NumericUpDown Value="{Binding PocketWidth}" Minimum="5" Maximum="300"
+                                           Increment="0.5" FormatString="0.##" MinHeight="38"
+                                           IsEnabled="{Binding MayManage}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="5">
+                            <TextBlock Text="Pkt H" Classes="faint" />
+                            <NumericUpDown Value="{Binding PocketHeight}" Minimum="5" Maximum="300"
+                                           Increment="0.5" FormatString="0.##" MinHeight="38"
+                                           IsEnabled="{Binding MayManage}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="4" Spacing="5">
+                            <TextBlock Text="Spine W" Classes="faint" />
+                            <NumericUpDown Value="{Binding SpineWidth}" Minimum="5" Maximum="300"
+                                           Increment="0.5" FormatString="0.##" MinHeight="38"
+                                           IsEnabled="{Binding MayManage}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="6" Spacing="5">
+                            <TextBlock Text="Spine H" Classes="faint" />
+                            <NumericUpDown Value="{Binding SpineHeight}" Minimum="5" Maximum="300"
+                                           Increment="0.5" FormatString="0.##" MinHeight="38"
+                                           IsEnabled="{Binding MayManage}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="What goes on a pocket label" Classes="faint" />
+                        <ComboBox ItemsSource="{Binding Codes}"
+                                  SelectedItem="{Binding ChosenCode}"
+                                  MinHeight="38" HorizontalAlignment="Stretch"
+                                  IsEnabled="{Binding MayManage}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate DataType="vm:CodeChoice">
+                                    <TextBlock Text="{Binding Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <CheckBox Content="One label per page (a label printer), not a sheet"
+                              IsChecked="{Binding OneLabelPerPage}" IsEnabled="{Binding MayManage}" />
+                    <CheckBox Content="The thermal printer is 300 dpi (most are 203)"
+                              IsChecked="{Binding FinePrinter}" IsEnabled="{Binding MayManage}" />
+
+                    <Button Classes="primary" Content="Save the label sizes" MinHeight="40"
+                            HorizontalAlignment="Left" MinWidth="170"
+                            IsEnabled="{Binding MayManage}"
+                            Command="{Binding SaveLabelsCommand}" />
+                </StackPanel>
+            </Border>
+
+            <!-- ================================================ feature flags -->
+            <Border Grid.Row="0" Grid.RowSpan="3" Grid.Column="4"
+                    Classes="card" Padding="0" ClipToBounds="True">
                 <Grid RowDefinitions="Auto,*,Auto">
-                    <StackPanel Grid.Row="0" Spacing="4" Margin="22,20,22,14">
+                    <StackPanel Grid.Row="0" Spacing="3" Margin="18,15,18,10">
                         <TextBlock Text="Which screens this library has" Classes="h2" />
-                        <TextBlock Classes="sub" TextWrapping="Wrap"
-                                   Text="Each is saved the moment you tick it." />
+                        <TextBlock Classes="sub" Text="Each saves the moment you tick it." />
                     </StackPanel>
 
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding Features}" Margin="22,0,22,14">
+                        <ItemsControl ItemsSource="{Binding Features}" Margin="18,0,18,10">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="vm:FeatureRow">
-                                    <StackPanel Spacing="2" Margin="0,7">
-                                        <CheckBox Content="{Binding Name}"
+                                    <Grid Margin="0,5" ColumnDefinitions="*,Auto"
+                                          ToolTip.Tip="{Binding What}">
+                                        <CheckBox Grid.Column="0" Content="{Binding Name}"
                                                   IsChecked="{Binding On}"
                                                   Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).ToggleFeatureCommand}"
                                                   CommandParameter="{Binding}" />
-                                        <TextBlock Text="{Binding What}" Classes="faint" FontSize="11"
-                                                   TextWrapping="Wrap" Margin="30,0,0,0" />
-                                        <TextBlock Text="No screen for it yet." Classes="faint" FontSize="11"
-                                                   Margin="30,0,0,0"
+                                        <TextBlock Grid.Column="1" Text="no screen yet" Classes="faint"
+                                                   FontSize="10" VerticalAlignment="Center"
                                                    Foreground="{DynamicResource Bad}"
                                                    IsVisible="{Binding Unavailable}" />
-                                    </StackPanel>
+                                    </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
 
-                    <!-- Said once, at the foot, rather than against each switch.
-                         It is the single most misunderstood thing about this
-                         screen: turning a feature off hides a screen and keeps
-                         every record it ever made. -->
-                    <Border Grid.Row="2" Classes="card cool" Margin="16" Padding="14,12">
-                        <TextBlock TextWrapping="Wrap" FontSize="11.5"
-                                   Text="Turning one off hides its screen. Nothing is deleted — every fine, hold and stock check it recorded stays where it is, and turning it back on shows them again." />
+                    <!-- The single most misunderstood thing about this screen:
+                         turning a feature off hides a screen and keeps every
+                         record it ever made. -->
+                    <Border Grid.Row="2" Classes="card cool" Margin="14" Padding="13,11">
+                        <TextBlock TextWrapping="Wrap" FontSize="11"
+                                   Text="Turning one off hides its screen. Nothing is deleted — every record it kept stays, and turning it back on shows them again." />
                     </Border>
                 </Grid>
             </Border>

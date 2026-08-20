@@ -282,6 +282,13 @@ internal static class Program
             Shoot(Path.Combine(outDir, "admin-activity.png"),
                 new ActivityView { DataContext = activity });
 
+            var settings = new SettingsViewModel();
+
+            SettleWhile(() => settings.Busy);
+
+            Shoot(Path.Combine(outDir, "settings.png"),
+                new SettingsView { DataContext = settings });
+
             // The dark theme, to show the dual palette — the same view models,
             // repainted by the variant switch, nothing rebuilt.
             Theming.UseVariant(true);
