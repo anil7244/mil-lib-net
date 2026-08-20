@@ -9,7 +9,7 @@
         x:DataType="vm:LoginViewModel"
         Icon="/Assets/library.ico"
         Title="Library Management System"
-        Width="1000" Height="650"
+        Width="840" Height="548"
         CanResize="False"
         WindowStartupLocation="CenterScreen">
 
@@ -99,8 +99,8 @@
             <Setter Property="Foreground" Value="{DynamicResource AuthText}" />
             <Setter Property="CaretBrush" Value="{DynamicResource AuthText}" />
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="Padding" Value="14,10" />
-            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="Padding" Value="13,9" />
+            <Setter Property="MinHeight" Value="38" />
         </Style>
 
         <Style Selector="TextBox.auth /template/ Border#PART_BorderElement">
@@ -149,39 +149,17 @@
             <Setter Property="MinHeight" Value="0" />
         </Style>
 
-        <!-- A square icon button on the top strip: transparent until the pointer
-             is over it, when it takes a faint lift the way the strip inside the
-             application does. -->
-        <Style Selector="Button.barIcon">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="#2BFFFFFF" />
-            <Setter Property="Width" Value="34" />
-            <Setter Property="Height" Value="34" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="HorizontalContentAlignment" Value="Center" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-        </Style>
-
-        <Style Selector="Button.barIcon /template/ ContentPresenter">
-            <Setter Property="CornerRadius" Value="6" />
-        </Style>
-
-        <Style Selector="Button.barIcon:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#1FFFFFFF" />
-        </Style>
-
         <!-- The two buttons on the bottom bar. LOGIN takes the unit's accent;
              RESET is a plain grey beside it — present, but plainly the lesser of
              the two, the way the reference draws them. -->
         <Style Selector="Button.act">
             <Setter Property="Foreground" Value="#FFFFFF" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="FontSize" Value="12" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="LetterSpacing" Value="1" />
-            <Setter Property="MinHeight" Value="42" />
-            <Setter Property="Padding" Value="26,0" />
+            <Setter Property="MinHeight" Value="38" />
+            <Setter Property="Padding" Value="22,0" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
@@ -206,46 +184,29 @@
             <!-- ============================================= the top strip -->
             <!-- The unit's bar, the same one the application carries once it is
                  signed in: the clock and date at the left, who the machine is for
-                 at the right, and the light/dark switch. It reads as the same
-                 machine before and after the door. -->
+                 at the right. The theme is chosen only from inside the
+                 application, so there is no switch here — the front door simply
+                 wears whichever theme was chosen. -->
             <Border Grid.Row="0"
                     Background="{DynamicResource BarBg}"
                     BorderBrush="{Binding Accent}"
                     BorderThickness="0,0,0,3"
-                    Padding="26,11">
+                    Padding="22,8">
                 <Grid ColumnDefinitions="*,Auto">
 
-                    <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding Clock}" FontSize="22" FontWeight="SemiBold"
+                    <StackPanel Grid.Column="0" Spacing="0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Clock}" FontSize="18" FontWeight="SemiBold"
                                    FontFamily="Segoe UI, Inter, sans-serif"
                                    Foreground="{DynamicResource BarInk}" />
-                        <TextBlock Text="{Binding ClockDate}" FontSize="10.5" LetterSpacing="1.4"
+                        <TextBlock Text="{Binding ClockDate}" FontSize="9.5" LetterSpacing="1.2"
                                    FontFamily="Segoe UI, Inter, sans-serif"
                                    Foreground="{DynamicResource BarInkSoft}" />
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16"
-                                VerticalAlignment="Center">
-                        <TextBlock Text="AUTHORISED PERSONNEL ONLY"
-                                   FontSize="11" FontWeight="Bold" LetterSpacing="1.6"
-                                   VerticalAlignment="Center"
-                                   Foreground="{DynamicResource BarInkSoft}" />
-
-                        <!-- Light / dark from the one icon, a moon while light and
-                             a sun while dark, the same as inside. -->
-                        <Button Classes="barIcon" Command="{Binding ToggleThemeCommand}"
-                                ToolTip.Tip="Switch between the light and dark theme"
-                                AutomationProperties.Name="Switch theme">
-                            <Panel Width="16" Height="16">
-                                <Path Data="{StaticResource IconMoon}" Stroke="{DynamicResource BarInk}"
-                                      StrokeThickness="1.7" Width="16" Height="16" Stretch="Uniform"
-                                      IsVisible="{Binding !IsDark}" />
-                                <Path Data="{StaticResource IconSun}" Stroke="{DynamicResource BarInk}"
-                                      StrokeThickness="1.7" Width="16" Height="16" Stretch="Uniform"
-                                      IsVisible="{Binding IsDark}" />
-                            </Panel>
-                        </Button>
-                    </StackPanel>
+                    <TextBlock Grid.Column="1" Text="AUTHORISED PERSONNEL ONLY"
+                               FontSize="10.5" FontWeight="Bold" LetterSpacing="1.5"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource BarInkSoft}" />
                 </Grid>
             </Border>
 
@@ -257,38 +218,40 @@
                         Background="{DynamicResource AuthPanel}"
                         BorderBrush="{DynamicResource AuthHairline}"
                         BorderThickness="0,0,1,0"
-                        Padding="48,30">
+                        Padding="40,22">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
 
-                        <Border Width="104" Height="104" CornerRadius="999"
+                        <!-- The crest, given room to be seen: it is the unit's
+                             own badge and the first thing anybody recognises. -->
+                        <Border Width="132" Height="132" CornerRadius="999"
                                 HorizontalAlignment="Center"
                                 Background="{Binding CrestGround}"
                                 BorderBrush="{Binding CrestEdge}"
                                 BorderThickness="2"
                                 ClipToBounds="True"
-                                Margin="0,0,0,18">
+                                Margin="0,0,0,16">
                             <!-- A unit's crest is a large, detailed scan shown
                                  small. Downscaled with the default sampler it comes
                                  out rough; high-quality interpolation resamples it
-                                 so a 2 MB badge reads crisp at 90 pixels. -->
-                            <Image Source="{Binding Crest}" Stretch="Uniform" Margin="7"
+                                 so a 2 MB badge reads crisp. -->
+                            <Image Source="{Binding Crest}" Stretch="Uniform" Margin="8"
                                    RenderOptions.BitmapInterpolationMode="HighQuality" />
                         </Border>
 
                         <!-- The product leads, so anybody at the terminal sees
                              the system first. -->
                         <TextBlock Text="{Binding LibraryName}"
-                                   FontSize="24" FontWeight="ExtraBold"
-                                   LetterSpacing="2" LineHeight="29"
+                                   FontSize="21" FontWeight="ExtraBold"
+                                   LetterSpacing="1.8" LineHeight="26"
                                    TextAlignment="Center" TextWrapping="Wrap"
                                    Foreground="{DynamicResource AuthText}" />
 
                         <TextBlock Text="{Binding Version}"
-                                   FontSize="9" FontWeight="Bold" LetterSpacing="2"
-                                   TextAlignment="Center" Margin="0,6,0,0"
+                                   FontSize="8.5" FontWeight="Bold" LetterSpacing="2"
+                                   TextAlignment="Center" Margin="0,5,0,0"
                                    Foreground="{Binding Accent}" />
 
-                        <Rectangle Width="44" Height="2" Margin="0,16"
+                        <Rectangle Width="40" Height="2" Margin="0,13"
                                    HorizontalAlignment="Center"
                                    Fill="{Binding Accent}" />
 
@@ -298,16 +261,16 @@
                                     HorizontalAlignment="Center"
                                     IsVisible="{Binding HasOrganisation}">
                             <TextBlock Text="DEPLOYED FOR"
-                                       FontSize="10" FontWeight="SemiBold" LetterSpacing="2"
+                                       FontSize="9.5" FontWeight="SemiBold" LetterSpacing="1.8"
                                        Foreground="{DynamicResource AuthMuted}" />
                             <TextBlock Text="{Binding Organisation}"
-                                       FontSize="10" FontWeight="ExtraBold" LetterSpacing="2.5"
+                                       FontSize="9.5" FontWeight="ExtraBold" LetterSpacing="2.2"
                                        Foreground="{DynamicResource AuthHeading2}" />
                         </StackPanel>
 
                         <TextBlock Text="{Binding Motto}"
                                    IsVisible="{Binding HasMotto}"
-                                   FontSize="10" FontWeight="SemiBold" LetterSpacing="3"
+                                   FontSize="9.5" FontWeight="SemiBold" LetterSpacing="2.6"
                                    TextAlignment="Center" TextWrapping="Wrap"
                                    Margin="0,4,0,0"
                                    Foreground="{DynamicResource AuthFaint}" />
@@ -317,13 +280,13 @@
                 <!-- ==================================== the form -->
                 <Border Grid.Column="1"
                         Background="{DynamicResource AuthPanel2}"
-                        Padding="48,30">
-                    <StackPanel VerticalAlignment="Center" MaxWidth="400">
+                        Padding="40,22">
+                    <StackPanel VerticalAlignment="Center" MaxWidth="360">
 
                         <TextBlock Text="AUTHENTICATION REQUIRED"
-                                   FontSize="17" FontWeight="ExtraBold" LetterSpacing="0.4"
+                                   FontSize="15.5" FontWeight="ExtraBold" LetterSpacing="0.4"
                                    Foreground="{DynamicResource AuthText}" />
-                        <Rectangle Height="3" Width="150" Margin="0,9,0,26"
+                        <Rectangle Height="3" Width="140" Margin="0,8,0,22"
                                    HorizontalAlignment="Left"
                                    Fill="{Binding Accent}" />
 
@@ -344,22 +307,17 @@
                             </StackPanel>
                         </Border>
 
-                        <TextBlock Text="SERVICE NUMBER / ID" Classes="authLabel" Margin="0,0,0,5" />
+                        <TextBlock Text="USER NAME" Classes="authLabel" Margin="0,0,0,5" />
                         <TextBox Name="UsernameBox" Classes="auth"
-                                 Watermark="Enter your username"
-                                 Margin="0,0,0,18"
+                                 Watermark="Enter your user name"
+                                 Margin="0,0,0,16"
                                  Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" />
 
                         <TextBlock Text="PASSWORD" Classes="authLabel" Margin="0,0,0,5" />
                         <TextBox Name="PasswordBox" Classes="auth"
                                  Watermark="Enter password"
                                  PasswordChar="•"
-                                 Margin="0,0,0,18"
                                  Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" />
-
-                        <CheckBox Classes="auth" Content="SECURELY REMEMBER MY USERNAME"
-                                  IsChecked="{Binding Remember}"
-                                  ToolTip.Tip="Fills in the username next time. Never the password — closing the application always signs you out." />
 
                         <!-- In the flow rather than floated over the fields, so
                              nothing jumps when it appears. -->
@@ -384,32 +342,32 @@
                     Background="{DynamicResource AuthPanel}"
                     BorderBrush="{DynamicResource AuthHairline}"
                     BorderThickness="0,1,0,0"
-                    Padding="26,13">
+                    Padding="22,10">
                 <Grid ColumnDefinitions="*,Auto">
 
-                    <StackPanel Grid.Column="0" Spacing="3" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="9">
+                    <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
                             <Path Data="{StaticResource IconLicence}"
                                   Fill="{Binding Accent}"
-                                  Stretch="Uniform" Width="13" Height="13"
+                                  Stretch="Uniform" Width="12" Height="12"
                                   VerticalAlignment="Center" />
                             <TextBlock Text="FULLY OFFLINE · 0% INTERNET DEPENDENCIES"
-                                       FontSize="11" FontWeight="Bold" LetterSpacing="0.8"
+                                       FontSize="10" FontWeight="Bold" LetterSpacing="0.6"
                                        VerticalAlignment="Center"
                                        Foreground="{Binding Accent}" />
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal" Spacing="7" Margin="22,0,0,0"
+                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="20,0,0,0"
                                     IsVisible="{Binding HasLicence}">
-                            <TextBlock Text="{Binding Licence}" FontSize="11"
+                            <TextBlock Text="{Binding Licence}" FontSize="10"
                                        VerticalAlignment="Center"
                                        Foreground="{DynamicResource AuthMuted}" />
-                            <TextBlock Text="·" FontSize="11" VerticalAlignment="Center"
+                            <TextBlock Text="·" FontSize="10" VerticalAlignment="Center"
                                        Foreground="{DynamicResource AuthFaint}" />
-                            <TextBlock Text="{Binding VendorLine}" FontSize="11"
+                            <TextBlock Text="{Binding VendorLine}" FontSize="10"
                                        VerticalAlignment="Center"
                                        Foreground="{DynamicResource AuthFaint}" />
-                            <TextBlock Text="Activate" FontSize="11"
+                            <TextBlock Text="Activate" FontSize="10"
                                        VerticalAlignment="Center"
                                        IsVisible="{Binding MayActivate}"
                                        TextDecorations="Underline"
@@ -417,7 +375,7 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="11"
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10"
                                 VerticalAlignment="Center">
                         <Button Classes="act reset"
                                 Command="{Binding ResetCommand}"

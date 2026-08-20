@@ -42,22 +42,7 @@ public partial class LoginViewModel : ViewModelBase
     [ObservableProperty] private string _clock = "";
     [ObservableProperty] private string _clockDate = "";
 
-    /// <summary>Whether the front door is on the dark theme right now.</summary>
-    [ObservableProperty] private bool _isDark;
-
     private readonly DispatcherTimer _tick = new() { Interval = TimeSpan.FromSeconds(1) };
-
-    /// <summary>
-    /// Fill the username in next time.
-    ///
-    /// The username only, never the password. Closing this application signs
-    /// you out — that is written down in the README and people rely on it — so
-    /// a tick that quietly kept somebody signed in would contradict what the
-    /// product says about itself. Saving the four or five characters somebody
-    /// types every morning is the honest half of the idea, and it is the half
-    /// that is actually worth having.
-    /// </summary>
-    [ObservableProperty] private bool _remember;
 
     // ------------------------------------------------------------- licence --
     [ObservableProperty] private string _licence = "";
@@ -103,17 +88,16 @@ public partial class LoginViewModel : ViewModelBase
 
     partial void OnLicenceChanged(string value) => OnPropertyChanged(nameof(HasLicence));
 
-    partial void OnRememberChanged(bool value) => Remembered.Keep(value ? Username : "");
-
     public LoginViewModel()
     {
         DataFile = Workspace.DatabasePath;
         DataFileMissing = !Workspace.DatabaseExists;
 
-        Username = Remembered.Username;
-        Remember = Username.Length > 0;
-
-        IsDark = Theming.Dark;
+        // The username is not kept between sessions. A shared terminal left at
+        // the login screen should give nothing away — not even whose account was
+        // last used — so every sign-in is typed in full, and any name a previous
+        // build stored is wiped the moment this screen opens.
+        Remembered.Keep("");
 
         Tock();
         _tick.Tick += (_, _) => Tock();
@@ -139,33 +123,6 @@ public partial class LoginViewModel : ViewModelBase
         Problem = "";
     }
 
-    /// <summary>
-    /// Light and dark from the one icon on the strip, the same as inside. It
-    /// changes at once and is written down, so the choice made at the front door
-    /// is the one the application opens on next time.
-    /// </summary>
-    [RelayCommand]
-    private async Task ToggleThemeAsync()
-    {
-        IsDark = !IsDark;
-
-        Theming.UseVariant(IsDark);
-
-        try
-        {
-            await using var db = Workspace.Open();
-
-            await new Setup(db).SetAsync("branding.default_theme",
-                IsDark ? "dark" : "light", "branding", "Default theme");
-        }
-        catch (Exception ex)
-        {
-            // The theme has already changed on screen; failing to remember it is
-            // not worth stopping the person, only worth writing down.
-            Faults.Record("saving the theme choice", ex);
-        }
-    }
-
     /// <summary>Raised once, when somebody is actually let in.</summary>
     public event Action? Allowed;
 
@@ -179,8 +136,9 @@ public partial class LoginViewModel : ViewModelBase
 
             // The unit's colour and its chosen theme, over the sign-in screen as
             // well — so a unit that runs light does not meet a dark front door.
+            // The theme is only ever chosen from inside the application; here it
+            // is followed, not offered.
             Theming.Apply(preferences);
-            IsDark = Theming.Dark;
 
             Organisation = preferences.OrganisationName.ToUpperInvariant();
             Motto = preferences.Motto.ToUpperInvariant();
@@ -273,10 +231,6 @@ public partial class LoginViewModel : ViewModelBase
             }
 
             Session.Begin(result.User!, await Preferences.ReadAsync(db));
-
-            // Only once somebody has actually got in. A username kept from a
-            // failed attempt is a username somebody mistyped.
-            Remembered.Keep(Remember ? Username : "");
 
             Allowed?.Invoke();
         }
