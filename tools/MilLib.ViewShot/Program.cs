@@ -170,6 +170,11 @@ internal static class Program
 
             Shoot(Path.Combine(outDir, "dashboard.png"), new DashboardView { DataContext = dash });
 
+            // The whole application shell — the top strip with the clock, the
+            // menu bar, and the dashboard under it.
+            var shell = new MainWindow { DataContext = new MainViewModel(null) };
+            ShootWindow(Path.Combine(outDir, "shell.png"), shell);
+
             var reports = new ReportsViewModel();
 
             SettleWhile(() => reports.Busy);

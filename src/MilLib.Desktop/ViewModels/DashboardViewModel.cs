@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
@@ -35,13 +34,8 @@ public partial class DashboardViewModel : ViewModelBase
 
     [ObservableProperty] private string _greeting = "";
 
-    // ------------------------------------------------------------- the clock
-    [ObservableProperty] private string _clock = "";
-    [ObservableProperty] private string _clockDay = "";
-    [ObservableProperty] private string _clockDate = "";
+    /// <summary>The month heading over the mini calendar — "August 2026".</summary>
     [ObservableProperty] private string _monthTitle = "";
-
-    private readonly DispatcherTimer _tick = new() { Interval = TimeSpan.FromSeconds(1) };
 
     /// <summary>Who is signed in and to what — the same line the web console carries.</summary>
     [ObservableProperty] private string _standing = "";
@@ -54,12 +48,6 @@ public partial class DashboardViewModel : ViewModelBase
         Standing = WhoAndWhen();
 
         BuildCalendar();
-        Tock();
-
-        // A second hand. The dashboard is the screen left open on a counter all
-        // day, so a clock on it that does not move is a clock nobody trusts.
-        _tick.Tick += (_, _) => Tock();
-        _tick.Start();
 
         _ = LoadAsync();
     }
@@ -232,16 +220,6 @@ public partial class DashboardViewModel : ViewModelBase
         var cleared = Words.Of(Session.User?.ClearanceLevel ?? SecurityClass.UNCLASSIFIED);
 
         return $"{role}  ·  cleared to {cleared}  ·  {DateTime.Now:dddd, dd MMMM yyyy}";
-    }
-
-    /// <summary>Set the clock to now — called every second, and once up front.</summary>
-    private void Tock()
-    {
-        var now = DateTime.Now;
-
-        Clock = now.ToString("HH:mm:ss");
-        ClockDay = now.ToString("dddd");
-        ClockDate = now.ToString("dd MMMM yyyy");
     }
 
     /// <summary>

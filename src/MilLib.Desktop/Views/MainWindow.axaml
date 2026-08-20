@@ -170,6 +170,19 @@
                     Padding="22,7">
                 <Grid ColumnDefinitions="Auto,*,Auto">
 
+                    <!-- The clock, in the middle of the strip: a monospace time
+                         that ticks, and the date under it. Centred, so it reads
+                         as the window's clock rather than one more control. -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center"
+                                HorizontalAlignment="Center" Spacing="0">
+                        <TextBlock Text="{Binding Clock}" FontSize="17" FontWeight="SemiBold"
+                                   FontFamily="Consolas, Cascadia Mono, monospace"
+                                   LetterSpacing="1" Foreground="#F2F2F2"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding ClockDate}" FontSize="9" LetterSpacing="1.4"
+                                   Foreground="#8CFFFFFF" HorizontalAlignment="Center" />
+                    </StackPanel>
+
                     <!-- The crest and the two-line lockup, as the web
                          application carries it. -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="11">

@@ -1,5 +1,6 @@
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MilLib.Core.Data;
@@ -46,6 +47,12 @@ public partial class MainViewModel : ViewModelBase
     /// </summary>
     [ObservableProperty] private bool _isDark;
 
+    /// <summary>The time and the date, ticking in the top strip.</summary>
+    [ObservableProperty] private string _clock = "";
+    [ObservableProperty] private string _clockDate = "";
+
+    private readonly DispatcherTimer _tick = new() { Interval = TimeSpan.FromSeconds(1) };
+
     public MainViewModel(string? startAt = null)
     {
         DataFile = Workspace.DatabasePath;
@@ -62,6 +69,12 @@ public partial class MainViewModel : ViewModelBase
         Theming.Apply(Session.Preferences);
 
         IsDark = Theming.Dark;
+
+        // The clock in the top strip. One timer for the life of the window, so
+        // the time on a machine left open all day is the time.
+        Tock();
+        _tick.Tick += (_, _) => Tock();
+        _tick.Start();
 
         // And again whenever it is changed on the Settings screen, so the
         // person choosing it is looking at the result while they choose.
@@ -137,6 +150,14 @@ public partial class MainViewModel : ViewModelBase
 
     [RelayCommand]
     private void ReadingRoom() => OpenKiosk?.Invoke();
+
+    private void Tock()
+    {
+        var now = DateTime.Now;
+
+        Clock = now.ToString("HH:mm:ss");
+        ClockDate = now.ToString("ddd, dd MMM yyyy").ToUpperInvariant();
+    }
 
     /// <summary>
     /// Light and dark, from the one icon at the top. It changes immediately —
