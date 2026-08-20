@@ -34,6 +34,22 @@ public partial class LicenceViewModel : ViewModelBase
     [ObservableProperty] private string _installed = "";
     [ObservableProperty] private string _currentKey = "";
     [ObservableProperty] private bool _licensed;
+    [ObservableProperty] private string _stateBadge = "";
+
+    // ------------------------------------------------------- the term bar --
+
+    /// <summary>
+    /// The trial or the licence drawn as a bar filling from a start date to an
+    /// end date, so how much time is left is seen before it is read. A trial
+    /// counts down its fourteen days; a dated licence counts down its term; a
+    /// perpetual one is simply full.
+    /// </summary>
+    [ObservableProperty] private bool _showTerm;
+    [ObservableProperty] private double _termFraction;
+    [ObservableProperty] private string _termLabel = "";
+    [ObservableProperty] private string _termValue = "";
+    [ObservableProperty] private string _termStart = "";
+    [ObservableProperty] private string _termEnd = "";
 
     public LicenceViewModel()
     {
@@ -95,6 +111,8 @@ public partial class LicenceViewModel : ViewModelBase
                 : row?.TrialStartedAt is { } began
                     ? $"This copy was first opened {began:dd MMM yyyy}."
                     : "";
+
+            BuildTerm(standing, row?.TrialStartedAt, row?.ActivatedAt);
         }
         catch (Exception ex)
         {
@@ -120,7 +138,110 @@ public partial class LicenceViewModel : ViewModelBase
             : "";
         CurrentKey = standing.Key ?? "";
         Licensed = standing.State == LicenceState.Licensed;
+
+        StateBadge = standing.State switch
+        {
+            LicenceState.Trial => "TRIAL",
+            LicenceState.TrialOver => "TRIAL ENDED",
+            LicenceState.Expired => "EXPIRED",
+            _ when standing.Perpetual => "LICENSED",
+            _ => "LICENSED",
+        };
     }
+
+    /// <summary>
+    /// Work out the term bar: what to call it, how full it is, and the two dates
+    /// at its ends. A cleared installation with no term to show hides the bar
+    /// rather than drawing an empty one.
+    /// </summary>
+    private void BuildTerm(LicenceStanding standing, DateTime? trialStarted, DateTime? activated)
+    {
+        static double Clamp(double v) => Math.Clamp(v, 0, 1);
+
+        switch (standing.State)
+        {
+            case LicenceState.Trial:
+            {
+                var days = Licence.TrialDays;
+
+                TermLabel = "TRIAL PERIOD";
+                TermFraction = Clamp((double)standing.DaysLeft / days);
+                TermValue = standing.DaysLeft <= 1
+                    ? "Ends today"
+                    : $"{standing.DaysLeft} of {days} days left";
+                TermStart = trialStarted is { } s ? $"Opened {s:dd MMM yyyy}" : "Trial";
+                TermEnd = trialStarted is { } e ? $"Ends {e.AddDays(days):dd MMM yyyy}" : "";
+                ShowTerm = true;
+                break;
+            }
+
+            case LicenceState.TrialOver:
+            {
+                TermLabel = "TRIAL PERIOD";
+                TermFraction = 0;
+                TermValue = "The trial has ended";
+                TermStart = trialStarted is { } s ? $"Opened {s:dd MMM yyyy}" : "Trial";
+                TermEnd = "A key is needed";
+                ShowTerm = true;
+                break;
+            }
+
+            case LicenceState.Licensed when standing.Perpetual:
+            {
+                TermLabel = "LICENCE";
+                TermFraction = 1;
+                TermValue = "Perpetual — never expires";
+                TermStart = activated is { } a ? $"Activated {a:dd MMM yyyy}" : "Activated";
+                TermEnd = "No expiry";
+                ShowTerm = true;
+                break;
+            }
+
+            case LicenceState.Licensed:
+            {
+                var expires = standing.Expires;
+                var from = activated is { } a ? DateOnly.FromDateTime(a) : (DateOnly?)null;
+
+                double fraction = standing.DaysLeft > 0 ? 1 : 0;
+
+                if (from is { } f && expires is { } exp)
+                {
+                    var term = exp.DayNumber - f.DayNumber;
+
+                    if (term > 0)
+                    {
+                        fraction = Clamp((double)standing.DaysLeft / term);
+                    }
+                }
+
+                TermLabel = "LICENCE VALIDITY";
+                TermFraction = fraction;
+                TermValue = standing.DaysLeft <= 0
+                    ? "Expires today"
+                    : $"{standing.DaysLeft} days left";
+                TermStart = from is { } fr ? $"Activated {fr:dd MMM yyyy}" : "Activated";
+                TermEnd = expires is { } ex ? $"Until {ex:dd MMM yyyy}" : "";
+                ShowTerm = true;
+                break;
+            }
+
+            case LicenceState.Expired:
+            {
+                TermLabel = "LICENCE VALIDITY";
+                TermFraction = 0;
+                TermValue = "The licence has expired";
+                TermStart = activated is { } a ? $"Activated {a:dd MMM yyyy}" : "";
+                TermEnd = standing.Expires is { } ex ? $"Expired {ex:dd MMM yyyy}" : "Expired";
+                ShowTerm = true;
+                break;
+            }
+
+            default:
+                ShowTerm = false;
+                break;
+        }
+    }
+
 
     [RelayCommand]
     private async Task ActivateAsync()
