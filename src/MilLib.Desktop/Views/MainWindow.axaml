@@ -155,6 +155,15 @@
         <Style Selector="Button.chrome:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="#1FFFFFFF" />
         </Style>
+
+        <!-- The power button turns red on hover, the way a Windows sign-out
+             control does — the one control here that ends the session. -->
+        <Style Selector="Button.chrome.power:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#33E8264A" />
+        </Style>
+        <Style Selector="Button.chrome.power:pointerover Path">
+            <Setter Property="Stroke" Value="#FF6B7F" />
+        </Style>
     </Window.Styles>
 
     <Panel>
@@ -169,19 +178,6 @@
                     BorderThickness="0,0,0,3"
                     Padding="22,7">
                 <Grid ColumnDefinitions="Auto,*,Auto">
-
-                    <!-- The clock, in the middle of the strip: a monospace time
-                         that ticks, and the date under it. Centred, so it reads
-                         as the window's clock rather than one more control. -->
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center"
-                                HorizontalAlignment="Center" Spacing="0">
-                        <TextBlock Text="{Binding Clock}" FontSize="17" FontWeight="SemiBold"
-                                   FontFamily="Consolas, Cascadia Mono, monospace"
-                                   LetterSpacing="1" Foreground="#F2F2F2"
-                                   HorizontalAlignment="Center" />
-                        <TextBlock Text="{Binding ClockDate}" FontSize="9" LetterSpacing="1.4"
-                                   Foreground="#8CFFFFFF" HorizontalAlignment="Center" />
-                    </StackPanel>
 
                     <!-- The crest and the two-line lockup, as the web
                          application carries it. -->
@@ -205,23 +201,24 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Who is signed in, and the two things they do about it.
-                         Kept together at the right, away from the work. -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="14"
+                    <!-- The clock on the right, in the Windows system font, and
+                         the two controls that are always there: the theme, and
+                         the way out. Who is signed in is on the dashboard, so it
+                         is not repeated here. -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="16"
                                 VerticalAlignment="Center">
 
-                        <StackPanel Spacing="1" HorizontalAlignment="Right"
-                                    VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Who}" FontSize="12"
-                                       TextAlignment="Right" Foreground="#F2F2F2" />
-                            <TextBlock Text="{Binding Role}" FontSize="9" LetterSpacing="0.8"
-                                       TextAlignment="Right" Foreground="{DynamicResource AccentOnDark}" />
+                        <StackPanel Spacing="0" VerticalAlignment="Center" Margin="0,0,4,0">
+                            <TextBlock Text="{Binding Clock}" FontSize="19" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI, Inter, sans-serif"
+                                       Foreground="#F4F4F4" TextAlignment="Right" />
+                            <TextBlock Text="{Binding ClockDate}" FontSize="9" LetterSpacing="1.3"
+                                       FontFamily="Segoe UI, Inter, sans-serif"
+                                       Foreground="#8CFFFFFF" TextAlignment="Right" />
                         </StackPanel>
 
-                        <!-- Light / dark, from one icon. A moon while the
-                             application is light (press it to go dark), a sun
-                             while it is dark. It changes at once and is
-                             remembered. -->
+                        <!-- Light / dark, from one icon: a moon while light, a
+                             sun while dark. It changes at once and is remembered. -->
                         <Button Classes="chrome" Command="{Binding ToggleThemeCommand}"
                                 ToolTip.Tip="Switch between the light and dark theme"
                                 AutomationProperties.Name="Switch theme">
@@ -235,27 +232,13 @@
                             </Panel>
                         </Button>
 
-                        <Button Classes="chrome"
-                                IsVisible="{Binding MayOpenKiosk}"
-                                Command="{Binding ReadingRoomCommand}"
-                                ToolTip.Tip="Turn this machine into a public catalogue terminal">
-                            <StackPanel Orientation="Horizontal" Spacing="7">
-                                <Path Data="{StaticResource IconSearch}" Stroke="{DynamicResource RailInk}"
-                                      StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform"
-                                      VerticalAlignment="Center" />
-                                <TextBlock Text="Reading room" VerticalAlignment="Center" />
-                            </StackPanel>
-                        </Button>
-
-                        <Button Classes="chrome" Command="{Binding SignOutCommand}"
+                        <!-- Sign out, as the power button a Windows user reaches
+                             for without being told what it is. -->
+                        <Button Classes="chrome power" Command="{Binding SignOutCommand}"
                                 ToolTip.Tip="Sign out"
                                 AutomationProperties.Name="Sign out">
-                            <StackPanel Orientation="Horizontal" Spacing="7">
-                                <Path Data="{StaticResource IconSignOut}" Stroke="{DynamicResource RailInk}"
-                                      StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform"
-                                      VerticalAlignment="Center" />
-                                <TextBlock Text="Sign out" VerticalAlignment="Center" />
-                            </StackPanel>
+                            <Path Data="{StaticResource IconPower}" Stroke="{DynamicResource RailInk}"
+                                  StrokeThickness="1.8" Width="17" Height="17" Stretch="Uniform" />
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -263,6 +246,23 @@
 
             <!-- ============================================ the menu bar == -->
             <Border Grid.Row="1" Background="#14161A">
+              <DockPanel LastChildFill="True">
+
+                <!-- Reading room sits at the far end of the menu line, out of
+                     the day's work: it is a mode the machine is put into
+                     occasionally, not a screen used every hour. -->
+                <Button DockPanel.Dock="Right" Classes="top"
+                        IsVisible="{Binding MayOpenKiosk}"
+                        Command="{Binding ReadingRoomCommand}"
+                        ToolTip.Tip="Turn this machine into a public catalogue terminal">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Path Data="{StaticResource IconSearch}" Stroke="{DynamicResource RailInk}"
+                              StrokeThickness="1.7" Width="15" Height="15" Stretch="Uniform"
+                              VerticalAlignment="Center" />
+                        <TextBlock Text="Reading room" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
                 <ItemsControl ItemsSource="{Binding Nodes}" Margin="14,0">
                     <!-- The dock goes on the container the ItemsControl makes,
                          not on anything inside the template. Set on the inner
@@ -336,6 +336,7 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
+              </DockPanel>
             </Border>
 
             <!-- ============================================ working area == -->

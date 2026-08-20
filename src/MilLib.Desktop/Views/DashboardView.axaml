@@ -13,8 +13,8 @@
              from the months either side are dimmed so the current month reads
              as one block. -->
         <Style Selector="Border.calday">
-            <Setter Property="Height" Value="30" />
-            <Setter Property="CornerRadius" Value="15" />
+            <Setter Property="Height" Value="34" />
+            <Setter Property="CornerRadius" Value="17" />
             <Setter Property="Margin" Value="1" />
         </Style>
         <Style Selector="Border.calday.today">
@@ -70,7 +70,8 @@
              the figure walks to the screen it is about. Those that are running
              totals rather than screens of their own are plain.
         -->
-        <ItemsControl Grid.Row="1" ItemsSource="{Binding Stats}" Margin="0,0,0,22">
+        <Grid Grid.Row="1" ColumnDefinitions="*,300" Margin="0,0,0,18">
+        <ItemsControl Grid.Column="0" ItemsSource="{Binding Stats}" Margin="0,0,16,0">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <UniformGrid Columns="3" />
@@ -97,6 +98,42 @@
             </ItemsControl.ItemTemplate>
         </ItemsControl>
 
+            <Border Grid.Column="1" Classes="card" Padding="18,18" VerticalAlignment="Stretch">
+                <StackPanel VerticalAlignment="Center" Spacing="10">
+                    <TextBlock Text="{Binding MonthTitle}" FontWeight="SemiBold" FontSize="15"
+                               HorizontalAlignment="Center" />
+
+                    <ItemsControl ItemsSource="{Binding Weekdays}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><UniformGrid Columns="7" /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" Classes="faint" FontSize="10.5"
+                                           HorizontalAlignment="Center" Margin="0,0,0,2" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <ItemsControl ItemsSource="{Binding Days}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><UniformGrid Columns="7" /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:CalendarDay">
+                                <Border Classes="calday"
+                                        Classes.today="{Binding IsToday}"
+                                        Classes.dim="{Binding !InMonth}">
+                                    <TextBlock Text="{Binding Text}" HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" FontSize="12.5" />
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </Grid>
+
         <!--
              What should have come back and hasn't.
 
@@ -104,9 +141,7 @@
              somebody to do something today. Oldest first — the book that is
              three months late matters more than the one that is a day late.
         -->
-        <!-- The overdue list, and the month beside it. -->
-        <Grid Grid.Row="2" ColumnDefinitions="*,300">
-        <Border Grid.Column="0" Classes="card" Padding="0" ClipToBounds="True" Margin="0,0,16,0">
+        <Border Grid.Row="2" Classes="card" Padding="0" ClipToBounds="True">
             <Grid RowDefinitions="Auto,*">
 
                 <Border Grid.Row="0" Classes="tableHead">
@@ -154,41 +189,5 @@
                 </ScrollViewer>
             </Grid>
         </Border>
-
-            <Border Grid.Column="1" Classes="card" Padding="18,16" VerticalAlignment="Top">
-                <StackPanel Spacing="9">
-                    <TextBlock Text="{Binding MonthTitle}" FontWeight="SemiBold" FontSize="14"
-                               HorizontalAlignment="Center" />
-
-                    <ItemsControl ItemsSource="{Binding Weekdays}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate><UniformGrid Columns="7" /></ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding}" Classes="faint" FontSize="10.5"
-                                           HorizontalAlignment="Center" Margin="0,0,0,2" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-
-                    <ItemsControl ItemsSource="{Binding Days}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate><UniformGrid Columns="7" /></ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="vm:CalendarDay">
-                                <Border Classes="calday"
-                                        Classes.today="{Binding IsToday}"
-                                        Classes.dim="{Binding !InMonth}">
-                                    <TextBlock Text="{Binding Text}" HorizontalAlignment="Center"
-                                               VerticalAlignment="Center" FontSize="12" />
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Border>
-        </Grid>
     </Grid>
 </UserControl>
