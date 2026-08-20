@@ -41,29 +41,40 @@
         <StackPanel Spacing="16" MaxWidth="1180" HorizontalAlignment="Stretch">
 
             <!-- ============================================ where this stands -->
-            <Border Classes="card" Padding="28,24"
+            <!-- Laid out like an activation page: the maker's emblem, the
+                 product it protects, and the one line that says whether it is
+                 licensed — then the term drawn as a bar that fills as the page
+                 opens. The emblem is compiled into the program, not read off the
+                 disk, so a unit cannot put its own badge over the maker's. -->
+            <Border Classes="card" Padding="30,26"
                     Background="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGoodSoft}}"
                     BorderBrush="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}">
-                <StackPanel Spacing="18">
+                <StackPanel Spacing="20">
 
-                    <Grid ColumnDefinitions="*,Auto">
-                        <StackPanel Grid.Column="0" Spacing="6">
+                    <Grid ColumnDefinitions="Auto,18,*,Auto">
+                        <Image Grid.Column="0" Width="66" Height="66" Stretch="Uniform"
+                               VerticalAlignment="Center"
+                               Source="/Assets/tactical-code-logo.png"
+                               RenderOptions.BitmapInterpolationMode="HighQuality" />
+
+                        <StackPanel Grid.Column="2" Spacing="4" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Product}" Classes="label" />
                             <TextBlock Text="{Binding Headline}" FontSize="24" FontWeight="Bold"
                                        TextWrapping="Wrap"
                                        Foreground="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}" />
-                            <TextBlock Text="{Binding What}" TextWrapping="Wrap" FontSize="13"
-                                       MaxWidth="760" HorizontalAlignment="Left"
-                                       IsVisible="{Binding What, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                         </StackPanel>
 
-                        <Border Grid.Column="1" Classes="badge"
+                        <Border Grid.Column="3" Classes="badge" VerticalAlignment="Top"
                                 Background="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}">
                             <TextBlock Text="{Binding StateBadge}" Foreground="#FFFFFF" />
                         </Border>
                     </Grid>
 
-                    <!-- the term, drawn -->
-                    <StackPanel Spacing="8" IsVisible="{Binding ShowTerm}">
+                    <TextBlock Text="{Binding What}" TextWrapping="Wrap" FontSize="13" LineHeight="20"
+                               IsVisible="{Binding What, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                    <!-- the term, drawn, filling as the page opens -->
+                    <StackPanel Spacing="9" IsVisible="{Binding ShowTerm}">
                         <Grid ColumnDefinitions="*,Auto">
                             <TextBlock Grid.Column="0" Text="{Binding TermLabel}" Classes="label" />
                             <TextBlock Grid.Column="1" Text="{Binding TermValue}"
@@ -72,7 +83,14 @@
                         </Grid>
 
                         <ProgressBar Classes="term" Value="{Binding TermFraction}"
-                                     Foreground="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}" />
+                                     Foreground="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}">
+                            <ProgressBar.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Value" Duration="0:0:1.1"
+                                                      Easing="CubicEaseOut" />
+                                </Transitions>
+                            </ProgressBar.Transitions>
+                        </ProgressBar>
 
                         <Grid ColumnDefinitions="*,Auto">
                             <TextBlock Grid.Column="0" Text="{Binding TermStart}" Classes="faint" FontSize="11" />
@@ -94,18 +112,22 @@
                                        Text="A key is issued against this machine and works on no other. Send the hardware ID; type the key that comes back." />
                         </StackPanel>
 
-                        <StackPanel Spacing="6">
+                        <StackPanel Spacing="7">
                             <TextBlock Text="THIS MACHINE" Classes="label" />
-                            <SelectableTextBlock Text="{Binding HardwareId}" Classes="mono" FontSize="20" />
+                            <SelectableTextBlock Text="{Binding HardwareId}" Classes="mono" FontSize="20"
+                                                 LetterSpacing="0.5" />
                             <TextBlock Text="{Binding MachineSource}" Classes="faint" FontSize="11"
-                                       TextWrapping="Wrap" />
+                                       LineHeight="16" TextWrapping="Wrap" Margin="0,2,0,0" />
                         </StackPanel>
 
-                        <Border Classes="card cool" Padding="16,13">
-                            <StackPanel Spacing="9">
+                        <Border Classes="card cool" Padding="18,15">
+                            <StackPanel Spacing="12">
                                 <TextBlock Text="WHAT TO SEND" Classes="label" />
+                                <!-- Line spacing on purpose: four short lines packed
+                                     tight read as one smear, and this block is meant
+                                     to be checked line by line before it is sent. -->
                                 <SelectableTextBlock Text="{Binding ToSend}" Classes="mono"
-                                                     FontSize="11.5" TextWrapping="Wrap" />
+                                                     FontSize="12" LineHeight="21" TextWrapping="Wrap" />
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <Button Content="Copy this" MinHeight="36"
                                             Command="{Binding CopyDetailsCommand}" />
