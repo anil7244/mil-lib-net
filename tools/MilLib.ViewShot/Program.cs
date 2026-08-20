@@ -254,10 +254,17 @@ internal static class Program
 
             Shoot(Path.Combine(outDir, "admin-activity.png"),
                 new ActivityView { DataContext = activity });
+
+            ShootKiosk(Path.Combine(outDir, "kiosk.png"));
         }
 
         Console.WriteLine($"Wrote screenshots to {outDir}"
             + (live ? "" : " (catalogue skipped — no database found beside the tool)"));
+
+        // The kiosk window refuses to close and keeps a timer alive, so the
+        // process will not fall out of Main on its own. Everything is written,
+        // so it is ended here rather than left hanging.
+        Environment.Exit(0);
 
         return 0;
     }
@@ -662,6 +669,51 @@ internal static class Program
     }
 
     // ----------------------------------------------------------------- shutter --
+
+    /// <summary>
+    /// The reading-room terminal, signed in and mid-search. It makes its own
+    /// view-model and refuses to close, so it is driven through its DataContext
+    /// and captured without asking it to close.
+    /// </summary>
+    private static void ShootKiosk(string path)
+    {
+        var window = new KioskWindow { WindowState = WindowState.Normal };
+
+        var vm = (KioskViewModel)window.DataContext!;
+
+        SettleWhile(() => vm.Busy);
+
+        // Scan a real member's pass — the pass is the identification here.
+        vm.Scan = "MLIB-W9E6A1ECWQKDERRT8MI5MKFXFYIS";
+        vm.IdentifyCommand.Execute(null);
+
+        SettleWhile(() => !vm.SignedIn);
+
+        vm.Search = "war";
+
+        SettleWhile(() => vm.Busy);
+
+        const int width = 1180;
+        const int height = 780;
+
+        window.Width = width;
+        window.Height = height;
+        window.Show();
+
+        Dispatcher.UIThread.RunJobs();
+
+        window.Measure(new Size(width, height));
+        window.Arrange(new Rect(0, 0, width, height));
+
+        Dispatcher.UIThread.RunJobs();
+
+        var bitmap = new RenderTargetBitmap(new PixelSize(width, height), new Vector(96, 96));
+
+        bitmap.Render(window);
+        bitmap.Save(path);
+
+        // Not closed on purpose: the kiosk refuses to. The tool exits after.
+    }
 
     private static void Shoot(string path, object content)
     {
