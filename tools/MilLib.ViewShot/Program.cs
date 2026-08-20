@@ -281,6 +281,12 @@ internal static class Program
             Shoot(Path.Combine(outDir, "books-dark.png"), new BooksView { DataContext = books });
             Theming.UseVariant(false);
 
+            // The sign-in screen, now following the theme. Light is the one
+            // the unit runs; a dark render proves it flips too.
+            ShootLogin(Path.Combine(outDir, "login-light.png"), dark: false);
+            ShootLogin(Path.Combine(outDir, "login-dark.png"), dark: true);
+            Theming.UseVariant(false);
+
             ShootKiosk(Path.Combine(outDir, "kiosk.png"));
         }
 
@@ -728,6 +734,40 @@ internal static class Program
     }
 
     // ----------------------------------------------------------------- shutter --
+
+    /// <summary>The sign-in screen, in the given theme, once its branding has loaded.</summary>
+    private static void ShootLogin(string path, bool dark)
+    {
+        var window = new LoginWindow();
+
+        var vm = (LoginViewModel)window.DataContext!;
+
+        const int width = 1000;
+        const int height = 620;
+
+        window.Width = width;
+        window.Height = height;
+        window.Show();
+
+        // Let the branding read finish — it also applies the stored theme, so
+        // the variant is forced afterwards for the render that wants the other.
+        for (var i = 0; i < 80 && vm.Organisation.Length == 0; i++)
+        {
+            Dispatcher.UIThread.RunJobs();
+            Thread.Sleep(25);
+        }
+
+        Theming.UseVariant(dark);
+        Dispatcher.UIThread.RunJobs();
+
+        window.Measure(new Size(width, height));
+        window.Arrange(new Rect(0, 0, width, height));
+        Dispatcher.UIThread.RunJobs();
+
+        var bitmap = new RenderTargetBitmap(new PixelSize(width, height), new Vector(96, 96));
+        bitmap.Render(window);
+        bitmap.Save(path);
+    }
 
     /// <summary>
     /// The reading-room terminal, signed in and mid-search. It makes its own

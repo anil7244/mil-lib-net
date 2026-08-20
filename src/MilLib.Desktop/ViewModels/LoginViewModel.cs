@@ -111,6 +111,10 @@ public partial class LoginViewModel : ViewModelBase
 
             var preferences = await Preferences.ReadAsync(db);
 
+            // The unit's colour and its chosen theme, over the sign-in screen as
+            // well — so a unit that runs light does not meet a dark front door.
+            Theming.Apply(preferences);
+
             Organisation = preferences.OrganisationName.ToUpperInvariant();
             Motto = preferences.Motto.ToUpperInvariant();
             LibraryName = preferences.LibraryName.ToUpperInvariant();

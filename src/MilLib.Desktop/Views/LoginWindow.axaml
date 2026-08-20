@@ -31,23 +31,54 @@
         screen is dark whatever the rest of the application is set to, because
         it is the one screen seen before anybody has chosen anything.
     -->
+    <!--
+        The sign-in palette, now per theme like the web application's auth
+        tokens. Dark is the original near-black; light is the web app's warm
+        cream with slate ink. The screen follows whichever theme the unit has
+        chosen, applied as the branding loads.
+    -->
     <Window.Resources>
-        <SolidColorBrush x:Key="AuthText" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="AuthHeading2" Color="#D9FFFFFF" />
-        <SolidColorBrush x:Key="AuthMuted" Color="#6BFFFFFF" />
-        <SolidColorBrush x:Key="AuthFaint" Color="#40FFFFFF" />
-        <SolidColorBrush x:Key="AuthGhost" Color="#1FFFFFFF" />
-        <SolidColorBrush x:Key="AuthHairline" Color="#0FFFFFFF" />
-        <SolidColorBrush x:Key="AuthPanel" Color="#05FFFFFF" />
-        <SolidColorBrush x:Key="AuthPanel2" Color="#08FFFFFF" />
-        <SolidColorBrush x:Key="AuthInputBg" Color="#0DFFFFFF" />
-        <SolidColorBrush x:Key="AuthInputBorder" Color="#1AFFFFFF" />
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
 
-        <LinearGradientBrush x:Key="AuthBackdrop" StartPoint="10%,0%" EndPoint="90%,100%">
-            <GradientStop Offset="0" Color="#0A0A0A" />
-            <GradientStop Offset="0.4" Color="#1A1A1A" />
-            <GradientStop Offset="1" Color="#111111" />
-        </LinearGradientBrush>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="AuthText" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="AuthHeading2" Color="#D9FFFFFF" />
+                    <SolidColorBrush x:Key="AuthMuted" Color="#6BFFFFFF" />
+                    <SolidColorBrush x:Key="AuthFaint" Color="#40FFFFFF" />
+                    <SolidColorBrush x:Key="AuthGhost" Color="#1FFFFFFF" />
+                    <SolidColorBrush x:Key="AuthHairline" Color="#0FFFFFFF" />
+                    <SolidColorBrush x:Key="AuthPanel" Color="#05FFFFFF" />
+                    <SolidColorBrush x:Key="AuthPanel2" Color="#08FFFFFF" />
+                    <SolidColorBrush x:Key="AuthInputBg" Color="#0DFFFFFF" />
+                    <SolidColorBrush x:Key="AuthInputBorder" Color="#1AFFFFFF" />
+                    <LinearGradientBrush x:Key="AuthBackdrop" StartPoint="10%,0%" EndPoint="90%,100%">
+                        <GradientStop Offset="0" Color="#0A0A0A" />
+                        <GradientStop Offset="0.4" Color="#1A1A1A" />
+                        <GradientStop Offset="1" Color="#111111" />
+                    </LinearGradientBrush>
+                </ResourceDictionary>
+
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="AuthText" Color="#17233A" />
+                    <SolidColorBrush x:Key="AuthHeading2" Color="#B817233A" />
+                    <SolidColorBrush x:Key="AuthMuted" Color="#64748B" />
+                    <SolidColorBrush x:Key="AuthFaint" Color="#94A3B8" />
+                    <SolidColorBrush x:Key="AuthGhost" Color="#2E0F172A" />
+                    <SolidColorBrush x:Key="AuthHairline" Color="#1F3C321E" />
+                    <SolidColorBrush x:Key="AuthPanel" Color="#053C321E" />
+                    <SolidColorBrush x:Key="AuthPanel2" Color="#FCFBF7" />
+                    <SolidColorBrush x:Key="AuthInputBg" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="AuthInputBorder" Color="#290F172A" />
+                    <LinearGradientBrush x:Key="AuthBackdrop" StartPoint="10%,0%" EndPoint="90%,100%">
+                        <GradientStop Offset="0" Color="#EFEDE3" />
+                        <GradientStop Offset="0.45" Color="#F7F6F0" />
+                        <GradientStop Offset="1" Color="#F5F4EE" />
+                    </LinearGradientBrush>
+                </ResourceDictionary>
+
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
     </Window.Resources>
 
     <Window.Styles>
@@ -65,23 +96,23 @@
         <!-- The fields, as the web draws them: flat, thin-bordered, square,
              and taking the accent when they have the cursor. -->
         <Style Selector="TextBox.auth">
-            <Setter Property="Foreground" Value="{StaticResource AuthText}" />
-            <Setter Property="CaretBrush" Value="{StaticResource AuthText}" />
+            <Setter Property="Foreground" Value="{DynamicResource AuthText}" />
+            <Setter Property="CaretBrush" Value="{DynamicResource AuthText}" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="Padding" Value="14,10" />
             <Setter Property="MinHeight" Value="40" />
         </Style>
 
         <Style Selector="TextBox.auth /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="{StaticResource AuthInputBg}" />
-            <Setter Property="BorderBrush" Value="{StaticResource AuthInputBorder}" />
+            <Setter Property="Background" Value="{DynamicResource AuthInputBg}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AuthInputBorder}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="0" />
         </Style>
 
         <Style Selector="TextBox.auth:pointerover /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="{StaticResource AuthInputBg}" />
-            <Setter Property="BorderBrush" Value="{StaticResource AuthGhost}" />
+            <Setter Property="Background" Value="{DynamicResource AuthInputBg}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AuthGhost}" />
         </Style>
 
         <Style Selector="TextBox.auth:focus /template/ Border#PART_BorderElement">
@@ -95,7 +126,7 @@
             <Setter Property="FontSize" Value="9" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="LetterSpacing" Value="1" />
-            <Setter Property="Foreground" Value="{StaticResource AuthMuted}" />
+            <Setter Property="Foreground" Value="{DynamicResource AuthMuted}" />
         </Style>
 
         <Style Selector="Button.auth">
@@ -113,13 +144,13 @@
         </Style>
 
         <Style Selector="CheckBox.auth">
-            <Setter Property="Foreground" Value="{StaticResource AuthMuted}" />
+            <Setter Property="Foreground" Value="{DynamicResource AuthMuted}" />
             <Setter Property="FontSize" Value="10" />
             <Setter Property="MinHeight" Value="0" />
         </Style>
     </Window.Styles>
 
-    <Panel Background="{StaticResource AuthBackdrop}">
+    <Panel Background="{DynamicResource AuthBackdrop}">
 
         <Grid RowDefinitions="*,Auto">
 
@@ -127,14 +158,14 @@
             <Border Grid.Row="0" Classes="entry" Opacity="0"
                     Width="880" Margin="20,20,20,0"
                     VerticalAlignment="Center" HorizontalAlignment="Center"
-                    BorderBrush="{StaticResource AuthHairline}" BorderThickness="1">
+                    BorderBrush="{DynamicResource AuthHairline}" BorderThickness="1">
 
                 <Grid ColumnDefinitions="1*,1*">
 
                     <!-- ============================== the unit's side -->
                     <Border Grid.Column="0"
-                            Background="{StaticResource AuthPanel}"
-                            BorderBrush="{StaticResource AuthHairline}"
+                            Background="{DynamicResource AuthPanel}"
+                            BorderBrush="{DynamicResource AuthHairline}"
                             BorderThickness="0,0,1,0"
                             Padding="40">
                         <Panel>
@@ -163,7 +194,7 @@
                                            FontSize="22" FontWeight="ExtraBold"
                                            LetterSpacing="2" LineHeight="27"
                                            TextAlignment="Center" TextWrapping="Wrap"
-                                           Foreground="{StaticResource AuthText}" />
+                                           Foreground="{DynamicResource AuthText}" />
 
                                 <TextBlock Text="{Binding Version}"
                                            FontSize="9" FontWeight="Bold" LetterSpacing="2"
@@ -181,10 +212,10 @@
                                             IsVisible="{Binding HasOrganisation}">
                                     <TextBlock Text="DEPLOYED FOR"
                                                FontSize="10" FontWeight="SemiBold" LetterSpacing="2"
-                                               Foreground="{StaticResource AuthMuted}" />
+                                               Foreground="{DynamicResource AuthMuted}" />
                                     <TextBlock Text="{Binding Organisation}"
                                                FontSize="10" FontWeight="ExtraBold" LetterSpacing="2.5"
-                                               Foreground="{StaticResource AuthHeading2}" />
+                                               Foreground="{DynamicResource AuthHeading2}" />
                                 </StackPanel>
 
                                 <TextBlock Text="{Binding Motto}"
@@ -192,14 +223,14 @@
                                            FontSize="10" FontWeight="SemiBold" LetterSpacing="3"
                                            TextAlignment="Center" TextWrapping="Wrap"
                                            Margin="0,4,0,0"
-                                           Foreground="{StaticResource AuthFaint}" />
+                                           Foreground="{DynamicResource AuthFaint}" />
 
                                 <!-- What the software does, so nobody has to
                                      sign in to find out what it is. -->
                                 <TextBlock Margin="0,10,0,0"
                                            FontSize="10" LineHeight="17" LetterSpacing="0.5"
                                            TextAlignment="Center"
-                                           Foreground="{StaticResource AuthFaint}">
+                                           Foreground="{DynamicResource AuthFaint}">
                                     Catalogue &amp; Accession • Members &amp; Passes<LineBreak />
                                     Issue &amp; Return • Stock Verification<LineBreak />
                                     QR Passes • Reports
@@ -210,7 +241,7 @@
 
                     <!-- ==================================== the form -->
                     <Border Grid.Column="1"
-                            Background="{StaticResource AuthPanel2}"
+                            Background="{DynamicResource AuthPanel2}"
                             Padding="40">
                         <StackPanel VerticalAlignment="Center">
 
@@ -221,12 +252,12 @@
                                       VerticalAlignment="Center" />
                                 <TextBlock Text="SIGN IN"
                                            FontSize="15" FontWeight="ExtraBold" LetterSpacing="1"
-                                           Foreground="{StaticResource AuthText}" />
+                                           Foreground="{DynamicResource AuthText}" />
                             </StackPanel>
 
                             <TextBlock Text="AUTHORISED PERSONNEL ONLY"
                                        FontSize="10" LetterSpacing="1" Margin="0,2,0,24"
-                                       Foreground="{StaticResource AuthFaint}" />
+                                       Foreground="{DynamicResource AuthFaint}" />
 
                             <!-- Said before anything else, because there is
                                  nothing to sign in to without it. -->
@@ -237,11 +268,11 @@
                                 <StackPanel Spacing="3">
                                     <TextBlock Text="The data file could not be found"
                                                FontSize="11" FontWeight="SemiBold"
-                                               Foreground="{StaticResource AuthText}" />
+                                               Foreground="{DynamicResource AuthText}" />
                                     <SelectableTextBlock Text="{Binding DataFile}"
                                                          FontFamily="Consolas" FontSize="10"
                                                          TextWrapping="Wrap"
-                                                         Foreground="{StaticResource AuthMuted}" />
+                                                         Foreground="{DynamicResource AuthMuted}" />
                                 </StackPanel>
                             </Border>
 
@@ -271,7 +302,7 @@
                                     Padding="11,8" Margin="0,0,0,14">
                                 <TextBlock Text="{Binding Problem}" FontSize="11"
                                            TextWrapping="Wrap"
-                                           Foreground="{StaticResource AuthText}" />
+                                           Foreground="{DynamicResource AuthText}" />
                             </Border>
 
                             <Button Classes="auth" IsDefault="True"
@@ -292,7 +323,7 @@
                             <!-- The licence, on the same line the web puts it,
                                  with the accent bar down the left. -->
                             <Border IsVisible="{Binding HasLicence}"
-                                    BorderBrush="{StaticResource AuthHairline}"
+                                    BorderBrush="{DynamicResource AuthHairline}"
                                     BorderThickness="1"
                                     CornerRadius="4"
                                     ClipToBounds="True"
@@ -310,7 +341,7 @@
                                               VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding Licence}" FontSize="11.5"
                                                    VerticalAlignment="Center"
-                                                   Foreground="{StaticResource AuthMuted}" />
+                                                   Foreground="{DynamicResource AuthMuted}" />
                                         <TextBlock Text="Activate" FontSize="11.5"
                                                    VerticalAlignment="Center"
                                                    IsVisible="{Binding MayActivate}"
@@ -328,7 +359,7 @@
             <TextBlock Grid.Row="1" Text="{Binding VendorLine}"
                        FontSize="10" FontWeight="SemiBold" LetterSpacing="0.6"
                        TextAlignment="Center" Margin="0,14,0,12"
-                       Foreground="{StaticResource AuthMuted}" />
+                       Foreground="{DynamicResource AuthMuted}" />
         </Grid>
     </Panel>
 </Window>
