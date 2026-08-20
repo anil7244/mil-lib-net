@@ -1,5 +1,6 @@
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MilLib.Core.Data;
@@ -30,6 +31,21 @@ public partial class LoginViewModel : ViewModelBase
 
     [ObservableProperty] private string _dataFile = "";
     [ObservableProperty] private bool _dataFileMissing;
+
+    // ---------------------------------------------------- clock and theme --
+
+    /// <summary>
+    /// The time and the date, ticking across the top strip, the way the terminal
+    /// carries them once it is signed in. A guard machine is watched all day, and
+    /// the front door showing the wrong time reads as a machine nobody tends.
+    /// </summary>
+    [ObservableProperty] private string _clock = "";
+    [ObservableProperty] private string _clockDate = "";
+
+    /// <summary>Whether the front door is on the dark theme right now.</summary>
+    [ObservableProperty] private bool _isDark;
+
+    private readonly DispatcherTimer _tick = new() { Interval = TimeSpan.FromSeconds(1) };
 
     /// <summary>
     /// Fill the username in next time.
@@ -97,7 +113,57 @@ public partial class LoginViewModel : ViewModelBase
         Username = Remembered.Username;
         Remember = Username.Length > 0;
 
+        IsDark = Theming.Dark;
+
+        Tock();
+        _tick.Tick += (_, _) => Tock();
+        _tick.Start();
+
         _ = LoadBrandingAsync();
+    }
+
+    private void Tock()
+    {
+        var now = DateTime.Now;
+
+        Clock = now.ToString("HH:mm:ss");
+        ClockDate = now.ToString("dddd, dd MMMM yyyy").ToUpperInvariant();
+    }
+
+    /// <summary>Empty the fields, for whoever mistyped and wants a clean start.</summary>
+    [RelayCommand]
+    private void Reset()
+    {
+        Username = "";
+        Password = "";
+        Problem = "";
+    }
+
+    /// <summary>
+    /// Light and dark from the one icon on the strip, the same as inside. It
+    /// changes at once and is written down, so the choice made at the front door
+    /// is the one the application opens on next time.
+    /// </summary>
+    [RelayCommand]
+    private async Task ToggleThemeAsync()
+    {
+        IsDark = !IsDark;
+
+        Theming.UseVariant(IsDark);
+
+        try
+        {
+            await using var db = Workspace.Open();
+
+            await new Setup(db).SetAsync("branding.default_theme",
+                IsDark ? "dark" : "light", "branding", "Default theme");
+        }
+        catch (Exception ex)
+        {
+            // The theme has already changed on screen; failing to remember it is
+            // not worth stopping the person, only worth writing down.
+            Faults.Record("saving the theme choice", ex);
+        }
     }
 
     /// <summary>Raised once, when somebody is actually let in.</summary>
@@ -114,6 +180,7 @@ public partial class LoginViewModel : ViewModelBase
             // The unit's colour and its chosen theme, over the sign-in screen as
             // well — so a unit that runs light does not meet a dark front door.
             Theming.Apply(preferences);
+            IsDark = Theming.Dark;
 
             Organisation = preferences.OrganisationName.ToUpperInvariant();
             Motto = preferences.Motto.ToUpperInvariant();

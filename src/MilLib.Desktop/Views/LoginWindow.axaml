@@ -9,7 +9,7 @@
         x:DataType="vm:LoginViewModel"
         Icon="/Assets/library.ico"
         Title="Library Management System"
-        Width="1000" Height="620"
+        Width="1000" Height="650"
         CanResize="False"
         WindowStartupLocation="CenterScreen">
 
@@ -148,225 +148,299 @@
             <Setter Property="FontSize" Value="10" />
             <Setter Property="MinHeight" Value="0" />
         </Style>
+
+        <!-- A square icon button on the top strip: transparent until the pointer
+             is over it, when it takes a faint lift the way the strip inside the
+             application does. -->
+        <Style Selector="Button.barIcon">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="#2BFFFFFF" />
+            <Setter Property="Width" Value="34" />
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="Button.barIcon /template/ ContentPresenter">
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+
+        <Style Selector="Button.barIcon:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1FFFFFFF" />
+        </Style>
+
+        <!-- The two buttons on the bottom bar. LOGIN takes the unit's accent;
+             RESET is a plain grey beside it — present, but plainly the lesser of
+             the two, the way the reference draws them. -->
+        <Style Selector="Button.act">
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="LetterSpacing" Value="1" />
+            <Setter Property="MinHeight" Value="42" />
+            <Setter Property="Padding" Value="26,0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="Button.act /template/ ContentPresenter">
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
+
+        <Style Selector="Button.reset">
+            <Setter Property="Background" Value="#6B7280" />
+        </Style>
+
+        <Style Selector="Button.reset:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#565E6B" />
+        </Style>
     </Window.Styles>
 
     <Panel Background="{DynamicResource AuthBackdrop}">
 
-        <Grid RowDefinitions="*,Auto">
+        <Grid RowDefinitions="Auto,*,Auto">
 
-            <!-- ================================================= the card -->
-            <Border Grid.Row="0" Classes="entry" Opacity="0"
-                    Width="880" Margin="20,20,20,0"
-                    VerticalAlignment="Center" HorizontalAlignment="Center"
-                    BorderBrush="{DynamicResource AuthHairline}" BorderThickness="1">
+            <!-- ============================================= the top strip -->
+            <!-- The unit's bar, the same one the application carries once it is
+                 signed in: the clock and date at the left, who the machine is for
+                 at the right, and the light/dark switch. It reads as the same
+                 machine before and after the door. -->
+            <Border Grid.Row="0"
+                    Background="{DynamicResource BarBg}"
+                    BorderBrush="{Binding Accent}"
+                    BorderThickness="0,0,0,3"
+                    Padding="26,11">
+                <Grid ColumnDefinitions="*,Auto">
 
-                <Grid ColumnDefinitions="1*,1*">
+                    <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Clock}" FontSize="22" FontWeight="SemiBold"
+                                   FontFamily="Segoe UI, Inter, sans-serif"
+                                   Foreground="{DynamicResource BarInk}" />
+                        <TextBlock Text="{Binding ClockDate}" FontSize="10.5" LetterSpacing="1.4"
+                                   FontFamily="Segoe UI, Inter, sans-serif"
+                                   Foreground="{DynamicResource BarInkSoft}" />
+                    </StackPanel>
 
-                    <!-- ============================== the unit's side -->
-                    <Border Grid.Column="0"
-                            Background="{DynamicResource AuthPanel}"
-                            BorderBrush="{DynamicResource AuthHairline}"
-                            BorderThickness="0,0,1,0"
-                            Padding="40">
-                        <Panel>
-                            <!-- The hairline over the crest. Small, and the
-                                 first thing that says whose screen this is. -->
-                            <Rectangle Width="40" Height="1" Opacity="0.5"
-                                       Fill="{Binding Accent}"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Top" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="AUTHORISED PERSONNEL ONLY"
+                                   FontSize="11" FontWeight="Bold" LetterSpacing="1.6"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource BarInkSoft}" />
 
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-
-                                <Border Width="104" Height="104" CornerRadius="999"
-                                        HorizontalAlignment="Center"
-                                        Background="{Binding CrestGround}"
-                                        BorderBrush="{Binding CrestEdge}"
-                                        BorderThickness="2"
-                                        ClipToBounds="True"
-                                        Margin="0,0,0,16">
-                                    <!-- A unit's crest is a large, detailed scan
-                                         shown small. Downscaled with the default
-                                         sampler it comes out rough and blurred;
-                                         high-quality interpolation resamples it
-                                         properly so a 2 MB badge reads crisp at
-                                         90 pixels. -->
-                                    <Image Source="{Binding Crest}" Stretch="Uniform" Margin="7"
-                                           RenderOptions.BitmapInterpolationMode="HighQuality" />
-                                </Border>
-
-                                <!-- The product leads, so anybody at the
-                                     terminal sees the system first. -->
-                                <TextBlock Text="{Binding LibraryName}"
-                                           FontSize="22" FontWeight="ExtraBold"
-                                           LetterSpacing="2" LineHeight="27"
-                                           TextAlignment="Center" TextWrapping="Wrap"
-                                           Foreground="{DynamicResource AuthText}" />
-
-                                <TextBlock Text="{Binding Version}"
-                                           FontSize="9" FontWeight="Bold" LetterSpacing="2"
-                                           TextAlignment="Center" Margin="0,5,0,0"
-                                           Foreground="{Binding Accent}" />
-
-                                <Rectangle Width="40" Height="2" Margin="0,14"
-                                           HorizontalAlignment="Center"
-                                           Fill="{Binding Accent}" />
-
-                                <!-- The unit and its motto: the second
-                                     identity, under the product's. -->
-                                <StackPanel Orientation="Horizontal" Spacing="5"
-                                            HorizontalAlignment="Center"
-                                            IsVisible="{Binding HasOrganisation}">
-                                    <TextBlock Text="DEPLOYED FOR"
-                                               FontSize="10" FontWeight="SemiBold" LetterSpacing="2"
-                                               Foreground="{DynamicResource AuthMuted}" />
-                                    <TextBlock Text="{Binding Organisation}"
-                                               FontSize="10" FontWeight="ExtraBold" LetterSpacing="2.5"
-                                               Foreground="{DynamicResource AuthHeading2}" />
-                                </StackPanel>
-
-                                <TextBlock Text="{Binding Motto}"
-                                           IsVisible="{Binding HasMotto}"
-                                           FontSize="10" FontWeight="SemiBold" LetterSpacing="3"
-                                           TextAlignment="Center" TextWrapping="Wrap"
-                                           Margin="0,4,0,0"
-                                           Foreground="{DynamicResource AuthFaint}" />
-
-                                <!-- What the software does, so nobody has to
-                                     sign in to find out what it is. -->
-                                <TextBlock Margin="0,10,0,0"
-                                           FontSize="10" LineHeight="17" LetterSpacing="0.5"
-                                           TextAlignment="Center"
-                                           Foreground="{DynamicResource AuthFaint}">
-                                    Catalogue &amp; Accession • Members &amp; Passes<LineBreak />
-                                    Issue &amp; Return • Stock Verification<LineBreak />
-                                    QR Passes • Reports
-                                </TextBlock>
-                            </StackPanel>
-                        </Panel>
-                    </Border>
-
-                    <!-- ==================================== the form -->
-                    <Border Grid.Column="1"
-                            Background="{DynamicResource AuthPanel2}"
-                            Padding="40">
-                        <StackPanel VerticalAlignment="Center">
-
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Path Data="{StaticResource IconLicence}"
-                                      Fill="{Binding Accent}"
-                                      Stretch="Uniform" Width="15" Height="15"
-                                      VerticalAlignment="Center" />
-                                <TextBlock Text="SIGN IN"
-                                           FontSize="15" FontWeight="ExtraBold" LetterSpacing="1"
-                                           Foreground="{DynamicResource AuthText}" />
-                            </StackPanel>
-
-                            <TextBlock Text="AUTHORISED PERSONNEL ONLY"
-                                       FontSize="10" LetterSpacing="1" Margin="0,2,0,24"
-                                       Foreground="{DynamicResource AuthFaint}" />
-
-                            <!-- Said before anything else, because there is
-                                 nothing to sign in to without it. -->
-                            <Border IsVisible="{Binding DataFileMissing}"
-                                    Background="#24C0392B"
-                                    BorderBrush="{Binding Accent}" BorderThickness="1"
-                                    Padding="11,9" Margin="0,0,0,14">
-                                <StackPanel Spacing="3">
-                                    <TextBlock Text="The data file could not be found"
-                                               FontSize="11" FontWeight="SemiBold"
-                                               Foreground="{DynamicResource AuthText}" />
-                                    <SelectableTextBlock Text="{Binding DataFile}"
-                                                         FontFamily="Consolas" FontSize="10"
-                                                         TextWrapping="Wrap"
-                                                         Foreground="{DynamicResource AuthMuted}" />
-                                </StackPanel>
-                            </Border>
-
-                            <TextBlock Text="USERNAME" Classes="authLabel" Margin="0,0,0,4" />
-                            <TextBox Name="UsernameBox" Classes="auth"
-                                     Watermark="Enter your username"
-                                     Margin="0,0,0,16"
-                                     Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" />
-
-                            <TextBlock Text="PASSWORD" Classes="authLabel" Margin="0,0,0,4" />
-                            <TextBox Name="PasswordBox" Classes="auth"
-                                     Watermark="Enter password"
-                                     PasswordChar="•"
-                                     Margin="0,0,0,16"
-                                     Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" />
-
-                            <CheckBox Classes="auth" Content="Remember me"
-                                      IsChecked="{Binding Remember}"
-                                      Margin="0,0,0,16"
-                                      ToolTip.Tip="Fills in the username next time. Never the password — closing the application always signs you out." />
-
-                            <!-- In the flow rather than floated over the
-                                 fields, so nothing jumps when it appears. -->
-                            <Border IsVisible="{Binding HasProblem}"
-                                    Background="#24C0392B"
-                                    BorderBrush="{Binding Accent}" BorderThickness="1"
-                                    Padding="11,8" Margin="0,0,0,14">
-                                <TextBlock Text="{Binding Problem}" FontSize="11"
-                                           TextWrapping="Wrap"
-                                           Foreground="{DynamicResource AuthText}" />
-                            </Border>
-
-                            <Button Classes="auth" IsDefault="True"
-                                    Background="{Binding Accent}"
-                                    HorizontalAlignment="Stretch"
-                                    IsEnabled="{Binding !Busy}"
-                                    Command="{Binding EnterCommand}"
-                                    AutomationProperties.Name="Login">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <Path Data="{StaticResource IconSignIn}"
-                                          Stroke="#FFFFFF" StrokeThickness="1.8"
-                                          Stretch="Uniform" Width="14" Height="14"
-                                          VerticalAlignment="Center" />
-                                    <TextBlock Text="LOGIN" VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Button>
-
-                            <!-- The licence, on the same line the web puts it,
-                                 with the accent bar down the left. -->
-                            <Border IsVisible="{Binding HasLicence}"
-                                    BorderBrush="{DynamicResource AuthHairline}"
-                                    BorderThickness="1"
-                                    CornerRadius="4"
-                                    ClipToBounds="True"
-                                    Margin="0,14,0,0">
-                                <Grid ColumnDefinitions="3,*">
-                                    <Rectangle Grid.Column="0"
-                                               Fill="{Binding Accent}"
-                                               HorizontalAlignment="Stretch"
-                                               VerticalAlignment="Stretch" />
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="7"
-                                                Margin="11,8">
-                                        <Path Data="{StaticResource IconLicence}"
-                                              Fill="{Binding Accent}"
-                                              Stretch="Uniform" Width="12" Height="12"
-                                              VerticalAlignment="Center" />
-                                        <TextBlock Text="{Binding Licence}" FontSize="11.5"
-                                                   VerticalAlignment="Center"
-                                                   Foreground="{DynamicResource AuthMuted}" />
-                                        <TextBlock Text="Activate" FontSize="11.5"
-                                                   VerticalAlignment="Center"
-                                                   IsVisible="{Binding MayActivate}"
-                                                   TextDecorations="Underline"
-                                                   Foreground="{Binding Accent}" />
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-                        </StackPanel>
-                    </Border>
+                        <!-- Light / dark from the one icon, a moon while light and
+                             a sun while dark, the same as inside. -->
+                        <Button Classes="barIcon" Command="{Binding ToggleThemeCommand}"
+                                ToolTip.Tip="Switch between the light and dark theme"
+                                AutomationProperties.Name="Switch theme">
+                            <Panel Width="16" Height="16">
+                                <Path Data="{StaticResource IconMoon}" Stroke="{DynamicResource BarInk}"
+                                      StrokeThickness="1.7" Width="16" Height="16" Stretch="Uniform"
+                                      IsVisible="{Binding !IsDark}" />
+                                <Path Data="{StaticResource IconSun}" Stroke="{DynamicResource BarInk}"
+                                      StrokeThickness="1.7" Width="16" Height="16" Stretch="Uniform"
+                                      IsVisible="{Binding IsDark}" />
+                            </Panel>
+                        </Button>
+                    </StackPanel>
                 </Grid>
             </Border>
 
-            <!-- The vendor credit, and nothing else. -->
-            <TextBlock Grid.Row="1" Text="{Binding VendorLine}"
-                       FontSize="10" FontWeight="SemiBold" LetterSpacing="0.6"
-                       TextAlignment="Center" Margin="0,14,0,12"
-                       Foreground="{DynamicResource AuthMuted}" />
+            <!-- ================================================== the body -->
+            <Grid Grid.Row="1" ColumnDefinitions="1.05*,1*">
+
+                <!-- ============================== the unit's side -->
+                <Border Grid.Column="0"
+                        Background="{DynamicResource AuthPanel}"
+                        BorderBrush="{DynamicResource AuthHairline}"
+                        BorderThickness="0,0,1,0"
+                        Padding="48,30">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+
+                        <Border Width="104" Height="104" CornerRadius="999"
+                                HorizontalAlignment="Center"
+                                Background="{Binding CrestGround}"
+                                BorderBrush="{Binding CrestEdge}"
+                                BorderThickness="2"
+                                ClipToBounds="True"
+                                Margin="0,0,0,18">
+                            <!-- A unit's crest is a large, detailed scan shown
+                                 small. Downscaled with the default sampler it comes
+                                 out rough; high-quality interpolation resamples it
+                                 so a 2 MB badge reads crisp at 90 pixels. -->
+                            <Image Source="{Binding Crest}" Stretch="Uniform" Margin="7"
+                                   RenderOptions.BitmapInterpolationMode="HighQuality" />
+                        </Border>
+
+                        <!-- The product leads, so anybody at the terminal sees
+                             the system first. -->
+                        <TextBlock Text="{Binding LibraryName}"
+                                   FontSize="24" FontWeight="ExtraBold"
+                                   LetterSpacing="2" LineHeight="29"
+                                   TextAlignment="Center" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource AuthText}" />
+
+                        <TextBlock Text="{Binding Version}"
+                                   FontSize="9" FontWeight="Bold" LetterSpacing="2"
+                                   TextAlignment="Center" Margin="0,6,0,0"
+                                   Foreground="{Binding Accent}" />
+
+                        <Rectangle Width="44" Height="2" Margin="0,16"
+                                   HorizontalAlignment="Center"
+                                   Fill="{Binding Accent}" />
+
+                        <!-- The unit and its motto: the second identity, under
+                             the product's. -->
+                        <StackPanel Orientation="Horizontal" Spacing="5"
+                                    HorizontalAlignment="Center"
+                                    IsVisible="{Binding HasOrganisation}">
+                            <TextBlock Text="DEPLOYED FOR"
+                                       FontSize="10" FontWeight="SemiBold" LetterSpacing="2"
+                                       Foreground="{DynamicResource AuthMuted}" />
+                            <TextBlock Text="{Binding Organisation}"
+                                       FontSize="10" FontWeight="ExtraBold" LetterSpacing="2.5"
+                                       Foreground="{DynamicResource AuthHeading2}" />
+                        </StackPanel>
+
+                        <TextBlock Text="{Binding Motto}"
+                                   IsVisible="{Binding HasMotto}"
+                                   FontSize="10" FontWeight="SemiBold" LetterSpacing="3"
+                                   TextAlignment="Center" TextWrapping="Wrap"
+                                   Margin="0,4,0,0"
+                                   Foreground="{DynamicResource AuthFaint}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- ==================================== the form -->
+                <Border Grid.Column="1"
+                        Background="{DynamicResource AuthPanel2}"
+                        Padding="48,30">
+                    <StackPanel VerticalAlignment="Center" MaxWidth="400">
+
+                        <TextBlock Text="AUTHENTICATION REQUIRED"
+                                   FontSize="17" FontWeight="ExtraBold" LetterSpacing="0.4"
+                                   Foreground="{DynamicResource AuthText}" />
+                        <Rectangle Height="3" Width="150" Margin="0,9,0,26"
+                                   HorizontalAlignment="Left"
+                                   Fill="{Binding Accent}" />
+
+                        <!-- Said before anything else, because there is nothing to
+                             sign in to without it. -->
+                        <Border IsVisible="{Binding DataFileMissing}"
+                                Background="#24C0392B"
+                                BorderBrush="{Binding Accent}" BorderThickness="1"
+                                Padding="11,9" Margin="0,0,0,14">
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="The data file could not be found"
+                                           FontSize="11" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource AuthText}" />
+                                <SelectableTextBlock Text="{Binding DataFile}"
+                                                     FontFamily="Consolas" FontSize="10"
+                                                     TextWrapping="Wrap"
+                                                     Foreground="{DynamicResource AuthMuted}" />
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="SERVICE NUMBER / ID" Classes="authLabel" Margin="0,0,0,5" />
+                        <TextBox Name="UsernameBox" Classes="auth"
+                                 Watermark="Enter your username"
+                                 Margin="0,0,0,18"
+                                 Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Text="PASSWORD" Classes="authLabel" Margin="0,0,0,5" />
+                        <TextBox Name="PasswordBox" Classes="auth"
+                                 Watermark="Enter password"
+                                 PasswordChar="•"
+                                 Margin="0,0,0,18"
+                                 Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <CheckBox Classes="auth" Content="SECURELY REMEMBER MY USERNAME"
+                                  IsChecked="{Binding Remember}"
+                                  ToolTip.Tip="Fills in the username next time. Never the password — closing the application always signs you out." />
+
+                        <!-- In the flow rather than floated over the fields, so
+                             nothing jumps when it appears. -->
+                        <Border IsVisible="{Binding HasProblem}"
+                                Background="#24C0392B"
+                                BorderBrush="{Binding Accent}" BorderThickness="1"
+                                Padding="11,8" Margin="0,16,0,0">
+                            <TextBlock Text="{Binding Problem}" FontSize="11"
+                                       TextWrapping="Wrap"
+                                       Foreground="{DynamicResource AuthText}" />
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ============================================ the action bar -->
+            <!-- Along the foot, the reference's kiosk footer: what the machine is
+                 on the left — that it is sealed off from any network, and how its
+                 licence stands — and the two things to do about the form on the
+                 right. -->
+            <Border Grid.Row="2"
+                    Background="{DynamicResource AuthPanel}"
+                    BorderBrush="{DynamicResource AuthHairline}"
+                    BorderThickness="0,1,0,0"
+                    Padding="26,13">
+                <Grid ColumnDefinitions="*,Auto">
+
+                    <StackPanel Grid.Column="0" Spacing="3" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="9">
+                            <Path Data="{StaticResource IconLicence}"
+                                  Fill="{Binding Accent}"
+                                  Stretch="Uniform" Width="13" Height="13"
+                                  VerticalAlignment="Center" />
+                            <TextBlock Text="FULLY OFFLINE · 0% INTERNET DEPENDENCIES"
+                                       FontSize="11" FontWeight="Bold" LetterSpacing="0.8"
+                                       VerticalAlignment="Center"
+                                       Foreground="{Binding Accent}" />
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="7" Margin="22,0,0,0"
+                                    IsVisible="{Binding HasLicence}">
+                            <TextBlock Text="{Binding Licence}" FontSize="11"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource AuthMuted}" />
+                            <TextBlock Text="·" FontSize="11" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource AuthFaint}" />
+                            <TextBlock Text="{Binding VendorLine}" FontSize="11"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource AuthFaint}" />
+                            <TextBlock Text="Activate" FontSize="11"
+                                       VerticalAlignment="Center"
+                                       IsVisible="{Binding MayActivate}"
+                                       TextDecorations="Underline"
+                                       Foreground="{Binding Accent}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="11"
+                                VerticalAlignment="Center">
+                        <Button Classes="act reset"
+                                Command="{Binding ResetCommand}"
+                                AutomationProperties.Name="Reset">
+                            <TextBlock Text="RESET" VerticalAlignment="Center" />
+                        </Button>
+
+                        <Button Classes="act" IsDefault="True"
+                                Background="{Binding Accent}"
+                                IsEnabled="{Binding !Busy}"
+                                Command="{Binding EnterCommand}"
+                                AutomationProperties.Name="Login">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="LOGIN" VerticalAlignment="Center" />
+                                <Path Data="{StaticResource IconSignIn}"
+                                      Stroke="#FFFFFF" StrokeThickness="1.8"
+                                      Stretch="Uniform" Width="14" Height="14"
+                                      VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
         </Grid>
     </Panel>
 </Window>
