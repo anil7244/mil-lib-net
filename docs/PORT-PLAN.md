@@ -544,6 +544,78 @@ related things and settling the wording and column order page by page.
 
   `MilLib.ViewShot` renders all three against the real data.
 
+- **Dashboard (Home) — done.** Brought level with the web operations console. A
+  role · clearance · date line under the greeting; the figures are built from
+  the view model and gated by ability and feature, so a counter clerk without
+  reservations or fines sees a shorter row rather than empty cards — with Due
+  back today, Holds ready and Unpaid fines added to the six it had. Every figure
+  is a card that is also a way in: clicking it walks to the screen it is about.
+  The trend charts remain out; the desktop has no charting stack.
+
+- **Fines — done.** Already had the status filter, member search, per-row
+  pay/waive with a re-check at settle, the settled outcome, and the library's
+  outstanding balance. Added the web table's Days column: an overdue charge shows
+  "N days late" under its amount.
+
+- **Reservations — done.** Already beyond the web app (it can place a hold right
+  here, which the web app only does from a title page), with expiry and urgency
+  on ready holds and queue position on waiting ones. Added the web ready-list's
+  Copy column: a ready hold shows the accession of the copy set aside, so it can
+  be found on the hold shelf.
+
+- **Accession Register — done.** The full fourteen-column statutory ledger was
+  already in print (landscape, letterhead, page footers) — beyond the web
+  register. Added the ledger-book column to the on-screen summary, which the
+  imported register uses on every row.
+
+- **Subjects — done, by already being done.** A subject tree with cycle-safe
+  reparenting, per-heading filing counts, and the books filed under each, against
+  the web app's flat name/parent table. No change needed.
+
+- **Labels & Barcodes — done, by already being done.** A standalone label
+  station: search plus range selection for a fresh intake, pocket/spine, a
+  Barcode / QR / Both choice, and two outputs — a PDF sheet for any printer and
+  ZPL for a Zebra. The web app prints only from a title page. No change needed.
+
+- **Stock Check — done, by already being done.** The whole verification workflow
+  — start, scan the shelves with running found / expected / not-in-register /
+  scanned-twice counts, close with a board reference, abandon, reconcile, print
+  the shortage — in one master-detail screen rather than the web app's separate
+  pages. No change needed.
+
+- **Withdrawals — done.** The condemnation register was mostly complete (board
+  batches, reasons, sanction fields, loss amounts, taking copies a stock check
+  reported missing, certificate and register printing). SUPERSEDED was a dead
+  option, though: the core requires the title that replaces a superseded book and
+  the screen gave no way to name it, so it always failed. Added a "Replaced by"
+  field for that reason alone, which the core records as the succession.
+
+- **OPAC / Kiosk — done, by already being done.** The web app's per-member
+  self-service login is reimagined as a locked-down reading-room terminal:
+  anonymous catalogue search at unclassified, scan-your-pass to see your own
+  loans, holds and fines (the pass is the identification, so no per-member
+  password), a clearance line, place-a-hold, a short idle timeout that forgets
+  whoever scanned in, and a staff-password exit. A better fit for a shared
+  air-gapped terminal than a web login.
+
+### Fixes found while going through the screens
+
+- **Covers and member photos did not show** because the conversion to a single
+  data folder never brought the picture files across — and the one book with a
+  cover pointed at a file that lives in the web app's `public/storage`, a
+  separate folder from `storage/app/public`. The resolver was right; the files
+  were missing. They are now copied into `app/data`, `publish.ps1` stages them
+  from `public/storage` on every build, and `Workspace.PhotoPath` resolves a
+  member photo the way a cover is resolved.
+- **The pass went straight to a PDF in an external viewer.** It is now shown in
+  the application first — `PassDocument` gained a single-card mode and
+  `PassPreview` renders that card to an image (the print document itself, so
+  screen and paper cannot drift) with Print / Save / Close.
+- **The licensing salt was in committed source.** It now lives in a git-ignored
+  `LicenceSecret.cs`, with a committed stand-in (`LicenceSecret.Default.cs`) so a
+  public clone compiles and runs without minting real keys. See the licence-salt
+  note below.
+
 That leaves no screen outstanding. What remains is not code:
 
 - **Hold the calibration label against a ruler.** One label off the roll settles
@@ -555,6 +627,11 @@ That leaves no screen outstanding. What remains is not code:
 
 ## Notes for whoever picks this up
 
+- **The repository is public** at `github.com/anil7244/mil-lib-net`, with the
+  licence salt and every unit's records kept out of it (see `.gitignore` and the
+  licence-salt note). A private `mil-lib-net-history` holds the earlier history
+  from before the salt was externalised, and can be deleted once nothing needs
+  it. A unit's real data never goes to the repository.
 - **The two applications must agree.** The ability matrix, the bcrypt cost, the
   loan rules and the accession numbering are all duplicated here on purpose. Any
   change to one side is a change to both, and `MilLib.DataProof` is where that
@@ -564,16 +641,27 @@ That leaves no screen outstanding. What remains is not code:
 - **The licence salt.** The web application keeps `LICENSE_SECRET_SALT` in
   `.env`. A single-file executable has nowhere comparable to put it — whatever
   it is compiled with can be read out of the binary by anybody who cares to.
-  That is not worse than a readable `.env`, but it should be a deliberate
-  decision when the Licence screen is built, not a surprise.
+  That is not worse than a readable `.env`; it stops casual copying, not a
+  determined person with a disassembler. What it must not do is sit in source a
+  public repository can carry, so the real value lives in a **git-ignored
+  `src/MilLib.Desktop/Services/LicenceSecret.cs`**, compiled in when present. A
+  committed stand-in (`LicenceSecret.Default.cs`) is left out of the build when
+  the real file exists (see the `.csproj`), so a public clone compiles and runs
+  but mints worthless keys — only the vendor's own build is licensable. The
+  proof tool takes the salt from `MILLIB_LICENCE_SALT` and skips its
+  cross-compatibility checks when it is not set. To build a licensable copy,
+  create `LicenceSecret.cs` with the real salt.
 - **This library's catalogue has no authority records at all.** The import came
   from a stock ledger, so `authors`, `publishers`, `categories` and both pivot
   tables are empty — 1,397 titles with no author against any of them. The
   cataloguing form is how they get filled in, one book at a time, and the
   Subjects screen is what will make the subject list worth ticking.
-- **Pictures live beside the data file** — `crest.png`, and covers under the
-  path the database records. When this is pointed at a PHP installation's
-  database, it will find that installation's pictures too.
+- **Pictures live beside the data file** — `crest.png`, and covers and member
+  photos under the path the database records. The web application serves these
+  from `public/storage` (a folder distinct from `storage/app/public` on this
+  install), which is where the database paths resolve, so that is where
+  `publish.ps1` and the master `app/data` folder take them from. A build that
+  omits them shows a blank for every face and cover.
 
 ## Three things that were got wrong once
 
