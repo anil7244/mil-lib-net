@@ -85,6 +85,20 @@ internal static class Program
                 ShootWindow(Path.Combine(outDir, "book-show.png"), window);
             }
 
+            // Subjects: the imported library has none, so a small tree is put
+            // on the throwaway copy to show the screen doing its job.
+            SeedSubjects();
+
+            var subjects = new SubjectsViewModel();
+
+            SettleWhile(() => subjects.Busy);
+
+            subjects.Selected = subjects.Headings.FirstOrDefault(h => h.Depth == 0);
+
+            SettleWhile(() => !subjects.Editing);
+
+            Shoot(Path.Combine(outDir, "subjects.png"), new SubjectsView { DataContext = subjects });
+
             var reg = new RegisterViewModel();
 
             SettleWhile(() => reg.Busy);
@@ -305,6 +319,41 @@ internal static class Program
             .FirstOrDefault();
 
         return unit ?? classified ?? any;
+    }
+
+    /// <summary>A small subject tree with a few titles filed, for the shot.</summary>
+    private static void SeedSubjects()
+    {
+        using var db = Workspace.Open();
+
+        db.TitleCategories.RemoveRange(db.TitleCategories);
+        db.Categories.RemoveRange(db.Categories);
+        db.SaveChanges();
+
+        Category Add(string name, long? parent, int order)
+        {
+            var c = new Category { Name = name, ParentId = parent, SortOrder = order };
+            db.Categories.Add(c);
+            db.SaveChanges();
+            return c;
+        }
+
+        var history = Add("Military History", null, 0);
+        Add("Regimental Histories", history.CategoryId, 0);
+        var campaigns = Add("Campaigns & Operations", history.CategoryId, 1);
+        Add("Mountain Warfare", campaigns.CategoryId, 0);
+        Add("Leadership & Training", null, 1);
+        Add("Reference & General", null, 2);
+
+        // File a handful of real titles under the top heading.
+        var titleIds = db.Titles.OrderBy(t => t.TitleId).Select(t => t.TitleId).Take(4).ToList();
+
+        foreach (var id in titleIds)
+        {
+            db.TitleCategories.Add(new TitleCategory { TitleId = id, CategoryId = history.CategoryId });
+        }
+
+        db.SaveChanges();
     }
 
     /// <summary>The first page of the printed accession register, as an image.</summary>
