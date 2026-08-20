@@ -210,21 +210,28 @@
                                 VerticalAlignment="Center">
 
                         <!-- The clock and the date, as one tidy block against the
-                             right edge. The time is not given a cramped line
-                             height — pinned too short it clipped the tops of the
-                             digits — and the date is letter-spaced so it spans
-                             the same width as the time, so the two read as a pair
-                             rather than a big line with a stray one under it. -->
-                        <StackPanel Spacing="1" VerticalAlignment="Center" Margin="0,0,4,0"
-                                    HorizontalAlignment="Right">
+                             right edge.
+
+                             The block has a fixed width and both lines are
+                             stretched to it and right-aligned, so the two right
+                             edges line up by construction — whatever the day's
+                             date happens to be, and whatever the display scale.
+                             (Letter-spacing alone would not: the two lines sized
+                             themselves independently and the date fell short of
+                             the time's edge.) The time is given room to draw in
+                             full rather than a cramped line height that clipped
+                             the tops of the digits, and each line is spaced to
+                             fill the width so they read as a matched pair. -->
+                        <StackPanel Spacing="1" Width="168" VerticalAlignment="Center"
+                                    Margin="0,0,4,0">
                             <TextBlock Text="{Binding Clock}" FontSize="25" FontWeight="SemiBold"
                                        FontFamily="Segoe UI, Inter, sans-serif"
-                                       LetterSpacing="2.2"
-                                       HorizontalAlignment="Right" TextAlignment="Right"
+                                       LetterSpacing="3.4"
+                                       HorizontalAlignment="Stretch" TextAlignment="Right"
                                        Foreground="{DynamicResource BarInk}" />
-                            <TextBlock Text="{Binding ClockDate}" FontSize="12.5" LetterSpacing="3.5"
+                            <TextBlock Text="{Binding ClockDate}" FontSize="12.5" LetterSpacing="4"
                                        FontFamily="Segoe UI, Inter, sans-serif"
-                                       HorizontalAlignment="Right" TextAlignment="Right"
+                                       HorizontalAlignment="Stretch" TextAlignment="Right"
                                        Foreground="{DynamicResource BarInkSoft}" />
                         </StackPanel>
 
