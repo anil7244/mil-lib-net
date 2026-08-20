@@ -4,16 +4,16 @@
              xmlns:conv="using:MilLib.Desktop"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="1180" d:DesignHeight="760"
+             mc:Ignorable="d" d:DesignWidth="1180" d:DesignHeight="720"
              x:Class="MilLib.Desktop.Views.LicenceView"
              x:DataType="vm:LicenceViewModel">
 
     <UserControl.Styles>
-        <!-- The term bar: a loading bar, rounded, the fill a gradient of the
-             unit's accent (or red when the term is running out), on a sunken
-             track. It reads at a glance as "this much time is left". -->
+        <!-- The term bar: a loading bar, rounded, the fill green while there is
+             room and red once the term is running out, on a sunken track. It
+             fills from empty as the page opens. -->
         <Style Selector="ProgressBar.term">
-            <Setter Property="Height" Value="16" />
+            <Setter Property="Height" Value="15" />
             <Setter Property="Minimum" Value="0" />
             <Setter Property="Maximum" Value="1" />
             <Setter Property="CornerRadius" Value="8" />
@@ -23,8 +23,6 @@
             <Setter Property="CornerRadius" Value="8" />
         </Style>
 
-        <!-- A small state badge — TRIAL, LICENSED, EXPIRED — that reads as a
-             status chip rather than a word. -->
         <Style Selector="Border.badge">
             <Setter Property="CornerRadius" Value="6" />
             <Setter Property="Padding" Value="11,5" />
@@ -37,184 +35,180 @@
         </Style>
     </UserControl.Styles>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="16" MaxWidth="1180" HorizontalAlignment="Stretch">
+    <Grid RowDefinitions="Auto,12,*">
 
-            <!-- ============================================ where this stands -->
-            <!-- Laid out like an activation page: the maker's emblem, the
-                 product it protects, and the one line that says whether it is
-                 licensed — then the term drawn as a bar that fills as the page
-                 opens. The emblem is compiled into the program, not read off the
-                 disk, so a unit cannot put its own badge over the maker's. -->
-            <Border Classes="card" Padding="30,26"
-                    Background="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGoodSoft}}"
-                    BorderBrush="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}">
-                <StackPanel Spacing="20">
+        <!-- ================================================ where this stands -->
+        <!-- Laid out like an activation page: the maker's emblem, the product it
+             protects, and the one line that says whether it is licensed — then
+             the term drawn as a bar that fills as the page opens. The emblem is
+             compiled into the program, not read off the disk, so a unit cannot
+             put its own badge over the maker's. -->
+        <Border Grid.Row="0" Classes="card" Padding="26,20"
+                Background="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGoodSoft}}"
+                BorderBrush="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}">
+            <StackPanel Spacing="16">
 
-                    <Grid ColumnDefinitions="Auto,18,*,Auto">
-                        <Image Grid.Column="0" Width="66" Height="66" Stretch="Uniform"
-                               VerticalAlignment="Center"
-                               Source="/Assets/tactical-code-logo.png"
-                               RenderOptions.BitmapInterpolationMode="HighQuality" />
+                <Grid ColumnDefinitions="Auto,16,*,Auto">
+                    <Image Grid.Column="0" Width="58" Height="58" Stretch="Uniform"
+                           VerticalAlignment="Center"
+                           Source="/Assets/tactical-code-logo.png"
+                           RenderOptions.BitmapInterpolationMode="HighQuality" />
 
-                        <StackPanel Grid.Column="2" Spacing="4" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Product}" Classes="label" />
-                            <TextBlock Text="{Binding Headline}" FontSize="24" FontWeight="Bold"
-                                       TextWrapping="Wrap"
-                                       Foreground="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}" />
-                        </StackPanel>
+                    <StackPanel Grid.Column="2" Spacing="3" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Product}" Classes="label" />
+                        <TextBlock Text="{Binding Headline}" FontSize="22" FontWeight="Bold"
+                                   TextWrapping="Wrap"
+                                   Foreground="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}" />
+                    </StackPanel>
 
-                        <Border Grid.Column="3" Classes="badge" VerticalAlignment="Top"
-                                Background="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}">
-                            <TextBlock Text="{Binding StateBadge}" Foreground="#FFFFFF" />
-                        </Border>
+                    <Border Grid.Column="3" Classes="badge" VerticalAlignment="Top"
+                            Background="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}">
+                        <TextBlock Text="{Binding StateBadge}" Foreground="#FFFFFF" />
+                    </Border>
+                </Grid>
+
+                <TextBlock Text="{Binding What}" TextWrapping="Wrap" FontSize="12.5" LineHeight="18"
+                           IsVisible="{Binding What, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                <!-- the term, drawn, filling as the page opens -->
+                <StackPanel Spacing="7" IsVisible="{Binding ShowTerm}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding TermLabel}" Classes="label" />
+                        <TextBlock Grid.Column="1" Text="{Binding TermValue}"
+                                   FontWeight="SemiBold" FontSize="12.5"
+                                   Foreground="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}" />
                     </Grid>
 
-                    <TextBlock Text="{Binding What}" TextWrapping="Wrap" FontSize="13" LineHeight="20"
-                               IsVisible="{Binding What, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <ProgressBar Classes="term" Value="{Binding TermFraction}"
+                                 Foreground="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}">
+                        <ProgressBar.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Value" Duration="0:0:1.1" Easing="CubicEaseOut" />
+                            </Transitions>
+                        </ProgressBar.Transitions>
+                    </ProgressBar>
 
-                    <!-- the term, drawn, filling as the page opens -->
-                    <StackPanel Spacing="9" IsVisible="{Binding ShowTerm}">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Grid.Column="0" Text="{Binding TermLabel}" Classes="label" />
-                            <TextBlock Grid.Column="1" Text="{Binding TermValue}"
-                                       FontWeight="SemiBold" FontSize="12.5"
-                                       Foreground="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}" />
-                        </Grid>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding TermStart}" Classes="faint" FontSize="11" />
+                        <TextBlock Grid.Column="1" Text="{Binding TermEnd}" Classes="faint" FontSize="11" />
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+        </Border>
 
-                        <ProgressBar Classes="term" Value="{Binding TermFraction}"
-                                     Foreground="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}">
-                            <ProgressBar.Transitions>
-                                <Transitions>
-                                    <DoubleTransition Property="Value" Duration="0:0:1.1"
-                                                      Easing="CubicEaseOut" />
-                                </Transitions>
-                            </ProgressBar.Transitions>
-                        </ProgressBar>
+        <!-- ============================ two even columns: activate, and ask -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,16,*">
 
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Grid.Column="0" Text="{Binding TermStart}" Classes="faint" FontSize="11" />
-                            <TextBlock Grid.Column="1" Text="{Binding TermEnd}" Classes="faint" FontSize="11" />
-                        </Grid>
+            <!-- activate this machine -->
+            <Border Grid.Column="0" Classes="card" Padding="22,18" VerticalAlignment="Stretch">
+                <StackPanel Spacing="13">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="Activate this machine" Classes="h2" />
+                        <TextBlock Classes="sub" TextWrapping="Wrap"
+                                   Text="A key is issued against this machine and works on no other." />
+                    </StackPanel>
+
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="THIS MACHINE" Classes="label" />
+                        <SelectableTextBlock Text="{Binding HardwareId}" Classes="mono" FontSize="19"
+                                             LetterSpacing="0.5" />
+                    </StackPanel>
+
+                    <Border Classes="card cool" Padding="15,12">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="WHAT TO SEND" Classes="label" />
+                            <!-- Line spacing on purpose: four short lines packed
+                                 tight read as one smear, and this block is meant
+                                 to be checked line by line before it is sent. -->
+                            <SelectableTextBlock Text="{Binding ToSend}" Classes="mono"
+                                                 FontSize="11.5" LineHeight="19" TextWrapping="Wrap" />
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Button Content="Copy this" MinHeight="34"
+                                        Command="{Binding CopyDetailsCommand}" />
+                                <TextBlock Text="Copied." Classes="faint" VerticalAlignment="Center"
+                                           IsVisible="{Binding Copied}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Spacing="7" IsVisible="{Binding MayActivate}">
+                        <TextBlock Text="THE LICENCE KEY" Classes="label" />
+                        <TextBox Text="{Binding Key, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX-NNNNNN"
+                                 Classes="mono" FontSize="15" MinHeight="44" Padding="14,9">
+                            <TextBox.KeyBindings>
+                                <KeyBinding Gesture="Enter" Command="{Binding ActivateCommand}" />
+                            </TextBox.KeyBindings>
+                        </TextBox>
+
+                        <Border Classes="card" Padding="14,11"
+                                IsVisible="{Binding HasSaid}"
+                                Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                            <TextBlock Text="{Binding Said}" TextWrapping="Wrap"
+                                       Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+                        </Border>
+
+                        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                            <Button Classes="primary" Content="Activate" MinHeight="42"
+                                    MinWidth="150"
+                                    IsEnabled="{Binding !Busy}"
+                                    Command="{Binding ActivateCommand}" />
+                            <TextBlock VerticalAlignment="Center" Classes="faint" FontSize="11"
+                                       TextWrapping="Wrap" MaxWidth="230"
+                                       Text="Dashes and capitals do not matter — there is no O or I, only zero and one." />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4" IsVisible="{Binding Licensed}">
+                        <TextBlock Text="THE KEY ON THIS MACHINE" Classes="label" />
+                        <SelectableTextBlock Text="{Binding CurrentKey}" Classes="mono" FontSize="12" />
                     </StackPanel>
                 </StackPanel>
             </Border>
 
-            <!-- ============================ two even columns: activate, and ask -->
-            <Grid ColumnDefinitions="*,16,*">
+            <!-- who to ask -->
+            <Border Grid.Column="2" Classes="card" Padding="22,18" VerticalAlignment="Stretch">
+                <StackPanel Spacing="13">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="Who to ask" Classes="h2" />
+                        <TextBlock Text="{Binding Product}" Classes="faint" FontSize="11.5" />
+                    </StackPanel>
 
-                <!-- activate this machine -->
-                <Border Grid.Column="0" Classes="card" Padding="26,22" VerticalAlignment="Stretch">
-                    <StackPanel Spacing="18">
-                        <StackPanel Spacing="3">
-                            <TextBlock Text="Activate this machine" Classes="h2" />
-                            <TextBlock Classes="sub" TextWrapping="Wrap"
-                                       Text="A key is issued against this machine and works on no other. Send the hardware ID; type the key that comes back." />
+                    <StackPanel Spacing="11">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="COMPANY" Classes="label" />
+                            <TextBlock Text="{Binding Company}" FontWeight="Medium" />
                         </StackPanel>
-
-                        <StackPanel Spacing="7">
-                            <TextBlock Text="THIS MACHINE" Classes="label" />
-                            <SelectableTextBlock Text="{Binding HardwareId}" Classes="mono" FontSize="20"
-                                                 LetterSpacing="0.5" />
-                            <TextBlock Text="{Binding MachineSource}" Classes="faint" FontSize="11"
-                                       LineHeight="16" TextWrapping="Wrap" Margin="0,2,0,0" />
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="TELEPHONE" Classes="label" />
+                            <SelectableTextBlock Text="{Binding Phone}" Classes="mono" FontSize="12.5" />
                         </StackPanel>
-
-                        <Border Classes="card cool" Padding="18,15">
-                            <StackPanel Spacing="12">
-                                <TextBlock Text="WHAT TO SEND" Classes="label" />
-                                <!-- Line spacing on purpose: four short lines packed
-                                     tight read as one smear, and this block is meant
-                                     to be checked line by line before it is sent. -->
-                                <SelectableTextBlock Text="{Binding ToSend}" Classes="mono"
-                                                     FontSize="12" LineHeight="21" TextWrapping="Wrap" />
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <Button Content="Copy this" MinHeight="36"
-                                            Command="{Binding CopyDetailsCommand}" />
-                                    <TextBlock Text="Copied." Classes="faint" VerticalAlignment="Center"
-                                               IsVisible="{Binding Copied}" />
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
-
-                        <Rectangle Height="1" Fill="{DynamicResource Line}" />
-
-                        <StackPanel Spacing="8" IsVisible="{Binding MayActivate}">
-                            <TextBlock Text="THE LICENCE KEY" Classes="label" />
-                            <TextBox Text="{Binding Key, UpdateSourceTrigger=PropertyChanged}"
-                                     PlaceholderText="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX-NNNNNN"
-                                     Classes="mono" FontSize="16" MinHeight="46" Padding="14,9">
-                                <TextBox.KeyBindings>
-                                    <KeyBinding Gesture="Enter" Command="{Binding ActivateCommand}" />
-                                </TextBox.KeyBindings>
-                            </TextBox>
-                            <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
-                                       Text="Dashes and capitals do not matter. There is no letter O or I in a key — those are a zero and a one." />
-
-                            <Border Classes="card" Padding="16,12"
-                                    IsVisible="{Binding HasSaid}"
-                                    Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
-                                <TextBlock Text="{Binding Said}" TextWrapping="Wrap"
-                                           Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
-                            </Border>
-
-                            <Button Classes="primary" Content="Activate" MinHeight="44"
-                                    MinWidth="160" HorizontalAlignment="Left"
-                                    IsEnabled="{Binding !Busy}"
-                                    Command="{Binding ActivateCommand}" />
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="EMAIL" Classes="label" />
+                            <SelectableTextBlock Text="{Binding Email}" FontSize="12.5" />
                         </StackPanel>
-
-                        <StackPanel Spacing="6" IsVisible="{Binding Licensed}">
-                            <TextBlock Text="THE KEY ON THIS MACHINE" Classes="label" />
-                            <SelectableTextBlock Text="{Binding CurrentKey}" Classes="mono" FontSize="12.5" />
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="WHERE" Classes="label" />
+                            <TextBlock Text="{Binding Address}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="ONLINE" Classes="label" />
+                            <SelectableTextBlock Text="{Binding Website}" FontSize="12.5" />
                         </StackPanel>
                     </StackPanel>
-                </Border>
 
-                <!-- who to ask -->
-                <Border Grid.Column="2" Classes="card" Padding="26,22" VerticalAlignment="Stretch">
-                    <StackPanel Spacing="16">
-                        <StackPanel Spacing="3">
-                            <TextBlock Text="Who to ask" Classes="h2" />
-                            <TextBlock Text="{Binding Product}" Classes="faint" FontSize="11.5" />
-                        </StackPanel>
+                    <Rectangle Height="1" Fill="{DynamicResource Line}" />
 
-                        <StackPanel Spacing="13">
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="COMPANY" Classes="label" />
-                                <TextBlock Text="{Binding Company}" FontWeight="Medium" />
-                            </StackPanel>
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="TELEPHONE" Classes="label" />
-                                <SelectableTextBlock Text="{Binding Phone}" Classes="mono" FontSize="12.5" />
-                            </StackPanel>
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="EMAIL" Classes="label" />
-                                <SelectableTextBlock Text="{Binding Email}" FontSize="12.5" />
-                            </StackPanel>
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="WHERE" Classes="label" />
-                                <TextBlock Text="{Binding Address}" TextWrapping="Wrap" />
-                            </StackPanel>
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="ONLINE" Classes="label" />
-                                <SelectableTextBlock Text="{Binding Website}" FontSize="12.5" />
-                            </StackPanel>
-                        </StackPanel>
+                    <Border Classes="card cool" Padding="14,11">
+                        <TextBlock TextWrapping="Wrap" FontSize="11.5" LineHeight="17"
+                                   Text="A licence controls whether the application opens. It has nothing to do with the records — every book, member and loan stays exactly where it is, and entering a key puts everything back." />
+                    </Border>
 
-                        <Rectangle Height="1" Fill="{DynamicResource Line}" />
-
-                        <Border Classes="card cool" Padding="14,12">
-                            <TextBlock TextWrapping="Wrap" FontSize="11.5"
-                                       Text="A licence controls whether the application opens. It has nothing to do with the records themselves — every book, member and loan stays exactly where it is, and entering a key puts everything back as it was." />
-                        </Border>
-
-                        <Button Content="Check again" Classes="quiet" MinHeight="38"
-                                HorizontalAlignment="Left"
-                                Command="{Binding RefreshCommand}" />
-                    </StackPanel>
-                </Border>
-            </Grid>
-        </StackPanel>
-    </ScrollViewer>
+                    <Button Content="Check again" Classes="quiet" MinHeight="36"
+                            HorizontalAlignment="Left"
+                            Command="{Binding RefreshCommand}" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
 </UserControl>
