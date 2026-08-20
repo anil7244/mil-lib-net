@@ -99,6 +99,25 @@ internal static class Program
 
             Shoot(Path.Combine(outDir, "subjects.png"), new SubjectsView { DataContext = subjects });
 
+            var labels = new LabelsViewModel();
+
+            SettleWhile(() => labels.Busy);
+
+            foreach (var r in labels.Rows.Take(6))
+            {
+                r.IsChosen = true;
+            }
+            labels.Changed();
+
+            Shoot(Path.Combine(outDir, "labels.png"), new LabelsView { DataContext = labels });
+
+            // An actual sheet of pocket labels, both codes, as it prints.
+            var sheet = ShootLabels();
+            if (sheet is not null)
+            {
+                File.WriteAllBytes(Path.Combine(outDir, "labels-sheet.png"), sheet);
+            }
+
             var reg = new RegisterViewModel();
 
             SettleWhile(() => reg.Busy);
@@ -354,6 +373,31 @@ internal static class Program
         }
 
         db.SaveChanges();
+    }
+
+    /// <summary>A sheet of pocket labels (barcode and QR), as an image.</summary>
+    private static byte[]? ShootLabels()
+    {
+        using var db = Workspace.Open();
+
+        var labelling = new Labelling(db, Session.Preferences);
+
+        var found = labelling.FindAsync("").GetAwaiter().GetResult();
+
+        if (found.Count == 0)
+        {
+            return null;
+        }
+
+        var books = found.Take(8).Select(x => new LabelFor(
+            Session.Preferences.Accession(x.Copy.AccessionNo),
+            x.Copy.Barcode, x.Title.Name, x.Title.CallNumber ?? "")).ToList();
+
+        return new LabelSheetDocument(Letterheads.Current(), books,
+                LabelKind.Pocket, LabelCode.Both,
+                labelling.PocketWidthMm, labelling.PocketHeightMm)
+            .GenerateImages(new QuestPDF.Infrastructure.ImageGenerationSettings { RasterDpi = 170 })
+            .First();
     }
 
     /// <summary>The first page of the printed accession register, as an image.</summary>
