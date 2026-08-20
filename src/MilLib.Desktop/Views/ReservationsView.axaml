@@ -102,6 +102,10 @@
                                                     <Run Text="·" />
                                                     <Run Text="{Binding Number}" />
                                                 </TextBlock>
+                                                <!-- The copy set aside, so it can
+                                                     be found on the hold shelf. -->
+                                                <TextBlock Text="{Binding Copy}" Classes="mono" FontSize="11"
+                                                           IsVisible="{Binding HasCopy}" />
                                                 <TextBlock Text="{Binding Keeping}" FontSize="11"
                                                            Foreground="{Binding IsUrgent, Converter={x:Static conv:Swatch.LateOrNot}}" />
                                             </StackPanel>

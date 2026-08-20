@@ -128,6 +128,17 @@ internal static class Program
 
             Shoot(Path.Combine(outDir, "fines.png"), new FinesView { DataContext = fines });
 
+            // Reservations: none in the imported library, so a ready hold and a
+            // couple of waiting ones are put on the throwaway copy to show both
+            // lists working.
+            SeedHolds();
+
+            var holds = new ReservationsViewModel();
+
+            SettleWhile(() => holds.Busy);
+
+            Shoot(Path.Combine(outDir, "reservations.png"), new ReservationsView { DataContext = holds });
+
             // The pass, drawn exactly as the on-screen preview draws it — the
             // print document rendered to an image. Uses the real member with a
             // photograph so the face, the QR and the crest all show.
@@ -280,6 +291,46 @@ internal static class Program
             .FirstOrDefault();
 
         return unit ?? classified ?? any;
+    }
+
+    /// <summary>A ready hold and two waiting ones, for the Reservations shot.</summary>
+    private static void SeedHolds()
+    {
+        using var db = Workspace.Open();
+
+        var member = db.Members.OrderBy(m => m.MemberId).First();
+
+        db.Reservations.RemoveRange(db.Reservations);
+        db.SaveChanges();
+
+        var now = new DateTime(2026, 8, 20, 9, 0, 0);
+        var today = DateOnly.FromDateTime(now);
+
+        // A ready hold: a copy set aside for this member, kept a few days.
+        var readyCopy = db.Copies.OrderBy(c => c.CopyId).First();
+
+        db.Reservations.Add(new Reservation
+        {
+            TitleId = readyCopy.TitleId,
+            MemberId = member.MemberId,
+            ReservedOn = now.AddDays(-2),
+            QueuePosition = 1,
+            Status = ReservationStatus.READY,
+            ReadyOn = now.AddDays(-1),
+            ExpiresOn = today.AddDays(2),
+            FulfilledCopyId = readyCopy.CopyId,
+        });
+
+        // Two waiting on a different, fully-out title.
+        var otherTitle = db.Titles.OrderByDescending(t => t.TitleId).First();
+
+        db.Reservations.Add(new Reservation
+        {
+            TitleId = otherTitle.TitleId, MemberId = member.MemberId,
+            ReservedOn = now.AddDays(-1), QueuePosition = 1, Status = ReservationStatus.WAITING,
+        });
+
+        db.SaveChanges();
     }
 
     /// <summary>A pending overdue fine and a damage fine, for the Fines shot.</summary>

@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 namespace MilLib.Core.Data;
 
 /// <summary>One hold, with the book and the person it is for.</summary>
-public record HeldFor(Reservation Reservation, Title Title, Member Member, int? DaysLeft)
+public record HeldFor(
+    Reservation Reservation, Title Title, Member Member, int? DaysLeft,
+    string? FulfilledAccession = null)
 {
     public bool IsReady => Reservation.Status == ReservationStatus.READY;
 
@@ -42,9 +44,24 @@ public class Holds(MilLibDbContext db)
             .Join(db.Members, x => x.r.MemberId, m => m.MemberId, (x, m) => new { x.r, x.t, m })
             .ToListAsync();
 
+        // Which copy is set aside for each ready hold — the number to look for
+        // on the hold shelf. Read in one go rather than per row.
+        var setAside = live
+            .Where(x => x.r.FulfilledCopyId is not null)
+            .Select(x => x.r.FulfilledCopyId!.Value)
+            .Distinct()
+            .ToList();
+
+        var accessions = setAside.Count == 0
+            ? []
+            : await db.Copies
+                .Where(c => setAside.Contains(c.CopyId))
+                .ToDictionaryAsync(c => c.CopyId, c => c.AccessionNo);
+
         var held = live
             .Select(x => new HeldFor(x.r, x.t, x.m,
-                x.r.ExpiresOn is null ? null : x.r.ExpiresOn.Value.DayNumber - today.DayNumber))
+                x.r.ExpiresOn is null ? null : x.r.ExpiresOn.Value.DayNumber - today.DayNumber,
+                x.r.FulfilledCopyId is { } id && accessions.TryGetValue(id, out var no) ? no : null))
             .ToList();
 
         return

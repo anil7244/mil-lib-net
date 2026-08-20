@@ -303,6 +303,16 @@ public record HoldRow(HeldFor Held)
     public string Since => $"since {Held.Reservation.ReservedOn:dd MMM yyyy}";
 
     /// <summary>
+    /// Which copy is set aside for a ready hold — the number to walk to the
+    /// hold shelf and find. A waiting hold has no copy yet, so shows none.
+    /// </summary>
+    public string Copy => string.IsNullOrEmpty(Held.FulfilledAccession)
+        ? ""
+        : Session.Preferences.Accession(Held.FulfilledAccession);
+
+    public bool HasCopy => Copy.Length > 0;
+
+    /// <summary>
     /// How long the book stays on the hold shelf. Said as days rather than a
     /// date, because "goes back tomorrow" is what the counter acts on.
     /// </summary>
