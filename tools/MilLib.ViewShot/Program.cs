@@ -183,6 +183,8 @@ internal static class Program
 
             Shoot(Path.Combine(outDir, "reports.png"), new ReportsView { DataContext = reports });
 
+            SeedLoanHistory();
+
             var members = new MembersViewModel();
 
             SettleWhile(() => members.Busy);
@@ -498,6 +500,39 @@ internal static class Program
                 "1 to 8", Session.Preferences.CurrencySymbol)
             .GenerateImages(new QuestPDF.Infrastructure.ImageGenerationSettings { RasterDpi = 170 })
             .First();
+    }
+
+    /// <summary>A few returned loans for the member, so the history shows dates.</summary>
+    private static void SeedLoanHistory()
+    {
+        using var db = Workspace.Open();
+
+        var member = db.Members.OrderBy(m => m.MemberId).First();
+
+        // Leave the one real open loan; add three long-since-returned ones.
+        var copyIds = db.Copies.OrderBy(c => c.CopyId).Select(c => c.CopyId).Skip(3).Take(3).ToList();
+
+        var made = new[]
+        {
+            (new DateTime(2026, 3, 2, 10, 0, 0), new DateTime(2026, 3, 20, 15, 0, 0)),
+            (new DateTime(2026, 5, 11, 9, 0, 0), new DateTime(2026, 6, 1, 11, 0, 0)),
+            (new DateTime(2026, 7, 4, 14, 0, 0), new DateTime(2026, 7, 18, 16, 0, 0)),
+        };
+
+        for (var i = 0; i < copyIds.Count; i++)
+        {
+            db.Loans.Add(new Loan
+            {
+                CopyId = copyIds[i],
+                MemberId = member.MemberId,
+                IssuedOn = made[i].Item1,
+                DueOn = DateOnly.FromDateTime(made[i].Item1.AddDays(30)),
+                ReturnedOn = made[i].Item2,
+                Status = LoanStatus.RETURNED,
+            });
+        }
+
+        db.SaveChanges();
     }
 
     /// <summary>A ready hold and two waiting ones, for the Reservations shot.</summary>

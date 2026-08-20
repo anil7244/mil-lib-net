@@ -316,6 +316,47 @@
                                 ToolTip.Tip="Issues a new code and kills every printed copy of the old pass"
                                 Command="{Binding ReissuePassCommand}" />
                     </StackPanel>
+
+                    <!-- Every book this member has ever borrowed, newest first:
+                         when it went out, and when it came back or that it is
+                         still with them. The whole record in one place. -->
+                    <StackPanel Spacing="8" Margin="0,4,0,0">
+                        <Rectangle Height="1" Fill="{DynamicResource Line}" />
+                        <TextBlock Text="EVERY BOOK BORROWED" Classes="label" />
+
+                        <Grid ColumnDefinitions="*,92,92" Margin="0,2,0,0">
+                            <TextBlock Grid.Column="0" Text="BOOK" Classes="label" FontSize="10" />
+                            <TextBlock Grid.Column="1" Text="ISSUED" Classes="label" FontSize="10" />
+                            <TextBlock Grid.Column="2" Text="RETURNED" Classes="label" FontSize="10" />
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding History}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="vm:HistoryRow">
+                                    <Grid ColumnDefinitions="*,92,92" Margin="0,6">
+                                        <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,8,0">
+                                            <TextBlock Text="{Binding Title}" FontSize="12"
+                                                       TextWrapping="Wrap" MaxLines="2"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding Accession}" Classes="mono" FontSize="10.5" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding IssuedText}"
+                                                   Classes="faint" FontSize="11" VerticalAlignment="Top" />
+                                        <!-- A book still out is the one worth
+                                             spotting in a long history, so it is
+                                             the only coloured thing here. -->
+                                        <TextBlock Grid.Column="2" Text="{Binding ReturnedText}"
+                                                   FontSize="11" VerticalAlignment="Top"
+                                                   FontWeight="{Binding StillOut, Converter={x:Static conv:Weight.MediumOrNormal}}"
+                                                   Foreground="{Binding StillOut, Converter={x:Static conv:Swatch.BadOrPlain}}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="This member has never borrowed a book."
+                                   Classes="faint" IsVisible="{Binding NoHistory}" />
+                    </StackPanel>
                 </StackPanel>
             </ScrollViewer>
           </Panel>

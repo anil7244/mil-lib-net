@@ -73,6 +73,9 @@ public partial class MembersViewModel : ViewModelBase
 
     public ObservableCollection<OwedRow> Owing { get; } = [];
 
+    /// <summary>Every book this member has ever been issued, newest first.</summary>
+    public ObservableCollection<HistoryRow> History { get; } = [];
+
     public bool HasProblem => Problem.Length > 0;
 
     public bool HasSaid => Said.Length > 0;
@@ -84,6 +87,10 @@ public partial class MembersViewModel : ViewModelBase
     public bool MayManage => Session.Can(Ability.MembersManage);
 
     public bool NothingHeld => HasSelection && Holding.Count == 0;
+
+    public bool HasHistory => History.Count > 0;
+
+    public bool NoHistory => HasSelection && History.Count == 0;
 
     public bool HasPhoto => Photo is not null;
 
@@ -243,6 +250,7 @@ public partial class MembersViewModel : ViewModelBase
     {
         Holding.Clear();
         Owing.Clear();
+        History.Clear();
         Said = "";
 
         if (row is null)
@@ -323,6 +331,36 @@ public partial class MembersViewModel : ViewModelBase
                     Session.Preferences.Money(fine.Amount),
                     fine.CalculatedOn));
             }
+
+            // The whole borrowing record — every loan, open or long returned —
+            // so a member's history with each book can be read off in one place:
+            // when it went out, when it came back, or that it is still with them.
+            var history = await db.Loans.AsNoTracking()
+                .Where(l => l.MemberId == member.MemberId)
+                .OrderByDescending(l => l.IssuedOn)
+                .Join(db.Copies, l => l.CopyId, c => c.CopyId, (l, c) => new { l, c })
+                .Join(db.Titles, x => x.c.TitleId, t => t.TitleId, (x, t) => new
+                {
+                    x.l.IssuedOn,
+                    x.l.ReturnedOn,
+                    x.l.Status,
+                    Title = t.Name,
+                    x.c.AccessionNo,
+                })
+                .ToListAsync();
+
+            foreach (var loan in history)
+            {
+                History.Add(new HistoryRow(
+                    loan.Title,
+                    Session.Preferences.Accession(loan.AccessionNo),
+                    DateOnly.FromDateTime(loan.IssuedOn),
+                    loan.ReturnedOn is { } r ? DateOnly.FromDateTime(r) : null,
+                    loan.Status != LoanStatus.RETURNED));
+            }
+
+            OnPropertyChanged(nameof(HasHistory));
+            OnPropertyChanged(nameof(NoHistory));
 
             OwesAnything = outstanding.Total > 0;
             Owed = Session.Preferences.Money(outstanding.Total);
@@ -621,4 +659,18 @@ public record HoldingRow(string Title, string Accession, DateOnly Due, int Late,
 public record OwedRow(string Type, string Amount, DateOnly Raised)
 {
     public string RaisedText => Raised.ToString("dd MMM yyyy");
+}
+
+/// <summary>
+/// One line of a member's borrowing history — a book they took, when it went
+/// out, and when it came back or that it is still with them.
+/// </summary>
+public record HistoryRow(string Title, string Accession, DateOnly Issued, DateOnly? Returned, bool StillOut)
+{
+    public string IssuedText => Issued.ToString("dd MMM yyyy");
+
+    /// <summary>The date it came back, or that it has not — the column being tracked.</summary>
+    public string ReturnedText => StillOut
+        ? "still out"
+        : Returned?.ToString("dd MMM yyyy") ?? "returned";
 }
