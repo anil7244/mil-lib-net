@@ -175,6 +175,14 @@ internal static class Program
             var shell = new MainWindow { DataContext = new MainViewModel(null) };
             ShootWindow(Path.Combine(outDir, "shell.png"), shell);
 
+            // The same shell after a unit has painted its bar. Proves the top
+            // strip takes the chosen colour — background, menu band and the ink
+            // on it — while the accent and the rest of the page are untouched.
+            BarColour("#132840");
+            var shellBar = new MainWindow { DataContext = new MainViewModel(null) };
+            ShootWindow(Path.Combine(outDir, "shell-navy-bar.png"), shellBar);
+            BarColour("#0d0d0d");
+
             var reports = new ReportsViewModel();
 
             SettleWhile(() => reports.Busy);
@@ -812,6 +820,19 @@ internal static class Program
         bitmap.Save(path);
 
         // Not closed on purpose: the kiosk refuses to. The tool exits after.
+    }
+
+    /// <summary>Paint the top bar a colour and recolour the application, the
+    /// way saving the branding does, so a shot shows the strip as chosen.</summary>
+    private static void BarColour(string colour)
+    {
+        using var db = Workspace.Open();
+
+        new Setup(db).SetAsync("branding.bar_colour", colour, "branding", "Top bar colour")
+            .GetAwaiter().GetResult();
+
+        Session.Refresh(Preferences.ReadAsync(db).GetAwaiter().GetResult());
+        Theming.Apply(Session.Preferences);
     }
 
     /// <summary>The page ground for whichever theme is on, so a dark render is

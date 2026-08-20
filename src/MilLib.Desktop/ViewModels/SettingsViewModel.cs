@@ -35,6 +35,7 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] private string _libraryName = "";
     [ObservableProperty] private string _motto = "";
     [ObservableProperty] private string _accent = "#c0392b";
+    [ObservableProperty] private string _barColour = "#0d0d0d";
     // Off, not on.
     //
     // A settings form starts as a set of claims about the unit that nobody has
@@ -83,6 +84,7 @@ public partial class SettingsViewModel : ViewModelBase
     public SettingsViewModel()
     {
         Palettes = Palette.All(colour => Accent = colour);
+        BarPalettes = Palette.Bars(colour => BarColour = colour);
 
         _ = LoadAsync();
     }
@@ -98,6 +100,8 @@ public partial class SettingsViewModel : ViewModelBase
     /// as nothing rather than throwing.
     /// </summary>
     public IBrush AccentBrush => Paint(Accent);
+
+    public IBrush BarBrush => Paint(BarColour);
 
     public IBrush CircleBrush => Paint(CrestCircleColour);
 
@@ -128,6 +132,8 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnPadLengthChanged(int value) => OnPropertyChanged(nameof(SampleNumber));
 
     partial void OnAccentChanged(string value) => OnPropertyChanged(nameof(AccentBrush));
+
+    partial void OnBarColourChanged(string value) => OnPropertyChanged(nameof(BarBrush));
 
     partial void OnCrestCircleColourChanged(string value) => OnPropertyChanged(nameof(CircleBrush));
 
@@ -183,6 +189,7 @@ public partial class SettingsViewModel : ViewModelBase
             LibraryName = preferences.LibraryName;
             Motto = preferences.Motto;
             Accent = preferences.AccentColour;
+            BarColour = preferences.BarColour;
             DarkByDefault = preferences.DefaultTheme != "light";
             CrestInCircle = preferences.CrestInCircle;
             CrestCircleColour = preferences.CrestCircleColour;
@@ -321,6 +328,13 @@ public partial class SettingsViewModel : ViewModelBase
     /// </summary>
     public IReadOnlyList<Palette> Palettes { get; }
 
+    /// <summary>
+    /// The ready-made bar colours, beside the box for typing one. Deep shades,
+    /// because the strip carries near-white writing; picking one only fills the
+    /// box in, the same as the accent swatches.
+    /// </summary>
+    public IReadOnlyList<Palette> BarPalettes { get; }
+
     [RelayCommand]
     private async Task SaveBrandingAsync()
     {
@@ -352,10 +366,18 @@ public partial class SettingsViewModel : ViewModelBase
             return;
         }
 
+        if (Theming.Parse(BarColour) is null)
+        {
+            Announce($"The top bar colour “{BarColour}” is not a colour. Pick one of the "
+                + "squares, or type a hash and six hex digits — #132840.", false);
+
+            return;
+        }
+
         await DoAsync("saving the branding", async (db, setup) =>
         {
             await setup.SaveBrandingAsync(new Branding(
-                Organisation, LibraryName, Motto, Accent,
+                Organisation, LibraryName, Motto, Accent, BarColour,
                 DarkByDefault ? "dark" : "light",
                 CrestInCircle, CrestCircleColour, _chosenCrest),
                 Session.User!.UserId);

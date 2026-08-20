@@ -135,6 +135,68 @@
                                 </StackPanel>
                             </Grid>
 
+                            <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                            <!-- The colour of the strip across the top of the window.
+                                 Its own setting, separate from the accent: a unit can
+                                 paint the bar in its own colour and keep the accent for
+                                 the buttons and printed pages, or the other way about.
+                                 The preview under it is the real bar, so the choice is
+                                 made by eye before it is saved. -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Top bar colour" Classes="faint" />
+                                <Grid ColumnDefinitions="Auto,10,*">
+                                    <Border Grid.Column="0" Width="40" Height="40" CornerRadius="6"
+                                            BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                                            Background="{Binding BarBrush}" />
+                                    <TextBox Grid.Column="2" Classes="mono" MinHeight="40"
+                                             Text="{Binding BarColour, UpdateSourceTrigger=PropertyChanged}"
+                                             IsEnabled="{Binding MayManage}" />
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding BarPalettes}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Padding="0" Margin="0,0,6,6"
+                                                    Background="Transparent" BorderThickness="0"
+                                                    ToolTip.Tip="{Binding Name}"
+                                                    Command="{Binding ChooseCommand}">
+                                                <Border Width="26" Height="26" CornerRadius="5"
+                                                        Background="{Binding Swatch}"
+                                                        BorderBrush="{DynamicResource Line}"
+                                                        BorderThickness="1" />
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- The strip as it will look, in miniature. -->
+                                <Border CornerRadius="6" ClipToBounds="True"
+                                        BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                    <StackPanel Background="{Binding BarBrush}">
+                                        <Grid ColumnDefinitions="*,Auto" Margin="14,9">
+                                            <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding LibraryName}" FontWeight="Bold"
+                                                           FontSize="12" Foreground="#F2F2F2"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding Organisation}" FontSize="8.5"
+                                                           LetterSpacing="1.4" Foreground="#94FFFFFF"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="20:25" FontWeight="SemiBold"
+                                                       FontSize="15" Foreground="#F4F4F4"
+                                                       VerticalAlignment="Center" />
+                                        </Grid>
+                                        <Rectangle Height="3" Fill="{Binding AccentBrush}" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
                             <StackPanel Spacing="8">
                                 <CheckBox Content="Set the crest in a circle"
                                           IsChecked="{Binding CrestInCircle}"

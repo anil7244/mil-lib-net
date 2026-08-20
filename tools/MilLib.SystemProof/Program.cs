@@ -72,7 +72,7 @@ Heading("Settings — writing them, and the one that locks");
 
     await setup.SaveBrandingAsync(new Branding(
         "14 FIELD REGIMENT", "Unit Library", "Per ardua",
-        "AD0505", "light", true, "#0d0d0d", null), adminId);
+        "AD0505", "132840", "light", true, "#0d0d0d", null), adminId);
 
     var after = await Preferences.ReadAsync(db);
 
@@ -84,9 +84,13 @@ Heading("Settings — writing them, and the one that locks");
     // of a brand document. It has to come back usable rather than rejected.
     Check("a colour is tidied into #rrggbb", after.AccentColour == "#ad0505", after.AccentColour);
 
+    // The bar has its own colour, tidied the same way and kept apart from the
+    // accent — the two are set together but stored separately.
+    Check("the top bar colour is stored on its own", after.BarColour == "#132840", after.BarColour);
+
     await setup.SaveBrandingAsync(new Branding(
         "14 FIELD REGIMENT", "Unit Library", "Per ardua",
-        "not a colour", "light", true, "#0d0d0d", null), adminId);
+        "not a colour", "#0d0d0d", "light", true, "#0d0d0d", null), adminId);
 
     var nonsense = await Preferences.ReadAsync(db);
 

@@ -173,7 +173,7 @@
 
             <!-- ======================================== the unit's bar ==== -->
             <Border Grid.Row="0"
-                    Background="#0D0D0D"
+                    Background="{DynamicResource BarBg}"
                     BorderBrush="{DynamicResource Accent}"
                     BorderThickness="0,0,0,3"
                     Padding="22,7">
@@ -193,11 +193,11 @@
                             <TextBlock Text="{Binding BarTitle}"
                                        FontSize="13.5" FontWeight="Bold" LetterSpacing="0.5"
                                        TextTrimming="CharacterEllipsis"
-                                       Foreground="#F2F2F2" />
+                                       Foreground="{DynamicResource BarInk}" />
                             <TextBlock Text="{Binding BarUnit}"
                                        FontSize="9.5" FontWeight="SemiBold" LetterSpacing="1.6"
                                        TextTrimming="CharacterEllipsis"
-                                       Foreground="#94FFFFFF" />
+                                       Foreground="{DynamicResource BarInkFaint}" />
                         </StackPanel>
                     </StackPanel>
 
@@ -212,10 +212,10 @@
                             <TextBlock Text="{Binding Clock}" FontSize="23" FontWeight="SemiBold"
                                        FontFamily="Segoe UI, Inter, sans-serif"
                                        LineHeight="26"
-                                       Foreground="#F4F4F4" TextAlignment="Right" />
+                                       Foreground="{DynamicResource BarInk}" TextAlignment="Right" />
                             <TextBlock Text="{Binding ClockDate}" FontSize="12" LetterSpacing="0.6"
                                        FontFamily="Segoe UI, Inter, sans-serif"
-                                       Foreground="#A6FFFFFF" TextAlignment="Right" />
+                                       Foreground="{DynamicResource BarInkSoft}" TextAlignment="Right" />
                         </StackPanel>
 
                         <!-- Light / dark, from one icon: a moon while light, a
@@ -246,7 +246,7 @@
             </Border>
 
             <!-- ============================================ the menu bar == -->
-            <Border Grid.Row="1" Background="#14161A">
+            <Border Grid.Row="1" Background="{DynamicResource BarMenuBg}">
               <DockPanel LastChildFill="True">
 
                 <!-- Reading room sits at the far end of the menu line, out of

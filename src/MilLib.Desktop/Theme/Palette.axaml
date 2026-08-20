@@ -219,6 +219,29 @@
     <SolidColorBrush x:Key="RailIconHover" Color="{DynamicResource RailIconHoverColor}" />
     <SolidColorBrush x:Key="RailLabel" Color="{DynamicResource RailLabelColor}" />
 
+    <!-- The top strip.
+
+         A unit paints this to its own colour from Settings — near-black by
+         default, but a regiment that works in navy or maroon can have the bar
+         in it. It stays the same across the light and dark theme: it is the
+         unit's identity band, not part of the page.
+
+         The ink is worked out from whatever colour is chosen rather than fixed,
+         so the title, the clock and the unit line read on a maroon bar as well
+         as on a black one. Theming replaces every one of these at runtime; the
+         values here are the near-black default so the bar is right before the
+         first sign-in and if the settings cannot be read. -->
+    <Color x:Key="BarBgColor">#0D0D0D</Color>
+    <Color x:Key="BarMenuBgColor">#14161A</Color>
+    <Color x:Key="BarInkColor">#F2F2F2</Color>
+    <Color x:Key="BarInkSoftColor">#A6FFFFFF</Color>
+    <Color x:Key="BarInkFaintColor">#94FFFFFF</Color>
+    <SolidColorBrush x:Key="BarBg" Color="{DynamicResource BarBgColor}" />
+    <SolidColorBrush x:Key="BarMenuBg" Color="{DynamicResource BarMenuBgColor}" />
+    <SolidColorBrush x:Key="BarInk" Color="{DynamicResource BarInkColor}" />
+    <SolidColorBrush x:Key="BarInkSoft" Color="{DynamicResource BarInkSoftColor}" />
+    <SolidColorBrush x:Key="BarInkFaint" Color="{DynamicResource BarInkFaintColor}" />
+
     <SolidColorBrush x:Key="Good" Color="{DynamicResource GoodColor}" />
     <SolidColorBrush x:Key="GoodSoft" Color="{DynamicResource GoodSoftColor}" />
     <SolidColorBrush x:Key="Warn" Color="{DynamicResource WarnColor}" />

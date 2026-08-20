@@ -72,6 +72,15 @@ public class Preferences
     public string OrganisationName => Text("branding.org_name");
     public string Motto => Text("branding.motto");
     public string AccentColour => Text("branding.accent_colour", Setup.DefaultAccent);
+
+    /// <summary>
+    /// The colour of the strip across the top of the window. Its own setting,
+    /// not the accent: a unit can want a maroon accent on its buttons and its
+    /// printed pages while keeping the bar the steady near-black it defaults to,
+    /// or paint the bar in the regiment's colour and leave the accent alone.
+    /// </summary>
+    public string BarColour => Text("branding.bar_colour", Setup.DefaultBar);
+
     public string CrestPath => Text("branding.logo_path");
     public bool CrestInCircle => Flag("branding.crest_circle");
     public string CrestCircleColour => Text("branding.crest_circle_colour", "#0D0D0D");

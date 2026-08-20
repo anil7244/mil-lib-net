@@ -74,6 +74,8 @@ public class Setup(MilLibDbContext db)
         await SetAsync("branding.motto", branding.Motto.Trim(), "branding", "Motto");
         await SetAsync("branding.accent_colour", await ColourAsync("branding.accent_colour", branding.Accent),
             "branding", "Accent colour");
+        await SetAsync("branding.bar_colour", await ColourAsync("branding.bar_colour", branding.BarColour),
+            "branding", "Top bar colour");
         await SetAsync("branding.default_theme", branding.Theme == "light" ? "light" : "dark",
             "branding", "Default theme");
         await SetFlagAsync("branding.crest_circle", branding.CrestInCircle, "branding", "Crest in a circle");
@@ -271,6 +273,9 @@ public class Setup(MilLibDbContext db)
     /// <summary>The house colour, used only where a unit has never set one.</summary>
     public const string DefaultAccent = "#c0392b";
 
+    /// <summary>The near-black the top bar starts on, until a unit paints it.</summary>
+    public const string DefaultBar = "#0d0d0d";
+
     /// <summary>
     /// Six hex digits with a hash, in lower case — or nothing, if that is not
     /// what it was given.
@@ -337,6 +342,7 @@ public record Branding(
     string LibraryName,
     string Motto,
     string Accent,
+    string BarColour,
     string Theme,
     bool CrestInCircle,
     string CrestCircleColour,

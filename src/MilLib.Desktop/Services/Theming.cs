@@ -35,6 +35,13 @@ public static class Theming
     private static string _lastColour = DefaultAccent;
 
     /// <summary>
+    /// The top bar's colour last applied. Its own value rather than the accent,
+    /// so a unit can paint the strip without touching the button colour, and
+    /// held here so a light/dark switch repaints the bar's ink for it too.
+    /// </summary>
+    private static string _barColour = Setup.DefaultBar;
+
+    /// <summary>
     /// Recolour the application from the settings.
     ///
     /// Called at sign-in and again whenever the branding is saved. Avalonia
@@ -53,6 +60,7 @@ public static class Theming
     public static void Apply(Preferences preferences)
     {
         Dark = preferences.DefaultTheme != "light";
+        _barColour = preferences.BarColour;
         Apply(preferences.AccentColour);
     }
 
@@ -104,13 +112,40 @@ public static class Theming
         app.Resources["BloomWarmColor"] = With(accent, dark ? (byte)0x3D : (byte)0x1F);
         app.Resources["FocusRingColor"] = With(accent, 0x59);
 
-        // The accent used as writing on the near-black bar at the top, which is
-        // black whichever theme the application is on. A red accent reads there
-        // as it is; a navy or a forest green does not, and the person's rank
-        // under their name turns into a smudge. So it is lifted until it can
-        // actually be read, rather than trusting that whoever bought this
-        // picked a bright colour.
-        app.Resources["AccentOnDarkColor"] = ReadableOn(accent, Color.FromRgb(0x0D, 0x0D, 0x0D));
+        // The top bar's own colour, and the ink worked out to sit on it.
+        //
+        // The bar is the unit's identity band, painted from its own setting so a
+        // regiment can have the strip in navy or maroon without disturbing the
+        // accent on its buttons and printed pages. The menu band under it is
+        // lifted a touch so the two read as two, and the ink is chosen for
+        // contrast — near-white on a dark bar, near-black on a pale one — so the
+        // title, clock and unit line stay legible whatever is chosen.
+        var bar = Parse(_barColour) ?? Color.FromRgb(0x0D, 0x0D, 0x0D);
+        var onBar = ContrastOn(bar);
+        var barInk = onBar == Colors.White ? Color.FromRgb(0xF2, 0xF2, 0xF2) : Color.FromRgb(0x16, 0x19, 0x1D);
+
+        app.Resources["BarBgColor"] = bar;
+        app.Resources["BarMenuBgColor"] = Mix(bar, onBar, 0.06);
+        app.Resources["BarInkColor"] = barInk;
+        app.Resources["BarInkSoftColor"] = With(barInk, 0xA6);
+        app.Resources["BarInkFaintColor"] = With(barInk, 0x8C);
+
+        // The rail tokens ride the same bar — the menu-bar labels and the chrome
+        // icons (theme, sign-out) live on it — so they follow the bar's ink too,
+        // rather than the fixed grey they carried when the bar was always black.
+        app.Resources["RailColor"] = bar;
+        app.Resources["RailRaisedColor"] = Mix(bar, onBar, 0.14);
+        app.Resources["RailTextColor"] = With(barInk, 0xD2);
+        app.Resources["RailIconColor"] = With(barInk, 0xDC);
+        app.Resources["RailIconHoverColor"] = barInk;
+        app.Resources["RailLabelColor"] = With(barInk, 0x8C);
+
+        // The accent used as writing on that bar. A red accent reads on
+        // near-black as it is; a navy or a forest green does not, and the unit
+        // line under the crest turns into a smudge. So it is lifted until it
+        // clears the contrast threshold against whatever colour the bar now is,
+        // rather than trusting that whoever bought this picked a bright one.
+        app.Resources["AccentOnDarkColor"] = ReadableOn(accent, bar);
 
         Changed?.Invoke();
     }

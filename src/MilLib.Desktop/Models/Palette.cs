@@ -48,4 +48,24 @@ public sealed partial class Palette
         new("Sand", "#8a6d3b", pick),
         new("Slate", "#3d4750", pick),
     ];
+
+    /// <summary>
+    /// The colours offered for the top bar.
+    ///
+    /// Deep and dark on purpose — the bar carries the unit's name and the clock
+    /// in near-white, and a pale strip would swallow both. These are the arm's
+    /// colours taken down to the shade a headline sits on, not the bright accent
+    /// version, so a unit gets its own strip and the writing on it still reads.
+    /// </summary>
+    public static IReadOnlyList<Palette> Bars(Action<string> pick) =>
+    [
+        new("Black", "#0d0d0d", pick),
+        new("Charcoal", "#1c2128", pick),
+        new("Gunmetal", "#26303a", pick),
+        new("Deep navy", "#132840", pick),
+        new("Deep maroon", "#3a1220", pick),
+        new("Deep green", "#123326", pick),
+        new("Deep teal", "#0f2f2e", pick),
+        new("Deep slate", "#232a33", pick),
+    ];
 }
