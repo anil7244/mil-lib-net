@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +38,16 @@ public partial class MemberEditViewModel : ViewModelBase
 
     [ObservableProperty] private bool _busy;
     [ObservableProperty] private string _heading = "New member";
+
+    // ---------------------------------------------------------------- photo
+    [ObservableProperty] private Bitmap? _photo;
+    [ObservableProperty] private string _photoNote = "";
+
+    /// <summary>Null until a new one is picked, so a save leaves the old photo alone.</summary>
+    private string? _chosenPhoto;
+
+    /// <summary>Raised when a photo needs choosing off the disk — the window answers it.</summary>
+    public event Func<Task<string?>>? PickPhoto;
 
     private readonly long? _memberId;
     private Member _member = new();
@@ -131,6 +142,8 @@ public partial class MemberEditViewModel : ViewModelBase
             SecurityDeposit = _member.SecurityDeposit?.ToString("0.##") ?? "";
             Remarks = _member.Remarks ?? "";
 
+            ShowPhoto(Workspace.PhotoPath(_member.PhotoPath), saved: true);
+
             Category = Categories.FirstOrDefault(c => c.CategoryId == _member.CategoryId);
         }
         catch (Exception ex)
@@ -190,6 +203,13 @@ public partial class MemberEditViewModel : ViewModelBase
                 ? deposit
                 : null;
 
+            // Only touched if a new photo was picked, or the old one removed —
+            // null means "leave whatever was there".
+            if (_chosenPhoto is not null)
+            {
+                _member.PhotoPath = _chosenPhoto.Length == 0 ? null : _chosenPhoto;
+            }
+
             var roll = new Roll(db);
 
             var problems = await roll.ProblemsWithAsync(_member, Category.Category);
@@ -229,6 +249,70 @@ public partial class MemberEditViewModel : ViewModelBase
         {
             Busy = false;
         }
+    }
+
+    [RelayCommand]
+    private async Task ChoosePhotoAsync()
+    {
+        if (PickPhoto is null)
+        {
+            return;
+        }
+
+        var chosen = await PickPhoto();
+
+        if (chosen is null)
+        {
+            return;
+        }
+
+        try
+        {
+            // Copied in beside the data file, so it survives the desktop folder
+            // it was picked from being tidied away.
+            var folder = Path.Combine(Workspace.Pictures, "member-photos");
+
+            Directory.CreateDirectory(folder);
+
+            var name = $"photo-{DateTime.Now:yyyyMMdd-HHmmssfff}{Path.GetExtension(chosen)}";
+            var destination = Path.Combine(folder, name);
+
+            File.Copy(chosen, destination, overwrite: true);
+
+            _chosenPhoto = "member-photos/" + name;
+
+            ShowPhoto(destination, saved: false);
+        }
+        catch (Exception ex)
+        {
+            Faults.Record("copying in the photo", ex);
+
+            Problems.Add(Faults.Explain(ex));
+
+            OnPropertyChanged(nameof(HasProblems));
+        }
+    }
+
+    [RelayCommand]
+    private void RemovePhoto()
+    {
+        _chosenPhoto = "";
+
+        Photo = null;
+        PhotoNote = "The photo will be removed when this is saved.";
+    }
+
+    public bool HasPhoto => Photo is not null;
+
+    partial void OnPhotoChanged(Bitmap? value) => OnPropertyChanged(nameof(HasPhoto));
+
+    private void ShowPhoto(string? path, bool saved)
+    {
+        Photo = Pictures.Load(path);
+
+        PhotoNote = Photo is null
+            ? "No photo. The pass shows their initials instead."
+            : Path.GetFileName(path) + (saved ? "" : " — not saved yet.");
     }
 
     [RelayCommand]

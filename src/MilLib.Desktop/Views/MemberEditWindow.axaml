@@ -48,8 +48,10 @@
                         </ItemsControl>
                     </Border>
 
-                    <!-- Who they are -->
-                    <StackPanel Spacing="12">
+                    <!-- Who they are — the fields, and the photograph that goes
+                         on the pass, side by side the way the web app shows it. -->
+                    <Grid ColumnDefinitions="*,22,150">
+                      <StackPanel Grid.Column="0" Spacing="12">
                         <TextBlock Text="WHO THEY ARE" Classes="label" />
 
                         <Grid ColumnDefinitions="1.6*,14,*">
@@ -103,7 +105,32 @@
                                          MinHeight="40" />
                             </StackPanel>
                         </Grid>
-                    </StackPanel>
+                      </StackPanel>
+
+                      <!-- The photograph. What is on the pass and what the
+                           counter checks a face against, so it is set here. -->
+                      <StackPanel Grid.Column="2" Spacing="8" VerticalAlignment="Top">
+                        <TextBlock Text="PHOTO" Classes="label" />
+                        <Border Width="140" Height="168" CornerRadius="6" ClipToBounds="True"
+                                Background="{DynamicResource SurfaceSunken}"
+                                BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                            <Panel>
+                                <Image Source="{Binding Photo}" Stretch="UniformToFill"
+                                       IsVisible="{Binding HasPhoto}" />
+                                <TextBlock Text="No photo" Classes="faint"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           IsVisible="{Binding !HasPhoto}" />
+                            </Panel>
+                        </Border>
+                        <Button Content="Choose…" HorizontalAlignment="Stretch"
+                                Command="{Binding ChoosePhotoCommand}" />
+                        <Button Classes="quiet" Content="Remove" HorizontalAlignment="Stretch"
+                                IsVisible="{Binding HasPhoto}"
+                                Command="{Binding RemovePhotoCommand}" />
+                        <TextBlock Text="{Binding PhotoNote}" Classes="faint" FontSize="11"
+                                   TextWrapping="Wrap" />
+                      </StackPanel>
+                    </Grid>
 
                     <Rectangle Height="1" Fill="{DynamicResource Line}" />
 

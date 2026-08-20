@@ -196,6 +196,18 @@ internal static class Program
 
             Shoot(Path.Combine(outDir, "members.png"), new MembersView { DataContext = members });
 
+            var memberId = new Func<long>(() =>
+            {
+                using var db2 = Workspace.Open();
+                return db2.Members.OrderBy(m => m.MemberId).Select(m => m.MemberId).First();
+            })();
+
+            var edit = new MemberEditWindow(memberId);
+
+            SettleWhile(() => ((MemberEditViewModel)edit.DataContext!).Busy);
+
+            ShootWindow(Path.Combine(outDir, "member-edit.png"), edit);
+
             // Fines: the imported library has none pending, so a couple are put
             // on the throwaway copy to show the row — an overdue charge with its
             // span, and a flat damage charge.

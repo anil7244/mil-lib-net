@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using MilLib.Desktop.ViewModels;
 
 namespace MilLib.Desktop.Views;
@@ -21,7 +22,30 @@ public partial class MemberEditWindow : Window
         // nothing and cannot be wrong.
         model.Saved += Close;
         model.Abandoned += Close;
+        model.PickPhoto += ChooseAsync;
 
         DataContext = model;
+    }
+
+    /// <summary>
+    /// Choosing a photograph off the disk. The window does it because a file
+    /// dialog needs one to hang off, and the view model has none.
+    /// </summary>
+    private async Task<string?> ChooseAsync()
+    {
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Choose the photograph",
+            AllowMultiple = false,
+            FileTypeFilter =
+            [
+                new FilePickerFileType("Picture")
+                {
+                    Patterns = ["*.jpg", "*.jpeg", "*.png"],
+                },
+            ],
+        });
+
+        return files.Count == 0 ? null : files[0].TryGetLocalPath();
     }
 }

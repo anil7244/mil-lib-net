@@ -84,12 +84,31 @@
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="vm:MemberRow">
                                 <Grid ColumnDefinitions="*,110,110,64" Margin="20,10">
-                                    <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,14,0">
-                                        <TextBlock Text="{Binding Name}" FontWeight="Medium"
-                                                   TextTrimming="CharacterEllipsis" />
-                                        <TextBlock Text="{Binding Belonging}" Classes="faint" FontSize="11"
-                                                   TextTrimming="CharacterEllipsis" />
-                                    </StackPanel>
+                                    <Grid Grid.Column="0" ColumnDefinitions="Auto,*" Margin="0,0,14,0">
+                                        <!-- The face, the way the web list shows
+                                             it. A member with no photo carries
+                                             their initials, never an empty box. -->
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18"
+                                                Margin="0,0,12,0" ClipToBounds="True"
+                                                VerticalAlignment="Center"
+                                                Background="{DynamicResource SurfaceSunken}"
+                                                BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                            <Panel>
+                                                <TextBlock Text="{Binding Initials}" Classes="faint"
+                                                           FontSize="12" FontWeight="SemiBold"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                           IsVisible="{Binding !HasPhoto}" />
+                                                <Image Source="{Binding Photo}" Stretch="UniformToFill"
+                                                       IsVisible="{Binding HasPhoto}" />
+                                            </Panel>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name}" FontWeight="Medium"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding Belonging}" Classes="faint" FontSize="11"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                    </Grid>
 
                                     <TextBlock Grid.Column="1" Text="{Binding Number}" Classes="mono"
                                                VerticalAlignment="Center" />

@@ -150,6 +150,7 @@ public partial class MembersViewModel : ViewModelBase
                     x.m.Rank,
                     x.m.PersonnelNo,
                     x.m.UnitCoy,
+                    x.m.PhotoPath,
                     x.m.Status,
                     Category = x.c.Name,
                     Held = db.Loans.Count(l => l.MemberId == x.m.MemberId
@@ -167,7 +168,8 @@ public partial class MembersViewModel : ViewModelBase
                     r.UnitCoy ?? "",
                     r.Category,
                     r.Status,
-                    r.Held))
+                    r.Held,
+                    Workspace.PhotoPath(r.PhotoPath)))
             ];
 
             Filter();
@@ -525,8 +527,48 @@ public partial class MembersViewModel : ViewModelBase
 /// <summary>One line of the roll.</summary>
 public record MemberRow(
     long MemberId, string Name, string Number, string PersonnelNo,
-    string Unit, string Category, MemberStatus Status, int Held)
+    string Unit, string Category, MemberStatus Status, int Held,
+    string? PhotoFile = null)
 {
+    private Bitmap? _photo;
+    private bool _photoLoaded;
+
+    /// <summary>
+    /// The face, loaded the first time a row is actually drawn — the list
+    /// virtualises, so only the dozen on screen ever read a file. A member with
+    /// no photo shows their initials instead of an empty square.
+    /// </summary>
+    public Bitmap? Photo
+    {
+        get
+        {
+            if (!_photoLoaded)
+            {
+                _photoLoaded = true;
+                _photo = Pictures.Load(PhotoFile);
+            }
+
+            return _photo;
+        }
+    }
+
+    public bool HasPhoto => Photo is not null;
+
+    /// <summary>Two letters for the placeholder, when there is no photograph.</summary>
+    public string Initials
+    {
+        get
+        {
+            var letters = string.Concat(Name
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Where(w => char.IsLetter(w[0]))
+                .Take(2)
+                .Select(w => char.ToUpperInvariant(w[0])));
+
+            return letters.Length > 0 ? letters : "—";
+        }
+    }
+
     public string StatusText => Words.Of(Status);
 
     public bool IsActive => Status == MemberStatus.ACTIVE;
