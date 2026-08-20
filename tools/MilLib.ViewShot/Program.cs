@@ -117,6 +117,17 @@ internal static class Program
 
             Shoot(Path.Combine(outDir, "members.png"), new MembersView { DataContext = members });
 
+            // Fines: the imported library has none pending, so a couple are put
+            // on the throwaway copy to show the row — an overdue charge with its
+            // span, and a flat damage charge.
+            SeedFines();
+
+            var fines = new FinesViewModel();
+
+            SettleWhile(() => fines.Busy);
+
+            Shoot(Path.Combine(outDir, "fines.png"), new FinesView { DataContext = fines });
+
             // The pass, drawn exactly as the on-screen preview draws it — the
             // print document rendered to an image. Uses the real member with a
             // photograph so the face, the QR and the crest all show.
@@ -269,6 +280,48 @@ internal static class Program
             .FirstOrDefault();
 
         return unit ?? classified ?? any;
+    }
+
+    /// <summary>A pending overdue fine and a damage fine, for the Fines shot.</summary>
+    private static void SeedFines()
+    {
+        using var db = Workspace.Open();
+
+        var member = db.Members.OrderBy(m => m.MemberId).First();
+
+        var loanId = db.Loans
+            .Where(l => l.MemberId == member.MemberId)
+            .Select(l => (long?)l.LoanId)
+            .FirstOrDefault();
+
+        var today = DateOnly.FromDateTime(DateTime.Today);
+
+        db.Fines.RemoveRange(db.Fines.Where(f => f.MemberId == member.MemberId));
+        db.SaveChanges();
+
+        db.Fines.Add(new Fine
+        {
+            MemberId = member.MemberId,
+            LoanId = loanId,
+            Type = FineType.OVERDUE,
+            Amount = 40m,
+            DaysOverdue = 10,
+            CalculatedOn = today,
+            Status = FineStatus.PENDING,
+        });
+
+        db.Fines.Add(new Fine
+        {
+            MemberId = member.MemberId,
+            LoanId = loanId,
+            Type = FineType.DAMAGE,
+            Amount = 250m,
+            CalculatedOn = today,
+            Status = FineStatus.PENDING,
+            Remarks = "Cover detached, pages loose",
+        });
+
+        db.SaveChanges();
     }
 
     /// <summary>The single-card pass image, for the member who has a photo.</summary>

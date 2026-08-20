@@ -274,6 +274,17 @@ public record FineRow(Owing Owing)
 
     public string Raised => Owing.Fine.CalculatedOn.ToString("dd MMM yyyy");
 
+    /// <summary>
+    /// How late the book was when the charge was worked out — the web app's
+    /// "Days" column, said in words. Only an overdue charge has a span; a loss
+    /// or a damage is a flat sum and shows nothing here.
+    /// </summary>
+    public string Span => Owing.Fine.DaysOverdue is int d and > 0
+        ? d == 1 ? "1 day late" : $"{d} days late"
+        : "";
+
+    public bool HasSpan => Span.Length > 0;
+
     public string About => Owing.AboutABook
         ? $"{Owing.Title} · {Session.Preferences.Accession(Owing.Accession)}"
         : Owing.Fine.Remarks ?? "";
