@@ -60,17 +60,9 @@ public partial class MembersView : UserControl
     /// </summary>
     private async Task PrintAsync(IReadOnlyList<PassFor> passes)
     {
-        var found = passes
-            .Select(p => p with { PhotoPath = Workspace.CoverPath(p.PhotoPath) })
-            .ToList();
-
-        var document = new PassDocument(Letterheads.Current(), found);
-
-        var name = passes.Count == 1
-            ? $"Pass {passes[0].MembershipNo}.pdf"
-            : $"Library passes {DateTime.Now:yyyy-MM-dd}.pdf";
-
-        await Documents.ViewAsync(this, "Printing the passes", name,
-            path => document.GeneratePdf(path));
+        // One member: the pass is shown on screen first, and printed or saved
+        // from there. A whole intake goes to a printable sheet. Both live in
+        // PassPreview, which resolves the photographs on the way.
+        await PassPreview.ShowAsync(this, passes);
     }
 }

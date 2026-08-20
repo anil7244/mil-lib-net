@@ -5,10 +5,12 @@ using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Microsoft.EntityFrameworkCore;
 using MilLib.Core.Data;
+using MilLib.Core.Documents;
 using MilLib.Desktop;
 using MilLib.Desktop.Services;
 using MilLib.Desktop.ViewModels;
 using MilLib.Desktop.Views;
+using QuestPDF.Fluent;
 
 // A picture of a screen, taken without a person and without a login.
 //
@@ -29,6 +31,10 @@ internal static class Program
         var outDir = args.Length > 0 ? args[0] : AppContext.BaseDirectory;
 
         Directory.CreateDirectory(outDir);
+
+        // The same licence the application declares at startup — needed before
+        // QuestPDF will render the pass to an image.
+        QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
         AppBuilder.Configure<App>()
             .UsePlatformDetect()
@@ -104,6 +110,16 @@ internal static class Program
             SettleWhile(() => members.Who.Length == 0);
 
             Shoot(Path.Combine(outDir, "members.png"), new MembersView { DataContext = members });
+
+            // The pass, drawn exactly as the on-screen preview draws it — the
+            // print document rendered to an image. Uses the real member with a
+            // photograph so the face, the QR and the crest all show.
+            var passes = ShootPass();
+
+            if (passes is not null)
+            {
+                File.WriteAllBytes(Path.Combine(outDir, "pass-card.png"), passes);
+            }
 
             // ---- the administration group -----------------------------------
 
@@ -183,7 +199,7 @@ internal static class Program
         // bring them across. For a truthful shot they are pulled in here so the
         // resolver finds them; the running application would need the same files
         // in its data folder to show a face or a cover.
-        var pictures = @"D:\XAMPP\htdocs\mil-lib-sqlite\storage\app\public";
+        var pictures = @"D:\XAMPP\htdocs\mil-lib-sqlite\public\storage";
 
         if (Directory.Exists(pictures))
         {
@@ -247,6 +263,39 @@ internal static class Program
             .FirstOrDefault();
 
         return unit ?? classified ?? any;
+    }
+
+    /// <summary>The single-card pass image, for the member who has a photo.</summary>
+    private static byte[]? ShootPass()
+    {
+        using var db = Workspace.Open();
+
+        var withPhoto = db.Members
+            .Where(m => m.PhotoPath != null && m.PhotoPath != "")
+            .Select(m => m.MemberId)
+            .FirstOrDefault();
+
+        var id = withPhoto != 0
+            ? withPhoto
+            : db.Members.Select(m => m.MemberId).FirstOrDefault();
+
+        if (id == 0)
+        {
+            return null;
+        }
+
+        var passes = new Roll(db).PassesForAsync([id]).GetAwaiter().GetResult();
+
+        if (passes.Count == 0)
+        {
+            return null;
+        }
+
+        var member = passes[0] with { PhotoPath = Workspace.CoverPath(passes[0].PhotoPath) };
+
+        return new PassDocument(Letterheads.Current(), [member], singleCard: true)
+            .GenerateImages(new QuestPDF.Infrastructure.ImageGenerationSettings { RasterDpi = 300 })
+            .First();
     }
 
     // --------------------------------------------------------------- counter --

@@ -54,7 +54,7 @@ public record PassFor(
 /// a pass is lost, which makes every printed copy of the old one useless; a
 /// number cannot.
 /// </summary>
-public class PassDocument(Letterhead unit, IReadOnlyList<PassFor> members) : IDocument
+public class PassDocument(Letterhead unit, IReadOnlyList<PassFor> members, bool singleCard = false) : IDocument
 {
     /// <summary>CR80, in points. The size of a bank card.</summary>
     private const float CardWidth = 85.6f * 72f / 25.4f;
@@ -65,6 +65,23 @@ public class PassDocument(Letterhead unit, IReadOnlyList<PassFor> members) : IDo
 
     public void Compose(IDocumentContainer document)
     {
+        // One card on its own, at card size, for the on-screen preview and for
+        // a single reprint. The A4 sheet below is for printing a whole intake.
+        if (singleCard && members.Count == 1)
+        {
+            document.Page(page =>
+            {
+                page.Size(CardWidth, CardHeight, Unit.Point);
+                page.Margin(0);
+                page.DefaultTextStyle(t => t.FontSize(7).FontColor(PrintStyle.Ink).FontFamily(Fonts.Calibri));
+                page.Content()
+                    .Border(0.4f).BorderColor(PrintStyle.Rule)
+                    .Element(card => Card(card, members[0]));
+            });
+
+            return;
+        }
+
         document.Page(page =>
         {
             page.Size(PageSizes.A4);

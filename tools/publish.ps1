@@ -14,11 +14,11 @@
 param(
     [string] $Dotnet   = 'D:\dotnet10\dotnet.exe',
     [string] $Into     = 'publish\staging',
-    # Where the member photos and book covers live. The web application keeps
-    # them under its own public storage rather than beside the database, so a
-    # shipped build has to fetch them from there — or from app\data, once
-    # somebody has copied them in and made that the one place they live.
-    [string] $Pictures = 'D:\XAMPP\htdocs\mil-lib-sqlite\storage\app\public',
+    # Where the member photos and book covers live. The web application serves
+    # them from public\storage (what the database paths resolve against), so a
+    # shipped build fetches them from there — or from app\data, once somebody
+    # has copied them in and made that the one place they live.
+    [string] $Pictures = 'D:\XAMPP\htdocs\mil-lib-sqlite\public\storage',
     [switch] $Fresh
 )
 
