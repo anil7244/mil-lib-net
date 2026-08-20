@@ -1,4 +1,7 @@
 using System.Collections.ObjectModel;
+using Avalonia;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
@@ -8,11 +11,14 @@ using MilLib.Desktop.Services;
 namespace MilLib.Desktop.ViewModels;
 
 /// <summary>
-/// The operating picture for the day.
+/// The operating picture for the day, drawn rather than tabulated.
 ///
-/// Six figures and the overdue list, because that is what somebody opening the
-/// application at nine in the morning actually wants to know: what the library
-/// holds, what is out, and what should have come back and hasn't.
+/// The same questions a librarian opens the application to answer — how much of
+/// the collection is out, how much is on the shelf, what is late, how busy the
+/// week has been, what has just been catalogued — but shown as rings, a donut
+/// and a bar chart, so the shape of the day is read before any number is. The
+/// one list kept is the overdue one, because it is the only thing here that
+/// asks somebody to act today.
 /// </summary>
 public partial class DashboardViewModel : ViewModelBase
 {
@@ -23,19 +29,14 @@ public partial class DashboardViewModel : ViewModelBase
 
     [ObservableProperty] private int _titles;
     [ObservableProperty] private int _copies;
+    [ObservableProperty] private int _availableCopies;
     [ObservableProperty] private int _issued;
     [ObservableProperty] private int _overdue;
     [ObservableProperty] private int _members;
     [ObservableProperty] private int _issuedToday;
-    [ObservableProperty] private int _dueToday;
-    [ObservableProperty] private int _holdsReady;
-    [ObservableProperty] private int _holdsWaiting;
-    [ObservableProperty] private decimal _pendingFines;
+    [ObservableProperty] private int _issuedThisWeek;
 
     [ObservableProperty] private string _greeting = "";
-
-    /// <summary>The month heading over the mini calendar — "August 2026".</summary>
-    [ObservableProperty] private string _monthTitle = "";
 
     /// <summary>Who is signed in and to what — the same line the web console carries.</summary>
     [ObservableProperty] private string _standing = "";
@@ -47,30 +48,36 @@ public partial class DashboardViewModel : ViewModelBase
         Greeting = Welcome();
         Standing = WhoAndWhen();
 
-        BuildCalendar();
-
         _ = LoadAsync();
     }
 
     public bool HasProblem => Problem.Length > 0;
 
-    /// <summary>
-    /// The figures, as cards. A list rather than a fixed grid because which
-    /// figures appear depends on what this person may see and what the unit has
-    /// turned on — a counter clerk with no reservations feature gets a shorter
-    /// row, not a row with holes in it.
-    /// </summary>
-    public System.Collections.ObjectModel.ObservableCollection<StatCard> Stats { get; } = [];
+    /// <summary>The three rings: what is out, what is in, and how much is late.</summary>
+    public ObservableCollection<Gauge> Gauges { get; } = [];
+
+    /// <summary>The collection split by state, as the wedges of a donut.</summary>
+    public ObservableCollection<Wedge> Collection { get; } = [];
+
+    /// <summary>The last seven days of issues, as bars.</summary>
+    public ObservableCollection<Bar> Week { get; } = [];
+
+    /// <summary>The books most recently catalogued, with their covers.</summary>
+    public ObservableCollection<RecentBook> Recent { get; } = [];
 
     public List<OverdueRow> Overdues { get; } = [];
 
-    /// <summary>The month, as a grid of days with today marked.</summary>
-    public ObservableCollection<CalendarDay> Days { get; } = [];
-
-    /// <summary>The weekday headings over the calendar, starting Monday.</summary>
-    public string[] Weekdays { get; } = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
-
     public bool NothingOverdue => !Busy && Overdues.Count == 0;
+
+    /// <summary>The headline counts, spelt out under the rings.</summary>
+    public string TitlesText => $"{Titles:N0}";
+
+    public string CopiesText => $"{Copies:N0}";
+
+    public string MembersText => $"{Members:N0}";
+
+    public string WeekText => IssuedThisWeek == 1 ? "1 issue in the last 7 days"
+        : $"{IssuedThisWeek:N0} issues in the last 7 days";
 
     partial void OnProblemChanged(string value) => OnPropertyChanged(nameof(HasProblem));
 
@@ -93,41 +100,54 @@ public partial class DashboardViewModel : ViewModelBase
 
             Titles = await db.Titles.CountAsync();
             Copies = await db.Copies.CountAsync();
+            AvailableCopies = await db.Copies.CountAsync(c => c.Status == CopyStatus.AVAILABLE);
             Members = await db.Members.CountAsync(m => m.Status == MemberStatus.ACTIVE);
 
             // Read off the loans rather than off copy.status. The two agree
-            // almost always, and when they don't it is the loan that is right:
-            // a copy marked available with an open loan against it is a book
-            // somebody is holding.
+            // almost always, and when they don't it is the loan that is right.
             var open = db.Loans.Where(l => l.Status != LoanStatus.RETURNED);
 
             Issued = await open.CountAsync();
             Overdue = await open.CountAsync(l => l.DueOn < today);
-
             IssuedToday = await db.Loans.CountAsync(l => l.IssuedOn >= DateTime.Today);
-            DueToday = await open.CountAsync(l => l.DueOn == today);
 
-            if (Session.Has(Feature.Reservations))
+            var weekStart = DateTime.Today.AddDays(-6);
+
+            var recentIssues = await db.Loans
+                .Where(l => l.IssuedOn >= weekStart)
+                .Select(l => l.IssuedOn)
+                .ToListAsync();
+
+            IssuedThisWeek = recentIssues.Count;
+
+            BuildGauges();
+            BuildCollection();
+            BuildWeek(recentIssues);
+
+            Recent.Clear();
+
+            var recent = await db.Titles
+                .OrderByDescending(t => t.TitleId)
+                .Take(8)
+                .Select(t => new
+                {
+                    t.Name,
+                    t.CoverPath,
+                    Author = t.Authors.OrderBy(a => a.SortOrder).Select(a => a.Author!.Name).FirstOrDefault(),
+                })
+                .ToListAsync();
+
+            foreach (var r in recent)
             {
-                HoldsReady = await db.Reservations.CountAsync(r => r.Status == ReservationStatus.READY);
-                HoldsWaiting = await db.Reservations.CountAsync(r => r.Status == ReservationStatus.WAITING);
+                Recent.Add(new RecentBook(r.Name, r.Author ?? "", Workspace.CoverPath(r.CoverPath)));
             }
-
-            if (Session.Has(Feature.Fines))
-            {
-                PendingFines = await db.Fines
-                    .Where(f => f.Status == FineStatus.PENDING)
-                    .SumAsync(f => (decimal?)f.Amount) ?? 0m;
-            }
-
-            BuildCards();
 
             Overdues.Clear();
 
             var rows = await open
                 .Where(l => l.DueOn < today)
                 .OrderBy(l => l.DueOn)
-                .Take(12)
+                .Take(10)
                 .Select(l => new
                 {
                     l.DueOn,
@@ -149,6 +169,10 @@ public partial class DashboardViewModel : ViewModelBase
             }
 
             OnPropertyChanged(nameof(Overdues));
+            OnPropertyChanged(nameof(TitlesText));
+            OnPropertyChanged(nameof(CopiesText));
+            OnPropertyChanged(nameof(MembersText));
+            OnPropertyChanged(nameof(WeekText));
         }
         catch (Exception ex)
         {
@@ -165,53 +189,97 @@ public partial class DashboardViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// The figures worth showing this person, in the order a librarian asks for
-    /// them, each pointing at the screen where something can be done about it.
+    /// The three rings. Each is a fraction the eye can read before the number —
+    /// how much of the stock is out, how much is on the shelf, and what share of
+    /// the loans are overdue — with the count spelt out beneath it.
     /// </summary>
-    private void BuildCards()
+    private void BuildGauges()
     {
-        Stats.Clear();
+        Gauges.Clear();
 
-        var money = Session.Preferences;
+        var outRate = Copies > 0 ? (double)Issued / Copies : 0;
+        var inRate = Copies > 0 ? (double)AvailableCopies / Copies : 0;
+        var lateRate = Issued > 0 ? (double)Overdue / Issued : 0;
 
-        if (Session.Can(Ability.CatalogueView))
-        {
-            Add("BOOKS IN LIBRARY", $"{Titles:N0}", "separate works in the catalogue", "cool", "Books in Library");
-            Add("COPIES ON THE REGISTER", $"{Copies:N0}", "physical books, each with its own number", "cool", "Books in Library");
-        }
-
-        if (Session.Can(Ability.MembersView))
-        {
-            Add("MEMBERS", $"{Members:N0}", "currently enrolled and active", "info", "Members");
-        }
-
-        Add("OUT ON LOAN", $"{Issued:N0}", "books with somebody at the moment", "good", "");
-        Add("ISSUED TODAY", $"{IssuedToday:N0}", "handed over the counter since midnight", "good", "");
-
-        if (Session.Can(Ability.CirculationOperate))
-        {
-            Add("DUE BACK TODAY", $"{DueToday:N0}", "should come back over the counter today", "info", "Issue & Return");
-        }
-
-        if (Session.Has(Feature.Reservations) && Session.Can(Ability.ReservationsManage))
-        {
-            Add("HOLDS READY", $"{HoldsReady:N0}",
-                HoldsWaiting == 1 ? "1 more waiting in queue" : $"{HoldsWaiting} more waiting in queue",
-                HoldsReady > 0 ? "warn" : "cool", "Reservations");
-        }
-
-        if (Session.Has(Feature.Fines) && Session.Can(Ability.FinesManage))
-        {
-            Add("UNPAID FINES", money.Money(PendingFines), "settled at the counter",
-                PendingFines > 0 ? "bad" : "cool", "Fines");
-        }
-
-        Add("OVERDUE", $"{Overdue:N0}", "past their due date and still out",
-            Overdue > 0 ? "bad" : "cool", "");
+        Gauges.Add(new Gauge("IN CIRCULATION", outRate, "Accent",
+            $"{Issued:N0} of {Copies:N0}", "out with a member"));
+        Gauges.Add(new Gauge("ON THE SHELF", inRate, "Good",
+            $"{AvailableCopies:N0} of {Copies:N0}", "available to lend"));
+        Gauges.Add(new Gauge("OVERDUE", lateRate, Overdue > 0 ? "Bad" : "Good",
+            $"{Overdue:N0} of {Issued:N0}", "past the loan period"));
     }
 
-    private void Add(string label, string value, string note, string tone, string target) =>
-        Stats.Add(new StatCard(label, value, note, tone, target, _go));
+    /// <summary>
+    /// The whole collection as one donut: on the shelf, out on loan, overdue, and
+    /// everything else a copy can be — reserved, in transit, lost, withdrawn.
+    /// The wedges are worked out here so the drawing only has to place them.
+    /// </summary>
+    private void BuildCollection()
+    {
+        Collection.Clear();
+
+        var onLoanOk = Math.Max(0, Issued - Overdue);
+        var other = Math.Max(0, Copies - AvailableCopies - Issued);
+
+        var parts = new (string Label, int Count, string Colour)[]
+        {
+            ("On the shelf", AvailableCopies, "Good"),
+            ("Out on loan", onLoanOk, "Accent"),
+            ("Overdue", Overdue, "Bad"),
+            ("Other", other, "InkFaint"),
+        };
+
+        var total = Math.Max(1, parts.Sum(p => p.Count));
+        var start = 0.0;
+
+        foreach (var part in parts)
+        {
+            if (part.Count == 0)
+            {
+                continue;
+            }
+
+            var fraction = (double)part.Count / total;
+
+            Collection.Add(new Wedge(part.Label, part.Count, part.Colour, start, fraction));
+
+            start += fraction;
+        }
+    }
+
+    /// <summary>
+    /// The last seven days of issues as bars, tallest normalised to the busiest
+    /// day so a quiet week still shows its shape. Today's bar takes the accent.
+    /// </summary>
+    private void BuildWeek(List<DateTime> issues)
+    {
+        Week.Clear();
+
+        var byDay = new int[7];
+
+        foreach (var when in issues)
+        {
+            var index = (when.Date - DateTime.Today.AddDays(-6)).Days;
+
+            if (index is >= 0 and < 7)
+            {
+                byDay[index]++;
+            }
+        }
+
+        var peak = Math.Max(1, byDay.Max());
+
+        for (var i = 0; i < 7; i++)
+        {
+            var day = DateTime.Today.AddDays(-6 + i);
+
+            Week.Add(new Bar(
+                day.ToString("ddd").ToUpperInvariant(),
+                byDay[i],
+                Bar.MaxHeight * byDay[i] / peak,
+                i == 6));
+        }
+    }
 
     /// <summary>Role, clearance and the date — the console's context line.</summary>
     private static string WhoAndWhen()
@@ -223,37 +291,8 @@ public partial class DashboardViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// The current month as six weeks of days, Monday first, with the days that
-    /// belong to the months either side dimmed and today marked. Built once —
-    /// a calendar does not need a second hand.
-    /// </summary>
-    private void BuildCalendar()
-    {
-        var today = DateTime.Today;
-        var first = new DateTime(today.Year, today.Month, 1);
-
-        MonthTitle = first.ToString("MMMM yyyy");
-
-        // Monday is column zero; DayOfWeek has Sunday as zero, so it is shifted.
-        var lead = ((int)first.DayOfWeek + 6) % 7;
-        var start = first.AddDays(-lead);
-
-        Days.Clear();
-
-        for (var i = 0; i < 42; i++)
-        {
-            var day = start.AddDays(i);
-
-            Days.Add(new CalendarDay(
-                day.Day,
-                day.Date == today,
-                day.Month == today.Month));
-        }
-    }
-
-    /// <summary>
-    /// The time of day, said once. Not a personality — a small
-    /// acknowledgement that a person opened this, at an hour, to do a job.
+    /// The time of day, said once. Not a personality — a small acknowledgement
+    /// that a person opened this, at an hour, to do a job.
     /// </summary>
     private static string Welcome()
     {
@@ -266,58 +305,166 @@ public partial class DashboardViewModel : ViewModelBase
 }
 
 /// <summary>
-/// One figure on the dashboard.
+/// The arc geometry for the rings and the donut wedges.
 ///
-/// It carries where it goes as well as what it says, so the card is the button
-/// — a number somebody reads and then walks into, rather than a number beside a
-/// button that does the walking. A card with nowhere to go (a running total
-/// that is not itself a screen) simply is not clickable.
+/// Drawn as a real path — start at twelve o'clock, sweep clockwise by the
+/// fraction — rather than a dash on a circle, because a bound dash array did not
+/// take on the stroke. The path is worked out once, in the model, so the drawing
+/// only has to stroke it.
 /// </summary>
-public partial class StatCard : ObservableObject
+internal static class Arc
 {
-    private readonly Action<string> _go;
+    public static Geometry Ring(double diameter, double thickness, double startFraction, double lengthFraction)
+    {
+        var r = (diameter - thickness) / 2;
+        var c = diameter / 2;
 
-    public StatCard(string label, string value, string note, string tone, string target, Action<string> go)
+        // A full turn is drawn as a circle — an arc from a point back to itself
+        // is degenerate and vanishes.
+        if (lengthFraction >= 0.999)
+        {
+            return new EllipseGeometry(new Rect(c - r, c - r, r * 2, r * 2));
+        }
+
+        if (lengthFraction <= 0.0001)
+        {
+            return new StreamGeometry();
+        }
+
+        double Angle(double f) => (f * 360 - 90) * Math.PI / 180;
+
+        var a0 = Angle(startFraction);
+        var a1 = Angle(startFraction + lengthFraction);
+
+        var start = new Point(c + (r * Math.Cos(a0)), c + (r * Math.Sin(a0)));
+        var end = new Point(c + (r * Math.Cos(a1)), c + (r * Math.Sin(a1)));
+
+        var geometry = new StreamGeometry();
+
+        using (var ctx = geometry.Open())
+        {
+            ctx.BeginFigure(start, isFilled: false);
+            ctx.ArcTo(end, new Size(r, r), 0, lengthFraction > 0.5, SweepDirection.Clockwise);
+            ctx.EndFigure(isClosed: false);
+        }
+
+        return geometry;
+    }
+}
+
+/// <summary>
+/// One ring on the dashboard: a fraction shown as an arc, the percentage in the
+/// middle and a count beneath.
+/// </summary>
+public sealed class Gauge
+{
+    /// <summary>The ring's fixed size, shared with the drawing so the maths agrees.</summary>
+    public const double Diameter = 132;
+
+    public const double Thickness = 12;
+
+    public Gauge(string label, double fraction, string colour, string count, string note)
     {
         Label = label;
-        Value = value;
+        Fraction = Math.Clamp(fraction, 0, 1);
+        Colour = colour;
+        Count = count;
         Note = note;
-        Tone = tone;
-        Target = target;
-        _go = go;
+        Percent = $"{Math.Round(Fraction * 100)}%";
+
+        Track = Arc.Ring(Diameter, Thickness, 0, 1);
+        Value = Arc.Ring(Diameter, Thickness, 0, Fraction);
     }
 
     public string Label { get; }
 
-    public string Value { get; }
+    public double Fraction { get; }
+
+    public string Percent { get; }
+
+    public string Count { get; }
 
     public string Note { get; }
 
-    /// <summary>The card class — cool / info / good / warn / bad — for its tint.</summary>
-    public string Tone { get; }
+    /// <summary>The palette key the arc is drawn in — Accent, Good, Bad.</summary>
+    public string Colour { get; }
 
-    public bool IsCool => Tone == "cool";
+    /// <summary>The full faint ring behind, and the lit arc over it.</summary>
+    public Geometry Track { get; }
 
-    public bool IsInfo => Tone == "info";
+    public Geometry Value { get; }
+}
 
-    public bool IsGood => Tone == "good";
+/// <summary>One wedge of the collection donut, from where the last one ended.</summary>
+public sealed class Wedge
+{
+    public const double Diameter = 168;
 
-    public bool IsWarn => Tone == "warn";
+    public const double Thickness = 22;
 
-    public bool IsBad => Tone == "bad";
-
-    public string Target { get; }
-
-    public bool CanOpen => Target.Length > 0;
-
-    [RelayCommand]
-    private void Open()
+    public Wedge(string label, int count, string colour, double start, double fraction)
     {
-        if (CanOpen)
+        Label = label;
+        Count = count;
+        Colour = colour;
+
+        // A hair of a gap between wedges so they read as separate slices.
+        var gap = fraction > 0.02 ? 0.006 : 0;
+
+        Value = Arc.Ring(Diameter, Thickness, start, Math.Max(0, fraction - gap));
+    }
+
+    public string Label { get; }
+
+    public int Count { get; }
+
+    public string Colour { get; }
+
+    public Geometry Value { get; }
+}
+
+/// <summary>One day's issues, as a bar.</summary>
+public sealed class Bar(string day, int count, double height, bool today)
+{
+    public const double MaxHeight = 96;
+
+    public string Day { get; } = day;
+
+    public int Count { get; } = count;
+
+    /// <summary>The bar's height in pixels, the busiest day filling the chart.</summary>
+    public double Height { get; } = Math.Max(count > 0 ? 4 : 2, height);
+
+    public bool IsToday { get; } = today;
+
+    public string CountText => count.ToString();
+}
+
+/// <summary>A recently catalogued book, with its cover loaded on demand.</summary>
+public sealed class RecentBook(string title, string author, string? coverFile)
+{
+    private Bitmap? _cover;
+    private bool _loaded;
+
+    public string Title { get; } = title;
+
+    public string Author { get; } = author;
+
+    public Bitmap? Cover
+    {
+        get
         {
-            _go(Target);
+            if (!_loaded)
+            {
+                _loaded = true;
+                _cover = Pictures.Load(coverFile);
+            }
+
+            return _cover;
         }
     }
+
+    public bool HasCover => Cover is not null;
 }
 
 /// <summary>One line of the overdue list.</summary>
@@ -326,10 +473,4 @@ public record OverdueRow(string Member, string Book, string Accession, DateOnly 
     public string DueText => Due.ToString("dd MMM yyyy");
 
     public string DaysText => Days == 1 ? "1 day" : $"{Days} days";
-}
-
-/// <summary>One square on the mini calendar.</summary>
-public record CalendarDay(int Day, bool IsToday, bool InMonth)
-{
-    public string Text => Day.ToString();
 }

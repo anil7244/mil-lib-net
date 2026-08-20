@@ -203,3 +203,34 @@ public sealed class AreEqual : IMultiValueConverter
         values.Count == 2
         && string.Equals(values[0]?.ToString(), values[1]?.ToString(), StringComparison.Ordinal);
 }
+
+/// <summary>
+/// A palette key turned into its brush, looked up by name at the moment it is
+/// drawn.
+///
+/// The dashboard's rings and donut wedges carry the colour they should be drawn
+/// in as a word — Accent, Good, Bad — rather than a fixed brush, so the same
+/// list draws right on the light theme and the dark one. Resolved through the
+/// application resources, the way the rest of the palette is.
+/// </summary>
+public sealed class Hue : IValueConverter
+{
+    public static readonly Hue Brush = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var key = value?.ToString();
+
+        if (string.IsNullOrEmpty(key))
+        {
+            return null;
+        }
+
+        return Avalonia.Application.Current?.Resources.TryGetResource(key, null, out var brush) == true
+            ? brush
+            : null;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        Avalonia.Data.BindingOperations.DoNothing;
+}

@@ -4,190 +4,282 @@
              xmlns:conv="using:MilLib.Desktop"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="760"
              x:Class="MilLib.Desktop.Views.DashboardView"
              x:DataType="vm:DashboardViewModel">
 
-<UserControl.Styles>
-        <!-- One day on the mini calendar. Today gets an accent disc; the days
-             from the months either side are dimmed so the current month reads
-             as one block. -->
-        <Style Selector="Border.calday">
-            <Setter Property="Height" Value="34" />
-            <Setter Property="CornerRadius" Value="17" />
-            <Setter Property="Margin" Value="1" />
+    <UserControl.Styles>
+        <!-- The bars of the week chart: the unit's accent, the busiest days
+             standing out because the quieter ones are dropped back in weight,
+             and today's bar at full strength. -->
+        <Style Selector="Rectangle.bar">
+            <Setter Property="Fill" Value="{DynamicResource Accent}" />
+            <Setter Property="Opacity" Value="0.32" />
         </Style>
-        <Style Selector="Border.calday.today">
-            <Setter Property="Background" Value="{DynamicResource Accent}" />
+        <Style Selector="Rectangle.bar.today">
+            <Setter Property="Opacity" Value="1" />
         </Style>
-        <Style Selector="Border.calday.today TextBlock">
-            <Setter Property="Foreground" Value="#FFFFFF" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-        </Style>
-        <Style Selector="Border.calday.dim TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource InkFaint}" />
-            <Setter Property="Opacity" Value="0.5" />
+
+        <!-- A recently-catalogued cover, lifted a little off the page. -->
+        <Style Selector="Border.mini">
+            <Setter Property="BoxShadow" Value="0 3 10 0 #22000000" />
         </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,Auto,*">
+    <Grid RowDefinitions="Auto,*">
 
         <!-- Who, and when. One line, and then out of the way. -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,20">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,18">
             <StackPanel Grid.Column="0" Spacing="3">
                 <TextBlock Text="{Binding Greeting}" Classes="h2" />
                 <TextBlock Text="{Binding Standing}" Classes="faint" />
             </StackPanel>
 
-            <Button Grid.Column="1" Classes="quiet"
-                    Content="Refresh"
-                    VerticalAlignment="Center"
-                    Command="{Binding RefreshCommand}" />
+            <Button Grid.Column="1" Classes="quiet" Content="Refresh"
+                    VerticalAlignment="Center" Command="{Binding RefreshCommand}" />
         </Grid>
 
-        <Border Grid.Row="0" Classes="card bad" IsVisible="{Binding HasProblem}" Padding="18,14">
+        <Border Grid.Row="0" Classes="card bad" IsVisible="{Binding HasProblem}" Padding="18,14"
+                VerticalAlignment="Top" Margin="0,64,0,0">
             <TextBlock Text="{Binding Problem}" TextWrapping="Wrap"
                        Foreground="{DynamicResource Bad}" />
         </Border>
 
-        <!-- A clock that moves and the month at a glance — the two things a
-             screen left open on a counter all day should carry. -->
-        <!--
-             The figures.
+        <Grid Grid.Row="1" RowDefinitions="Auto,14,*" ColumnDefinitions="*,16,360"
+              IsVisible="{Binding !HasProblem}">
 
-             Six, in the order a librarian would ask for them: what we have,
-             what is out, what is late, who we lend to. Each one is tinted for
-             what kind of figure it is, so the row can be read by colour before
-             it is read by word — and the one that means trouble is the only red
-             thing on the screen.
-        -->
-        <!--
-             The figures.
+            <!-- ===================================================== the rings -->
+            <Border Grid.Row="0" Grid.Column="0" Classes="card" Padding="20,18">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="Circulation at a glance" Classes="h2" />
 
-             Built from the view model, because which ones appear depends on
-             what this person may see and what the unit has switched on. Each is
-             a card that is also a way in: the number is the button, and clicking
-             the figure walks to the screen it is about. Those that are running
-             totals rather than screens of their own are plain.
-        -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,300" Margin="0,0,0,18">
-        <ItemsControl Grid.Column="0" ItemsSource="{Binding Stats}" Margin="0,0,16,0">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Columns="3" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="vm:StatCard">
-                    <Border Classes="card tile" Margin="5" Padding="20"
-                            Classes.cool="{Binding IsCool}"
-                            Classes.info="{Binding IsInfo}"
-                            Classes.good="{Binding IsGood}"
-                            Classes.warn="{Binding IsWarn}"
-                            Classes.bad="{Binding IsBad}"
-                            Classes.open="{Binding CanOpen}"
-                            Tapped="OnStatTapped">
-                        <StackPanel Spacing="5">
-                            <TextBlock Text="{Binding Label}" Classes="label" />
-                            <TextBlock Text="{Binding Value}" Classes="figure"
-                                       Foreground="{Binding IsBad, Converter={x:Static conv:Swatch.BadOrPlain}}" />
-                            <TextBlock Text="{Binding Note}" Classes="faint" TextWrapping="Wrap" />
-                        </StackPanel>
-                    </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-
-            <Border Grid.Column="1" Classes="card" Padding="18,18" VerticalAlignment="Stretch">
-                <StackPanel VerticalAlignment="Center" Spacing="10">
-                    <TextBlock Text="{Binding MonthTitle}" FontWeight="SemiBold" FontSize="15"
-                               HorizontalAlignment="Center" />
-
-                    <ItemsControl ItemsSource="{Binding Weekdays}">
+                    <ItemsControl ItemsSource="{Binding Gauges}">
                         <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate><UniformGrid Columns="7" /></ItemsPanelTemplate>
+                            <ItemsPanelTemplate><UniformGrid Columns="3" /></ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding}" Classes="faint" FontSize="10.5"
-                                           HorizontalAlignment="Center" Margin="0,0,0,2" />
+                            <DataTemplate DataType="vm:Gauge">
+                                <StackPanel Spacing="12" Margin="6,0">
+
+                                    <Panel Width="132" Height="132" HorizontalAlignment="Center">
+                                        <!-- the track, then the lit arc over it -->
+                                        <Path Data="{Binding Track}"
+                                              Stroke="{DynamicResource SurfaceSunken}"
+                                              StrokeThickness="12" />
+                                        <Path Data="{Binding Value}"
+                                              Stroke="{Binding Colour, Converter={x:Static conv:Hue.Brush}}"
+                                              StrokeThickness="12"
+                                              StrokeLineCap="Round" />
+                                        <TextBlock Text="{Binding Percent}"
+                                                   FontSize="26" FontWeight="Bold"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Foreground="{Binding Colour, Converter={x:Static conv:Hue.Brush}}" />
+                                    </Panel>
+
+                                    <StackPanel Spacing="2" HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding Label}" Classes="label"
+                                                   HorizontalAlignment="Center" />
+                                        <TextBlock Text="{Binding Count}" FontWeight="SemiBold"
+                                                   HorizontalAlignment="Center" />
+                                        <TextBlock Text="{Binding Note}" Classes="faint" FontSize="11"
+                                                   HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <ItemsControl ItemsSource="{Binding Days}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate><UniformGrid Columns="7" /></ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
+                    <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                    <!-- the headline counts, spelt out under the rings -->
+                    <Grid ColumnDefinitions="*,*,*">
+                        <StackPanel Grid.Column="0" Spacing="1" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding TitlesText}" Classes="figure" FontSize="22"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Text="TITLES" Classes="label" HorizontalAlignment="Center" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="1" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding CopiesText}" Classes="figure" FontSize="22"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Text="COPIES" Classes="label" HorizontalAlignment="Center" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="1" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding MembersText}" Classes="figure" FontSize="22"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Text="MEMBERS" Classes="label" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- ================================================= the collection -->
+            <Border Grid.Row="0" Grid.Column="2" Classes="card" Padding="20,18">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="The collection" Classes="h2" />
+
+                    <Panel Width="168" Height="168" HorizontalAlignment="Center">
+                        <Ellipse Width="168" Height="168"
+                                 Stroke="{DynamicResource SurfaceSunken}" StrokeThickness="22" />
+
+                        <ItemsControl ItemsSource="{Binding Collection}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><Panel /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="vm:Wedge">
+                                    <Path Data="{Binding Value}"
+                                          Stroke="{Binding Colour, Converter={x:Static conv:Hue.Brush}}"
+                                          StrokeThickness="22" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="0">
+                            <TextBlock Text="{Binding CopiesText}" FontSize="30" FontWeight="Bold"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Text="COPIES" Classes="label" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Panel>
+
+                    <ItemsControl ItemsSource="{Binding Collection}">
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="vm:CalendarDay">
-                                <Border Classes="calday"
-                                        Classes.today="{Binding IsToday}"
-                                        Classes.dim="{Binding !InMonth}">
-                                    <TextBlock Text="{Binding Text}" HorizontalAlignment="Center"
-                                               VerticalAlignment="Center" FontSize="12.5" />
-                                </Border>
+                            <DataTemplate DataType="vm:Wedge">
+                                <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4">
+                                    <Ellipse Grid.Column="0" Width="11" Height="11" VerticalAlignment="Center"
+                                             Fill="{Binding Colour, Converter={x:Static conv:Hue.Brush}}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Label}" Margin="10,0,0,0"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Count}" Classes="mono"
+                                               FontWeight="SemiBold" VerticalAlignment="Center" />
+                                </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
             </Border>
-        </Grid>
 
-        <!--
-             What should have come back and hasn't.
+            <!-- ================================================== the overdue list -->
+            <Border Grid.Row="2" Grid.Column="0" Classes="card" Padding="0" ClipToBounds="True">
+                <Grid RowDefinitions="Auto,Auto,*">
+                    <TextBlock Grid.Row="0" Text="Overdue — oldest first" Classes="h2"
+                               Margin="20,16,20,10" />
 
-             The only list on this screen, because it is the only one that asks
-             somebody to do something today. Oldest first — the book that is
-             three months late matters more than the one that is a day late.
-        -->
-        <Border Grid.Row="2" Classes="card" Padding="0" ClipToBounds="True">
-            <Grid RowDefinitions="Auto,*">
+                    <Border Grid.Row="1" Classes="tableHead">
+                        <Grid ColumnDefinitions="*,2*,140,90" Margin="20,0">
+                            <TextBlock Grid.Column="0" Text="MEMBER" Classes="label" />
+                            <TextBlock Grid.Column="1" Text="BOOK" Classes="label" />
+                            <TextBlock Grid.Column="2" Text="ACCESSION NO" Classes="label" />
+                            <TextBlock Grid.Column="3" Text="LATE BY" Classes="label" />
+                        </Grid>
+                    </Border>
 
-                <Border Grid.Row="0" Classes="tableHead">
-                    <Grid ColumnDefinitions="*,2*,150,110,90" Margin="20,0">
-                        <TextBlock Grid.Column="0" Text="MEMBER" Classes="label" />
-                        <TextBlock Grid.Column="1" Text="BOOK" Classes="label" />
-                        <TextBlock Grid.Column="2" Text="ACCESSION NO" Classes="label" />
-                        <TextBlock Grid.Column="3" Text="DUE" Classes="label" />
-                        <TextBlock Grid.Column="4" Text="LATE BY" Classes="label" />
-                    </Grid>
-                </Border>
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <ItemsControl ItemsSource="{Binding Overdues}" Classes="rows">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="vm:OverdueRow">
+                                        <Grid ColumnDefinitions="*,2*,140,90" Margin="20,10">
+                                            <TextBlock Grid.Column="0" Text="{Binding Member}"
+                                                       FontWeight="Medium" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Book}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Column="2" Text="{Binding Accession}" Classes="mono" />
+                                            <TextBlock Grid.Column="3" Text="{Binding DaysText}"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource Bad}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
 
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <StackPanel>
-                        <ItemsControl ItemsSource="{Binding Overdues}" Classes="rows">
+                            <StackPanel IsVisible="{Binding NothingOverdue}"
+                                        Margin="0,48" Spacing="8" HorizontalAlignment="Center">
+                                <TextBlock Text="Nothing is overdue" Classes="h2"
+                                           HorizontalAlignment="Center" />
+                                <TextBlock Classes="faint" HorizontalAlignment="Center"
+                                           Text="Every book that is out is still within its loan period." />
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- ============================== the week, and what was just added -->
+            <Grid Grid.Row="2" Grid.Column="2" RowDefinitions="Auto,14,*">
+
+                <!-- issues this week -->
+                <Border Grid.Row="0" Classes="card" Padding="20,16">
+                    <StackPanel Spacing="12">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Issues this week" Classes="h2" />
+                            <TextBlock Text="{Binding WeekText}" Classes="faint" FontSize="11" />
+                        </StackPanel>
+
+                        <ItemsControl ItemsSource="{Binding Week}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><UniformGrid Rows="1" /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="vm:OverdueRow">
-                                    <Grid ColumnDefinitions="*,2*,150,110,90" Margin="20,11">
-                                        <TextBlock Grid.Column="0" Text="{Binding Member}"
-                                                   FontWeight="Medium"
-                                                   TextTrimming="CharacterEllipsis" />
-                                        <TextBlock Grid.Column="1" Text="{Binding Book}"
-                                                   TextTrimming="CharacterEllipsis" />
-                                        <TextBlock Grid.Column="2" Text="{Binding Accession}" Classes="mono" />
-                                        <TextBlock Grid.Column="3" Text="{Binding DueText}" Classes="faint" />
-                                        <TextBlock Grid.Column="4" Text="{Binding DaysText}"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource Bad}" />
-                                    </Grid>
+                                <DataTemplate DataType="vm:Bar">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="{Binding CountText}" FontSize="10"
+                                                   Classes="faint" HorizontalAlignment="Center" />
+                                        <Border Height="96" VerticalAlignment="Bottom">
+                                            <Rectangle Classes="bar" Classes.today="{Binding IsToday}"
+                                                       Width="20" RadiusX="4" RadiusY="4"
+                                                       Height="{Binding Height}"
+                                                       VerticalAlignment="Bottom"
+                                                       HorizontalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Text="{Binding Day}" FontSize="10"
+                                                   Classes="faint" HorizontalAlignment="Center" />
+                                    </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-
-                        <!-- A library with nothing overdue is a library doing
-                             well, and should be told so rather than shown an
-                             empty rectangle. -->
-                        <StackPanel IsVisible="{Binding NothingOverdue}"
-                                    Margin="0,54" Spacing="8" HorizontalAlignment="Center">
-                            <TextBlock Text="Nothing is overdue" Classes="h2"
-                                       HorizontalAlignment="Center" />
-                            <TextBlock Classes="faint" HorizontalAlignment="Center"
-                                       Text="Every book that is out is still within its loan period." />
-                        </StackPanel>
                     </StackPanel>
-                </ScrollViewer>
+                </Border>
+
+                <!-- recently catalogued -->
+                <Border Grid.Row="2" Classes="card" Padding="20,16" ClipToBounds="True">
+                    <Grid RowDefinitions="Auto,*">
+                        <TextBlock Grid.Row="0" Text="Recently catalogued" Classes="h2"
+                                   Margin="0,0,0,12" />
+
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding Recent}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="vm:RecentBook">
+                                        <StackPanel Width="78" Spacing="5" Margin="0,0,10,12">
+                                            <Border Classes="mini" Height="104" CornerRadius="4"
+                                                    ClipToBounds="True"
+                                                    Background="{DynamicResource SurfaceSunken}"
+                                                    BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                                <Panel>
+                                                    <Path Data="{StaticResource IconBooks}"
+                                                          Stroke="{DynamicResource InkFaint}" StrokeThickness="1.4"
+                                                          Width="18" Height="18" Stretch="Uniform"
+                                                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                          IsVisible="{Binding !HasCover}" />
+                                                    <Image Source="{Binding Cover}" Stretch="UniformToFill"
+                                                           IsVisible="{Binding HasCover}"
+                                                           RenderOptions.BitmapInterpolationMode="HighQuality" />
+                                                </Panel>
+                                            </Border>
+                                            <TextBlock Text="{Binding Title}" FontSize="10.5" LineHeight="13"
+                                                       TextWrapping="Wrap" MaxLines="2"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
             </Grid>
-        </Border>
+        </Grid>
     </Grid>
 </UserControl>
