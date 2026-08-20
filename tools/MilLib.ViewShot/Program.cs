@@ -99,6 +99,21 @@ internal static class Program
 
             Shoot(Path.Combine(outDir, "subjects.png"), new SubjectsView { DataContext = subjects });
 
+            // Stock check: none in the imported library, so one is started on the
+            // throwaway copy and a handful of shelves scanned, so the scan panel
+            // and its running counts can be shown.
+            SeedStockCheck();
+
+            var stock = new StockViewModel();
+
+            SettleWhile(() => stock.Busy);
+
+            stock.Selected = stock.Checks.FirstOrDefault();
+
+            SettleWhile(() => !stock.IsOpen);
+
+            Shoot(Path.Combine(outDir, "stock.png"), new StockView { DataContext = stock });
+
             var labels = new LabelsViewModel();
 
             SettleWhile(() => labels.Busy);
@@ -373,6 +388,33 @@ internal static class Program
         }
 
         db.SaveChanges();
+    }
+
+    /// <summary>An in-progress stock check with a few shelves scanned, for the shot.</summary>
+    private static void SeedStockCheck()
+    {
+        using var db = Workspace.Open();
+
+        db.StockVerificationScans.RemoveRange(db.StockVerificationScans);
+        db.StockVerifications.RemoveRange(db.StockVerifications);
+        db.SaveChanges();
+
+        var stock = new StockCheck(db);
+        var today = DateOnly.FromDateTime(DateTime.Today);
+
+        var check = stock.StartAsync("Stock Verification 2026", Session.User!.UserId, null, today)
+            .GetAwaiter().GetResult();
+
+        // Scan the first several copies as if walking the shelf, and one number
+        // that is not in the register, so a stranger shows too.
+        var barcodes = db.Copies.OrderBy(c => c.CopyId).Select(c => c.Barcode).Take(40).ToList();
+
+        foreach (var barcode in barcodes)
+        {
+            stock.ScanAsync(check, barcode, Session.User.UserId).GetAwaiter().GetResult();
+        }
+
+        stock.ScanAsync(check, "9999-NOT-A-BOOK", Session.User.UserId).GetAwaiter().GetResult();
     }
 
     /// <summary>A sheet of pocket labels (barcode and QR), as an image.</summary>
