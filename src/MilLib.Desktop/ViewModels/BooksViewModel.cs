@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
@@ -173,6 +174,7 @@ public partial class BooksViewModel : ViewModelBase
                     t.MaterialType,
                     t.PubYear,
                     t.IsUnitPublication,
+                    t.CoverPath,
                     t.SecurityClass,
                     Publisher = t.Publisher!.Name,
                     Authors = t.Authors.OrderBy(a => a.SortOrder).Select(a => a.Author!.Name).ToList(),
@@ -202,7 +204,8 @@ public partial class BooksViewModel : ViewModelBase
                     t.IsUnitPublication,
                     t.SecurityClass,
                     t.Copies,
-                    t.Available))
+                    t.Available,
+                    Workspace.CoverPath(t.CoverPath)))
             ];
 
             Show(_all);
@@ -285,8 +288,39 @@ public record BookRow(
     bool UnitPublication,
     SecurityClass Classification,
     int Copies,
-    int Available)
+    int Available,
+    string? CoverFile = null)
 {
+    private Bitmap? _cover;
+    private bool _coverLoaded;
+
+    /// <summary>
+    /// The cover, loaded the first time the row is drawn — the list virtualises,
+    /// so only the dozen on screen ever read a file. Null when the book has none.
+    /// </summary>
+    public Bitmap? Cover
+    {
+        get
+        {
+            if (!_coverLoaded)
+            {
+                _coverLoaded = true;
+                _cover = Pictures.Load(CoverFile);
+            }
+
+            return _cover;
+        }
+    }
+
+    public bool HasCover => Cover is not null;
+
+    /// <summary>What kind of thing it is and when — the subline under the title.</summary>
+    public string Kind => string.Join("  ·  ", new[]
+    {
+        Material,
+        Year?.ToString(),
+    }.Where(s => !string.IsNullOrWhiteSpace(s)));
+
     /// <summary>
     /// What sits under the title: what kind of thing it is, who put it out, and
     /// when — the web application's material-and-imprint subline, said in one

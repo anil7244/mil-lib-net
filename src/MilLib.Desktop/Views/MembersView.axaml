@@ -69,11 +69,13 @@
                              beside it the name was squeezed to nothing. It sits
                              under the name instead, where there was already
                              room. -->
-                        <Grid ColumnDefinitions="*,110,110,64" Margin="20,0">
+                        <Grid ColumnDefinitions="*,110,120,110,90,58" Margin="20,0">
                             <TextBlock Grid.Column="0" Text="MEMBER" Classes="label" />
-                            <TextBlock Grid.Column="1" Text="NUMBER" Classes="label" />
-                            <TextBlock Grid.Column="2" Text="STANDING" Classes="label" />
-                            <TextBlock Grid.Column="3" Text="OUT" Classes="label" />
+                            <TextBlock Grid.Column="1" Text="MEMBERSHIP" Classes="label" />
+                            <TextBlock Grid.Column="2" Text="CATEGORY" Classes="label" />
+                            <TextBlock Grid.Column="3" Text="CLEARANCE" Classes="label" />
+                            <TextBlock Grid.Column="4" Text="STANDING" Classes="label" />
+                            <TextBlock Grid.Column="5" Text="OUT" Classes="label" />
                         </Grid>
                     </Border>
 
@@ -83,19 +85,22 @@
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="vm:MemberRow">
-                                <Grid ColumnDefinitions="*,110,110,64" Margin="20,10">
+                                <Grid ColumnDefinitions="*,110,120,110,90,58" Margin="20,9">
                                     <Grid Grid.Column="0" ColumnDefinitions="Auto,*" Margin="0,0,14,0">
-                                        <!-- The face, the way the web list shows
-                                             it. A member with no photo carries
-                                             their initials, never an empty box. -->
-                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18"
+                                        <!-- The face. Their initials when there
+                                             is no photo, never an empty box.
+                                             Clicking it opens the photograph at
+                                             full size. -->
+                                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="20"
                                                 Margin="0,0,12,0" ClipToBounds="True"
                                                 VerticalAlignment="Center"
+                                                Cursor="Hand" Tapped="OnPhotoTapped"
                                                 Background="{DynamicResource SurfaceSunken}"
-                                                BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                                BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                                                ToolTip.Tip="Click to enlarge">
                                             <Panel>
                                                 <TextBlock Text="{Binding Initials}" Classes="faint"
-                                                           FontSize="12" FontWeight="SemiBold"
+                                                           FontSize="13" FontWeight="SemiBold"
                                                            HorizontalAlignment="Center" VerticalAlignment="Center"
                                                            IsVisible="{Binding !HasPhoto}" />
                                                 <Image Source="{Binding Photo}" Stretch="UniformToFill"
@@ -106,6 +111,7 @@
                                             <TextBlock Text="{Binding Name}" FontWeight="Medium"
                                                        TextTrimming="CharacterEllipsis" />
                                             <TextBlock Text="{Binding Belonging}" Classes="faint" FontSize="11"
+                                                       IsVisible="{Binding Belonging, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                                        TextTrimming="CharacterEllipsis" />
                                         </StackPanel>
                                     </Grid>
@@ -113,14 +119,23 @@
                                     <TextBlock Grid.Column="1" Text="{Binding Number}" Classes="mono"
                                                VerticalAlignment="Center" />
 
-                                    <!-- Only an unusual standing is coloured. A
-                                         column of green "Active" pills teaches
-                                         the eye to skip the column entirely. -->
-                                    <TextBlock Grid.Column="2" Text="{Binding StatusText}"
+                                    <TextBlock Grid.Column="2" Text="{Binding Category}"
+                                               VerticalAlignment="Center" Classes="faint"
+                                               Margin="0,0,10,0" TextTrimming="CharacterEllipsis" />
+
+                                    <!-- Clearance coloured only when above
+                                         unclassified, so the eye is drawn to the
+                                         members who may see restricted material. -->
+                                    <TextBlock Grid.Column="3" Text="{Binding Clearance}"
+                                               VerticalAlignment="Center"
+                                               Foreground="{Binding IsClassified, Converter={x:Static conv:Swatch.BadOrPlain}}" />
+
+                                    <!-- Only an unusual standing is coloured. -->
+                                    <TextBlock Grid.Column="4" Text="{Binding StatusText}"
                                                VerticalAlignment="Center"
                                                Foreground="{Binding IsActive, Converter={x:Static conv:Swatch.PlainOrBad}}" />
 
-                                    <TextBlock Grid.Column="3" Text="{Binding HeldText}"
+                                    <TextBlock Grid.Column="5" Text="{Binding HeldText}"
                                                VerticalAlignment="Center"
                                                FontWeight="Medium"
                                                IsVisible="{Binding HoldsAnything}" />

@@ -54,13 +54,15 @@
             <Grid RowDefinitions="Auto,*">
 
                 <Border Grid.Row="0" Classes="tableHead">
-                    <Grid ColumnDefinitions="3*,2*,120,140,110,110" Margin="20,0">
-                        <TextBlock Grid.Column="0" Text="TITLE" Classes="label" />
-                        <TextBlock Grid.Column="1" Text="AUTHOR" Classes="label" />
-                        <TextBlock Grid.Column="2" Text="LANGUAGE" Classes="label" />
-                        <TextBlock Grid.Column="3" Text="ACCESSION NO" Classes="label" />
-                        <TextBlock Grid.Column="4" Text="CALL NO" Classes="label" />
-                        <TextBlock Grid.Column="5" Text="COPIES" Classes="label" />
+                    <Grid ColumnDefinitions="54,2.8*,1.8*,1.4*,90,130,90,110" Margin="20,0">
+                        <TextBlock Grid.Column="0" Text="COVER" Classes="label" />
+                        <TextBlock Grid.Column="1" Text="TITLE" Classes="label" />
+                        <TextBlock Grid.Column="2" Text="AUTHOR" Classes="label" />
+                        <TextBlock Grid.Column="3" Text="PUBLISHER" Classes="label" />
+                        <TextBlock Grid.Column="4" Text="LANGUAGE" Classes="label" />
+                        <TextBlock Grid.Column="5" Text="ACCESSION NO" Classes="label" />
+                        <TextBlock Grid.Column="6" Text="CALL NO" Classes="label" />
+                        <TextBlock Grid.Column="7" Text="COPIES" Classes="label" />
                     </Grid>
                 </Border>
 
@@ -78,23 +80,44 @@
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemTemplate>
                         <DataTemplate DataType="vm:BookRow">
-                            <Grid ColumnDefinitions="3*,2*,120,140,110,110" Margin="20,9">
+                            <Grid ColumnDefinitions="54,2.8*,1.8*,1.4*,90,130,90,110" Margin="20,8">
 
-                                <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,14,0">
+                                <!-- The cover, small. It says at a glance which
+                                     books have one and which are still blank,
+                                     and a click opens it at full size. A book
+                                     with none shows a spine mark, not an empty
+                                     grey box. -->
+                                <Border Grid.Column="0" Width="34" Height="46"
+                                        Margin="0,0,14,0" CornerRadius="3"
+                                        ClipToBounds="True" VerticalAlignment="Center"
+                                        HorizontalAlignment="Left"
+                                        Cursor="Hand" Tapped="OnCoverTapped"
+                                        Background="{DynamicResource SurfaceSunken}"
+                                        BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                                        ToolTip.Tip="Click to enlarge">
+                                    <Panel>
+                                        <Path Classes="icon" Data="{StaticResource IconBooks}"
+                                              Stroke="{DynamicResource InkFaint}"
+                                              Width="14" Height="14"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              IsVisible="{Binding !HasCover}" />
+                                        <Image Source="{Binding Cover}" Stretch="UniformToFill"
+                                               IsVisible="{Binding HasCover}" />
+                                    </Panel>
+                                </Border>
+
+                                <StackPanel Grid.Column="1" Spacing="2" Margin="0,0,14,0"
+                                            VerticalAlignment="Center">
                                     <Grid ColumnDefinitions="Auto,Auto,*">
                                         <!-- A classified book says so on the row
                                              itself. Finding out at the counter,
                                              with the member standing there, is
-                                             finding out too late. -->
+                                             too late. -->
                                         <Border Grid.Column="0" Classes="pill warn"
                                                 IsVisible="{Binding IsClassified}"
                                                 Margin="0,0,8,0">
                                             <TextBlock Text="{Binding ClassificationText}" />
                                         </Border>
-                                        <!-- A unit's own publication is handled
-                                             differently everywhere it turns up —
-                                             it earns a mark on the row for the
-                                             same reason. -->
                                         <Border Grid.Column="1" Classes="pill info"
                                                 IsVisible="{Binding UnitPublication}"
                                                 Margin="0,0,8,0">
@@ -104,26 +127,31 @@
                                                    FontWeight="Medium"
                                                    TextTrimming="CharacterEllipsis" />
                                     </Grid>
-                                    <TextBlock Text="{Binding Sub}" Classes="faint"
+                                    <TextBlock Text="{Binding Kind}" Classes="faint"
                                                FontSize="11"
                                                TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
 
-                                <TextBlock Grid.Column="1" Text="{Binding Authors}"
+                                <TextBlock Grid.Column="2" Text="{Binding Authors}"
                                            VerticalAlignment="Center"
                                            Margin="0,0,14,0"
                                            TextTrimming="CharacterEllipsis" />
 
-                                <TextBlock Grid.Column="2" Text="{Binding Language}"
+                                <TextBlock Grid.Column="3" Text="{Binding Publisher}"
+                                           VerticalAlignment="Center" Classes="faint"
+                                           Margin="0,0,14,0"
+                                           TextTrimming="CharacterEllipsis" />
+
+                                <TextBlock Grid.Column="4" Text="{Binding Language}"
                                            VerticalAlignment="Center" Classes="faint" />
 
-                                <TextBlock Grid.Column="3" Text="{Binding Accession}"
+                                <TextBlock Grid.Column="5" Text="{Binding Accession}"
                                            VerticalAlignment="Center" Classes="mono" />
 
-                                <TextBlock Grid.Column="4" Text="{Binding CallNumber}"
+                                <TextBlock Grid.Column="6" Text="{Binding CallNumber}"
                                            VerticalAlignment="Center" Classes="mono" />
 
-                                <StackPanel Grid.Column="5" VerticalAlignment="Center" Spacing="2">
+                                <StackPanel Grid.Column="7" VerticalAlignment="Center" Spacing="2">
                                     <TextBlock Text="{Binding CopiesText}" FontWeight="Medium" />
                                     <TextBlock Text="{Binding AvailableText}"
                                                FontSize="11"

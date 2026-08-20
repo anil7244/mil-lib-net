@@ -151,6 +151,7 @@ public partial class MembersViewModel : ViewModelBase
                     x.m.PersonnelNo,
                     x.m.UnitCoy,
                     x.m.PhotoPath,
+                    x.m.ClearanceLevel,
                     x.m.Status,
                     Category = x.c.Name,
                     Held = db.Loans.Count(l => l.MemberId == x.m.MemberId
@@ -167,6 +168,7 @@ public partial class MembersViewModel : ViewModelBase
                     r.PersonnelNo ?? "",
                     r.UnitCoy ?? "",
                     r.Category,
+                    r.ClearanceLevel,
                     r.Status,
                     r.Held,
                     Workspace.PhotoPath(r.PhotoPath)))
@@ -527,9 +529,14 @@ public partial class MembersViewModel : ViewModelBase
 /// <summary>One line of the roll.</summary>
 public record MemberRow(
     long MemberId, string Name, string Number, string PersonnelNo,
-    string Unit, string Category, MemberStatus Status, int Held,
-    string? PhotoFile = null)
+    string Unit, string Category, SecurityClass ClearanceLevel,
+    MemberStatus Status, int Held, string? PhotoFile = null)
 {
+    /// <summary>Their own clearance, said plainly — the column the web roll shows.</summary>
+    public string Clearance => Words.Of(ClearanceLevel);
+
+    public bool IsClassified => ClearanceLevel != SecurityClass.UNCLASSIFIED;
+
     private Bitmap? _photo;
     private bool _photoLoaded;
 

@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Input;
+using MilLib.Desktop.Services;
 using MilLib.Desktop.ViewModels;
 
 namespace MilLib.Desktop.Views;
@@ -40,6 +41,20 @@ public partial class BooksView : UserControl
         if (DataContext is BooksViewModel { HasSelection: true } model)
         {
             model.OpenSelectedCommand.Execute(null);
+        }
+    }
+
+    /// <summary>
+    /// A tap on a book's cover opens it at full size — handled so it does not
+    /// also open the book itself, which a double-click on the row does.
+    /// </summary>
+    private void OnCoverTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is Control { DataContext: BookRow row } && row.HasCover)
+        {
+            ImagePeek.Show(this, row.Cover, row.Title);
+
+            e.Handled = true;
         }
     }
 

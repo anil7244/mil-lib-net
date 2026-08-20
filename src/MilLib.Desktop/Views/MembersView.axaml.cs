@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using MilLib.Core.Documents;
 using MilLib.Desktop.Services;
 using MilLib.Desktop.ViewModels;
@@ -15,6 +16,21 @@ public partial class MembersView : UserControl
         DataContextChanged += (_, _) => Watch();
 
         Watch();
+    }
+
+    /// <summary>
+    /// A tap on a member's photo opens it at full size. Handled here so it does
+    /// not also select the row underneath — a click to look at a face is not a
+    /// click to work on the member.
+    /// </summary>
+    private void OnPhotoTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is Control { DataContext: MemberRow row } && row.HasPhoto)
+        {
+            ImagePeek.Show(this, row.Photo, row.Name);
+
+            e.Handled = true;
+        }
     }
 
     /// <summary>
