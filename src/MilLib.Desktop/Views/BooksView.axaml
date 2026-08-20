@@ -7,11 +7,74 @@
              x:Class="MilLib.Desktop.Views.BooksView"
              x:DataType="vm:BooksViewModel">
 
+    <UserControl.Styles>
+        <!-- The view switch: two square segments in one bordered box, the
+             showing one filled with the unit's accent. -->
+        <Style Selector="Border.seg">
+            <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="ClipToBounds" Value="True" />
+            <Setter Property="Background" Value="{DynamicResource Glass}" />
+        </Style>
+        <Style Selector="Button.seg">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.seg /template/ ContentPresenter">
+            <Setter Property="CornerRadius" Value="0" />
+        </Style>
+        <Style Selector="Button.seg:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource GlassRaised}" />
+        </Style>
+        <Style Selector="Button.seg.on /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource Accent}" />
+        </Style>
+        <Style Selector="Button.seg Path">
+            <Setter Property="Stroke" Value="{DynamicResource InkMuted}" />
+        </Style>
+        <Style Selector="Button.seg.on Path">
+            <Setter Property="Stroke" Value="#FFFFFF" />
+        </Style>
+
+        <!-- The cover wall. The list itself sits on nothing, each book is a
+             cell of a fixed width, and the one selected takes an accent ring
+             rather than the filled row a table would draw. -->
+        <Style Selector="ListBox.covers">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="22,20" />
+        </Style>
+        <Style Selector="ListBox.covers ListBoxItem">
+            <Setter Property="Padding" Value="5" />
+            <Setter Property="Margin" Value="0,0,16,20" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="ListBox.covers ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource GlassRaised}" />
+        </Style>
+        <Style Selector="ListBox.covers ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+        </Style>
+
+        <!-- The cover, framed and lifted off the page. -->
+        <Style Selector="Border.coverframe">
+            <Setter Property="BoxShadow" Value="0 4 14 0 #26000000" />
+        </Style>
+    </UserControl.Styles>
+
     <Grid RowDefinitions="Auto,*">
 
         <!-- One box, and what it found. Searching is the only thing anybody
              does on this screen often enough to deserve the width. -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,18">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,18">
             <StackPanel Grid.Column="0" Spacing="6">
                 <TextBox Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"
                          PlaceholderText="Search by title, author, publisher, call number or accession number"
@@ -21,7 +84,26 @@
                 <TextBlock Text="{Binding Tally}" Classes="faint" Margin="3,0,0,0" />
             </StackPanel>
 
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+            <!-- Table or covers, the same books either way. -->
+            <Border Grid.Column="1" Classes="seg" Height="42"
+                    Margin="14,0,0,0" VerticalAlignment="Top">
+                <StackPanel Orientation="Horizontal">
+                    <Button Classes="seg" Classes.on="{Binding TableView}"
+                            Command="{Binding UseTableCommand}"
+                            ToolTip.Tip="Show as a table">
+                        <Path Data="{StaticResource IconRows}" StrokeThickness="1.8"
+                              Width="17" Height="17" Stretch="Uniform" />
+                    </Button>
+                    <Button Classes="seg" Classes.on="{Binding CoversView}"
+                            Command="{Binding UseCoversCommand}"
+                            ToolTip.Tip="Show the covers">
+                        <Path Data="{StaticResource IconGrid}" StrokeThickness="1.6"
+                              Width="17" Height="17" Stretch="Uniform" />
+                    </Button>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
                         Margin="14,0,0,0" VerticalAlignment="Top">
                 <!-- A double-click on the row does the same thing. The button is
                      here because a double-click is not discoverable, and this
@@ -49,9 +131,10 @@
                        Foreground="{DynamicResource Bad}" />
         </Border>
 
+        <!-- ===================================================== table view -->
         <Border Grid.Row="1" Classes="card" Padding="0" ClipToBounds="True"
-                IsVisible="{Binding !HasProblem}">
-            <Grid RowDefinitions="Auto,*">
+                IsVisible="{Binding TableView}">
+            <Grid RowDefinitions="Auto,*" IsVisible="{Binding !HasProblem}">
 
                 <Border Grid.Row="0" Classes="tableHead">
                     <Grid ColumnDefinitions="54,2.8*,1.8*,1.4*,90,130,90,110" Margin="20,0">
@@ -170,6 +253,93 @@
                                Text="Try fewer words, or part of a word." />
                 </StackPanel>
             </Grid>
+        </Border>
+
+        <!-- ===================================================== cover view -->
+        <Border Grid.Row="1" Classes="card" Padding="0" ClipToBounds="True"
+                IsVisible="{Binding CoversView}">
+            <Panel IsVisible="{Binding !HasProblem}">
+
+                <!--
+                     A wall of covers. A tap selects, a double-tap opens — the
+                     same as a row — with the list's own selection lighting the
+                     chosen cover's edge. A book with no cover yet shows a tidy
+                     placeholder carrying its own title, so the wall reads as
+                     books throughout rather than as gaps between the few scans.
+                -->
+                <ListBox Classes="covers"
+                         ItemsSource="{Binding Shown}"
+                         SelectedItem="{Binding Selected}"
+                         DoubleTapped="OnRowActivated"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="vm:BookRow">
+                            <StackPanel Width="150" Spacing="9">
+
+                                <Border Classes="coverframe" Height="206"
+                                        CornerRadius="6" ClipToBounds="True"
+                                        Background="{DynamicResource SurfaceSunken}"
+                                        BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                    <Panel>
+                                        <!-- placeholder -->
+                                        <Border IsVisible="{Binding !HasCover}">
+                                            <Border.Background>
+                                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                                    <GradientStop Offset="0" Color="{DynamicResource SurfaceColor}" />
+                                                    <GradientStop Offset="1" Color="{DynamicResource SurfaceSunkenColor}" />
+                                                </LinearGradientBrush>
+                                            </Border.Background>
+                                            <StackPanel VerticalAlignment="Center" Margin="14" Spacing="12">
+                                                <Path Data="{StaticResource IconBooks}"
+                                                      Stroke="{DynamicResource InkFaint}" StrokeThickness="1.4"
+                                                      Width="26" Height="26" Stretch="Uniform"
+                                                      HorizontalAlignment="Center" />
+                                                <TextBlock Text="{Binding Title}" Classes="faint"
+                                                           FontSize="12" FontWeight="Medium"
+                                                           TextAlignment="Center" TextWrapping="Wrap"
+                                                           MaxLines="4" TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Image Source="{Binding Cover}" Stretch="UniformToFill"
+                                               IsVisible="{Binding HasCover}"
+                                               RenderOptions.BitmapInterpolationMode="HighQuality" />
+
+                                        <!-- a classified book is marked on the cover too -->
+                                        <Border Classes="pill warn" IsVisible="{Binding IsClassified}"
+                                                VerticalAlignment="Top" HorizontalAlignment="Left"
+                                                Margin="6">
+                                            <TextBlock Text="{Binding ClassificationText}" />
+                                        </Border>
+                                    </Panel>
+                                </Border>
+
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="{Binding Title}" FontWeight="Medium"
+                                               FontSize="12.5" LineHeight="16"
+                                               TextWrapping="Wrap" MaxLines="2"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding Authors}" Classes="faint"
+                                               FontSize="11"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <StackPanel IsVisible="{Binding Nothing}"
+                            VerticalAlignment="Center" Spacing="8">
+                    <TextBlock Text="Nothing matches that" Classes="h2"
+                               HorizontalAlignment="Center" />
+                    <TextBlock Classes="faint" HorizontalAlignment="Center"
+                               Text="Try fewer words, or part of a word." />
+                </StackPanel>
+            </Panel>
         </Border>
     </Grid>
 </UserControl>

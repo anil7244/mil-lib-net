@@ -23,6 +23,27 @@ public partial class BooksViewModel : ViewModelBase
     [ObservableProperty] private string _search = "";
     [ObservableProperty] private BookRow? _selected;
 
+    /// <summary>
+    /// The catalogue as a wall of covers rather than a table of rows.
+    ///
+    /// The same books either way — a switch, not a different screen — because
+    /// the two ways of looking answer two questions. The table is for finding a
+    /// particular book and reading its numbers; the covers are for seeing the
+    /// shelf, and they make the library look like the thing it is. The table is
+    /// the one that opens first, since it is the one used at the counter.
+    /// </summary>
+    [ObservableProperty] private bool _coversView;
+
+    public bool TableView => !CoversView;
+
+    partial void OnCoversViewChanged(bool value) => OnPropertyChanged(nameof(TableView));
+
+    [RelayCommand]
+    private void UseTable() => CoversView = false;
+
+    [RelayCommand]
+    private void UseCovers() => CoversView = true;
+
     private List<BookRow> _all = [];
 
     /// <summary>

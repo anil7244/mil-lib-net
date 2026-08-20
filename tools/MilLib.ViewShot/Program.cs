@@ -74,6 +74,11 @@ internal static class Program
 
             Shoot(Path.Combine(outDir, "books-list-marked.png"), new BooksView { DataContext = books });
 
+            // The same catalogue as a wall of covers.
+            books.CoversView = true;
+            Shoot(Path.Combine(outDir, "books-covers.png"), new BooksView { DataContext = books });
+            books.CoversView = false;
+
             var titleId = InterestingTitle();
 
             if (titleId is { } id)
