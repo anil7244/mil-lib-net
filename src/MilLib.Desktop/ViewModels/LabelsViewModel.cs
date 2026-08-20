@@ -65,6 +65,12 @@ public partial class LabelsViewModel : ViewModelBase
     /// <summary>Raised to write a sheet. The view answers it — it needs a window to ask from.</summary>
     public event Func<IReadOnlyList<LabelFor>, LabelKind, LabelCode, float, float, Task>? PrintSheet;
 
+    /// <summary>
+    /// Raised to write a roll — one label to a page at the stock size, for any
+    /// label printer through its own driver, whatever the make.
+    /// </summary>
+    public event Func<IReadOnlyList<LabelFor>, LabelKind, LabelCode, float, float, Task>? PrintRoll;
+
     /// <summary>Raised to write the Zebra's own instructions out as a file.</summary>
     /// <summary>
     /// Raised to write the thermal-printer instructions. The stock goes with
@@ -228,6 +234,34 @@ public partial class LabelsViewModel : ViewModelBase
         catch (Exception ex)
         {
             Faults.Record("printing a sheet of labels", ex);
+        }
+    }
+
+    [RelayCommand]
+    private async Task RollAsync()
+    {
+        if (PrintRoll is null || !AnyChosen)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var db = Workspace.Open();
+
+            var labelling = new Labelling(db, Session.Preferences);
+
+            var kind = Pocket ? LabelKind.Pocket : LabelKind.Spine;
+
+            var (width, height) = Pocket
+                ? (labelling.PocketWidthMm, labelling.PocketHeightMm)
+                : (labelling.SpineWidthMm, labelling.SpineHeightMm);
+
+            await PrintRoll(Picked(), kind, Code, width, height);
+        }
+        catch (Exception ex)
+        {
+            Faults.Record("printing a roll of labels", ex);
 
             Said = Faults.Explain(ex);
             SaidIsGood = false;

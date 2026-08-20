@@ -27,6 +27,9 @@ public partial class LabelsView : UserControl
         model.PrintSheet -= SheetAsync;
         model.PrintSheet += SheetAsync;
 
+        model.PrintRoll -= RollAsync;
+        model.PrintRoll += RollAsync;
+
         model.SaveZpl -= ZebraAsync;
         model.SaveZpl += ZebraAsync;
     }
@@ -39,6 +42,23 @@ public partial class LabelsView : UserControl
         var name = $"Labels {kind.ToString().ToLowerInvariant()} {DateTime.Now:yyyy-MM-dd}.pdf";
 
         await Documents.SaveAsync(this, "Save the sheet of labels", name,
+            path => document.GeneratePdf(path));
+    }
+
+    /// <summary>
+    /// The universal path: one label to a page at the stock size, as a PDF any
+    /// label printer prints through its own driver — no printer language, so no
+    /// dependence on one make.
+    /// </summary>
+    private async Task RollAsync(
+        IReadOnlyList<LabelFor> books, LabelKind kind, LabelCode code, float width, float height)
+    {
+        var document = new LabelSheetDocument(
+            Letterheads.Current(), books, kind, code, width, height, roll: true);
+
+        var name = $"Labels {kind.ToString().ToLowerInvariant()} (roll) {DateTime.Now:yyyy-MM-dd}.pdf";
+
+        await Documents.SaveAsync(this, "Save the labels for a label printer", name,
             path => document.GeneratePdf(path));
     }
 

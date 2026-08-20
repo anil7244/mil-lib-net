@@ -44,10 +44,34 @@ public class LabelSheetDocument(
     LabelKind kind,
     LabelCode code,
     float widthMm,
-    float heightMm) : IDocument
+    float heightMm,
+    bool roll = false) : IDocument
 {
     public void Compose(IDocumentContainer document)
     {
+        // One label to a page, at the exact stock size. This is the universal
+        // path: any label printer — thermal or otherwise — prints it through
+        // its own Windows driver with the roll it was set up for. No printer
+        // language is assumed, so it is not tied to one make.
+        if (roll)
+        {
+            var w = widthMm * 72f / 25.4f;
+            var h = heightMm * 72f / 25.4f;
+
+            foreach (var book in books)
+            {
+                document.Page(page =>
+                {
+                    page.Size(w, h, Unit.Point);
+                    page.Margin(0);
+                    page.DefaultTextStyle(t => t.FontSize(8).FontColor(PrintStyle.Ink).FontFamily(Fonts.Calibri));
+                    page.Content().Element(cell => Label(cell, book, frame: false));
+                });
+            }
+
+            return;
+        }
+
         document.Page(page =>
         {
             page.Size(PageSizes.A4);
@@ -99,12 +123,13 @@ public class LabelSheetDocument(
         });
     }
 
-    private void Label(IContainer container, LabelFor book)
+    private void Label(IContainer container, LabelFor book, bool frame = true)
     {
-        // A hairline round the label. Not decoration — it is the cutting line,
-        // and a sheet of labels without one gets cut by eye.
-        var framed = container
-            .Border(0.4f).BorderColor(PrintStyle.Rule)
+        // A hairline round the label on a sheet — the cutting line — but not on
+        // a roll, where the printer already separates one label from the next.
+        var framed = (frame
+                ? container.Border(0.4f).BorderColor(PrintStyle.Rule)
+                : container)
             .Padding(4);
 
         if (kind == LabelKind.Spine)

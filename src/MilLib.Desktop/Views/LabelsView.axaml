@@ -135,23 +135,36 @@
                     <Rectangle Height="1" Fill="{DynamicResource Line}" />
 
                     <StackPanel Spacing="10">
-                        <Button Classes="primary withIcon" Content="Save a sheet as PDF"
+                        <TextBlock Text="HOW TO PRINT THEM" Classes="label" />
+                        <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                   Text="All three make a PDF that any Windows printer can print — this is not tied to one make of printer. Pick the one that matches what is loaded." />
+
+                        <!-- 1. A4 sheet, for the printer most units already have. -->
+                        <Button Classes="primary withIcon" Content="A4 sheet — ordinary printer"
                                 Tag="{StaticResource IconPrint}"
                                 MinHeight="44" HorizontalAlignment="Stretch"
                                 IsEnabled="{Binding AnyChosen}"
                                 Command="{Binding SheetCommand}" />
-
                         <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
-                                   Text="For any ordinary printer and a sheet of blank sticky labels. The hairline round each one is the cutting line." />
+                                   Text="A sheet of labels on A4, for any laser or inkjet printer and a sheet of blank sticky labels. The hairline round each one is the cutting line." />
 
-                        <Button Classes="withIcon" Content="Save for a Zebra printer"
+                        <!-- 2. One label per page — the universal label-printer path. -->
+                        <Button Classes="withIcon" Content="Label printer — any make"
+                                Tag="{StaticResource IconBarcode}"
+                                MinHeight="42" HorizontalAlignment="Stretch"
+                                IsEnabled="{Binding AnyChosen}"
+                                Command="{Binding RollCommand}" />
+                        <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                   Text="One label to a page at the exact stock size, for any label printer — Zebra, TSC, Godex, Brother and the rest — through its own Windows driver with the roll it is set up for." />
+
+                        <!-- 3. Zebra ZPL — the optional fast path for Zebra owners. -->
+                        <Button Classes="withIcon" Content="Zebra (.zpl) — optional"
                                 Tag="{StaticResource IconBarcode}"
                                 MinHeight="42" HorizontalAlignment="Stretch"
                                 IsEnabled="{Binding AnyChosen}"
                                 Command="{Binding ZebraCommand}" />
-
                         <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
-                                   Text="A .zpl file to send to a thermal printer. The sizes in it must be calibrated against the roll actually loaded before a production run." />
+                                   Text="Only for a Zebra printer that speaks ZPL — a direct .zpl file, faster for a long run. Any other printer uses one of the two above. Calibrate the sizes against the loaded roll first." />
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>

@@ -209,12 +209,13 @@
                                 VerticalAlignment="Center">
 
                         <StackPanel Spacing="0" VerticalAlignment="Center" Margin="0,0,4,0">
-                            <TextBlock Text="{Binding Clock}" FontSize="19" FontWeight="SemiBold"
+                            <TextBlock Text="{Binding Clock}" FontSize="23" FontWeight="SemiBold"
                                        FontFamily="Segoe UI, Inter, sans-serif"
+                                       LineHeight="26"
                                        Foreground="#F4F4F4" TextAlignment="Right" />
-                            <TextBlock Text="{Binding ClockDate}" FontSize="9" LetterSpacing="1.3"
+                            <TextBlock Text="{Binding ClockDate}" FontSize="12" LetterSpacing="0.6"
                                        FontFamily="Segoe UI, Inter, sans-serif"
-                                       Foreground="#8CFFFFFF" TextAlignment="Right" />
+                                       Foreground="#A6FFFFFF" TextAlignment="Right" />
                         </StackPanel>
 
                         <!-- Light / dark, from one icon: a moon while light, a

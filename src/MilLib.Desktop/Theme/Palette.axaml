@@ -18,17 +18,18 @@
             <!-- Ground -->
             <Color x:Key="BgColor">#F5F4EE</Color>
             <Color x:Key="SurfaceColor">#FCFBF7</Color>
-            <Color x:Key="SurfaceSunkenColor">#F2F0E7</Color>
+            <Color x:Key="SurfaceSunkenColor">#EEEDE4</Color>
             <Color x:Key="SurfaceRaisedColor">#EAE8DC</Color>
 
             <!-- Lines -->
             <Color x:Key="BorderColor">#E2DED2</Color>
             <Color x:Key="BorderStrongColor">#D2CCBB</Color>
 
-            <!-- Ink -->
-            <Color x:Key="TextColor">#16191D</Color>
-            <Color x:Key="TextMutedColor">#4A525D</Color>
-            <Color x:Key="TextFaintColor">#616B78</Color>
+            <!-- Ink. The web application's light theme, a soft slate rather
+                 than a warm near-black, which reads easier on the cream. -->
+            <Color x:Key="TextColor">#1E293B</Color>
+            <Color x:Key="TextMutedColor">#64748B</Color>
+            <Color x:Key="TextFaintColor">#94A3B8</Color>
             <Color x:Key="TextOnDarkColor">#F5F4EE</Color>
 
             <!-- The company's crimson -->
