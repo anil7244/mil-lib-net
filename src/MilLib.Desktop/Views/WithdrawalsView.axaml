@@ -132,6 +132,18 @@
                                            Text="A copy still on loan is closed as lost and the amount raised against whoever has it. Any other reason requires the book back first." />
                             </StackPanel>
 
+                            <!-- Only a superseded book is replaced by another, and
+                                 the register records which one, so it is asked
+                                 for here and nowhere else. -->
+                            <StackPanel Spacing="6" IsVisible="{Binding IsSuperseded}">
+                                <TextBlock Text="Replaced by" Classes="faint" />
+                                <TextBox Text="{Binding Replacing, UpdateSourceTrigger=PropertyChanged}"
+                                         PlaceholderText="The replacing book — its accession number, or its title"
+                                         MinHeight="40" />
+                                <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                                           Text="The newer book that takes this one's place. The register notes the succession, so a reader sent to the old number is pointed at the new." />
+                            </StackPanel>
+
                             <StackPanel Spacing="6">
                                 <TextBlock Text="Remarks" Classes="faint" />
                                 <TextBox Text="{Binding Remarks, UpdateSourceTrigger=PropertyChanged}"

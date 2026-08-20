@@ -39,6 +39,13 @@ public partial class WithdrawalsViewModel : ViewModelBase
     [ObservableProperty] private string _remarks = "";
     [ObservableProperty] private string _identifiers = "";
 
+    /// <summary>
+    /// The book a superseded one is replaced by — named the way books are named
+    /// everywhere else, by accession number or by title. Only asked for, and
+    /// only required, when the reason is that the book was superseded.
+    /// </summary>
+    [ObservableProperty] private string _replacing = "";
+
     // ------------------------------------------------------------ what shows
     [ObservableProperty] private string _heading = "";
     [ObservableProperty] private string _particulars = "";
@@ -80,6 +87,9 @@ public partial class WithdrawalsViewModel : ViewModelBase
     /// <summary>Only a loss is charged to anybody, so only a loss asks the amount.</summary>
     public bool IsLoss => Reason == WithdrawalReason.LOST;
 
+    /// <summary>A superseded book is replaced by a newer one, which has to be named.</summary>
+    public bool IsSuperseded => Reason == WithdrawalReason.SUPERSEDED;
+
     public string PickedText => Candidates.Count == 0
         ? "Scan or type the accession numbers below, or take the ones a stock check reported missing."
         : $"{PickedCount:N0} of {Candidates.Count:N0} ticked";
@@ -93,7 +103,11 @@ public partial class WithdrawalsViewModel : ViewModelBase
 
     partial void OnSaidChanged(string value) => OnPropertyChanged(nameof(HasSaid));
 
-    partial void OnReasonChanged(WithdrawalReason value) => OnPropertyChanged(nameof(IsLoss));
+    partial void OnReasonChanged(WithdrawalReason value)
+    {
+        OnPropertyChanged(nameof(IsLoss));
+        OnPropertyChanged(nameof(IsSuperseded));
+    }
 
     partial void OnDraftingChanged(bool value) => OnPropertyChanged(nameof(HasSelection));
 
@@ -194,6 +208,7 @@ public partial class WithdrawalsViewModel : ViewModelBase
     {
         Drafting = true;
         Said = "";
+        Replacing = "";
 
         Problems.Clear();
         Candidates.Clear();
@@ -219,6 +234,7 @@ public partial class WithdrawalsViewModel : ViewModelBase
     private void Abandon()
     {
         Drafting = false;
+        Replacing = "";
 
         Candidates.Clear();
 
@@ -329,6 +345,37 @@ public partial class WithdrawalsViewModel : ViewModelBase
         OnPropertyChanged(nameof(PickedText));
     }
 
+    /// <summary>
+    /// The title a book identifier points at: a copy's number gives its title,
+    /// and failing that a single title whose name matches. Null when it is
+    /// nothing, or matches more than one — the caller says so.
+    /// </summary>
+    private static async Task<long?> ResolveTitleAsync(MilLibDbContext db, string what)
+    {
+        if (what.Length == 0)
+        {
+            return null;
+        }
+
+        var copy = await db.Copies
+            .FirstOrDefaultAsync(c => c.Barcode == what || c.AccessionNo == what);
+
+        if (copy is not null)
+        {
+            return copy.TitleId;
+        }
+
+        var like = $"%{what}%";
+
+        var titles = await db.Titles
+            .Where(t => EF.Functions.Like(t.Name, like))
+            .Select(t => t.TitleId)
+            .Take(2)
+            .ToListAsync();
+
+        return titles.Count == 1 ? titles[0] : null;
+    }
+
     [RelayCommand]
     private async Task WithdrawAsync()
     {
@@ -352,6 +399,26 @@ public partial class WithdrawalsViewModel : ViewModelBase
             // one of these may have been issued to somebody.
             var copies = await db.Copies.Where(c => chosen.Contains(c.CopyId)).ToListAsync();
 
+            // The replacement, when one is superseded. Resolved the same way a
+            // book is resolved anywhere: its accession number, or its title.
+            long? replacedBy = null;
+
+            if (IsSuperseded)
+            {
+                replacedBy = await ResolveTitleAsync(db, Replacing.Trim());
+
+                if (replacedBy is null)
+                {
+                    Problems.Add(Replacing.Trim().Length == 0
+                        ? "A superseded book is replaced by another. Give the replacing book's accession number or title."
+                        : $"No single book matches “{Replacing.Trim()}”. Use its accession number.");
+
+                    OnPropertyChanged(nameof(HasProblems));
+
+                    return;
+                }
+            }
+
             var board = new Condemnation(
                 Reason,
                 DateOnly.FromDateTime((On ?? DateTime.Today).Date),
@@ -360,7 +427,8 @@ public partial class WithdrawalsViewModel : ViewModelBase
                 SanctionAuthority,
                 SanctionDate is null ? null : DateOnly.FromDateTime(SanctionDate.Value.Date),
                 decimal.TryParse(LossAmount, out var loss) && loss > 0 ? loss : null,
-                Remarks);
+                Remarks,
+                replacedBy);
 
             var problems = await withdrawals.ProblemsWithAsync(board, copies);
 

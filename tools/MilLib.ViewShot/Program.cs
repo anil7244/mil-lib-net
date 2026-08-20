@@ -114,6 +114,23 @@ internal static class Program
 
             Shoot(Path.Combine(outDir, "stock.png"), new StockView { DataContext = stock });
 
+            var withdrawals = new WithdrawalsViewModel();
+
+            SettleWhile(() => withdrawals.Busy);
+
+            // Draft a superseded withdrawal, so the replacing-title field shows.
+            withdrawals.DraftCommand.Execute(null);
+            SettleWhile(() => !withdrawals.Drafting);
+            withdrawals.Reason = WithdrawalReason.SUPERSEDED;
+            withdrawals.BoardProceedings = "BPR 14/2026 dated 12 Aug 2026";
+            withdrawals.SanctionAuthority = "OC 8 JAK LI";
+            withdrawals.Replacing = "JAKLI/1500";
+            withdrawals.Identifiers = "JAKLI/1001";
+            withdrawals.FindCommand.Execute(null);
+            SettleWhile(() => !withdrawals.AnyPicked);
+
+            Shoot(Path.Combine(outDir, "withdrawals.png"), new WithdrawalsView { DataContext = withdrawals });
+
             var labels = new LabelsViewModel();
 
             SettleWhile(() => labels.Busy);
