@@ -217,11 +217,12 @@
                              rather than a big line with a stray one under it. -->
                         <StackPanel Spacing="1" VerticalAlignment="Center" Margin="0,0,4,0"
                                     HorizontalAlignment="Right">
-                            <TextBlock Text="{Binding Clock}" FontSize="24" FontWeight="SemiBold"
+                            <TextBlock Text="{Binding Clock}" FontSize="25" FontWeight="SemiBold"
                                        FontFamily="Segoe UI, Inter, sans-serif"
+                                       LetterSpacing="2.2"
                                        HorizontalAlignment="Right" TextAlignment="Right"
                                        Foreground="{DynamicResource BarInk}" />
-                            <TextBlock Text="{Binding ClockDate}" FontSize="12.5" LetterSpacing="1.8"
+                            <TextBlock Text="{Binding ClockDate}" FontSize="12.5" LetterSpacing="3.5"
                                        FontFamily="Segoe UI, Inter, sans-serif"
                                        HorizontalAlignment="Right" TextAlignment="Right"
                                        Foreground="{DynamicResource BarInkSoft}" />
