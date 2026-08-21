@@ -23,7 +23,8 @@
             <Setter Property="BoxShadow" Value="0 3 10 0 #22000000" />
         </Style>
 
-        <!-- Every card in the grid carries its title the same way. -->
+        <!-- Every card in the grid stretches to fill its cell, so a row's cards
+             are all the same height. -->
         <Style Selector="Border.pane">
             <Setter Property="VerticalAlignment" Value="Stretch" />
         </Style>
@@ -32,24 +33,24 @@
     <UserControl.Resources>
         <!-- One book in the moving strip. -->
         <DataTemplate x:Key="CoverCard" DataType="vm:RecentBook">
-            <StackPanel Width="94" Spacing="6">
-                <Border Classes="mini" Height="130" CornerRadius="5" ClipToBounds="True"
+            <StackPanel Width="86" Spacing="6">
+                <Border Classes="mini" Height="118" CornerRadius="5" ClipToBounds="True"
                         Background="{DynamicResource SurfaceSunken}"
                         BorderBrush="{DynamicResource Line}" BorderThickness="1">
                     <Image Source="{Binding Cover}" Stretch="UniformToFill"
                            RenderOptions.BitmapInterpolationMode="HighQuality" />
                 </Border>
-                <TextBlock Text="{Binding Title}" FontSize="10.5" LineHeight="13"
+                <TextBlock Text="{Binding Title}" FontSize="10" LineHeight="12.5"
                            TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
             </StackPanel>
         </DataTemplate>
 
         <!-- One labelled bar, scaled to the largest in its list. -->
         <DataTemplate x:Key="BarRowTemplate" DataType="vm:BarRow">
-            <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,5">
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4">
                 <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="12" Width="104"
                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                <Border Grid.Column="1" Height="15" CornerRadius="4" HorizontalAlignment="Left"
+                <Border Grid.Column="1" Height="14" CornerRadius="4" HorizontalAlignment="Left"
                         Width="{Binding Width}"
                         Background="{Binding Colour, Converter={x:Static conv:Hue.Brush}}" />
                 <TextBlock Grid.Column="2" Text="{Binding Count}" Classes="mono" FontWeight="SemiBold"
@@ -59,12 +60,12 @@
 
         <!-- One line of the activity feed. -->
         <DataTemplate x:Key="ActivityRowTemplate" DataType="vm:ActivityRow">
-            <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,6">
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,5">
                 <Ellipse Grid.Column="0" Width="8" Height="8" VerticalAlignment="Center"
                          Fill="{Binding Colour, Converter={x:Static conv:Hue.Brush}}" />
-                <TextBlock Grid.Column="1" Text="{Binding Text}" Margin="11,0,0,0" FontSize="12.5"
+                <TextBlock Grid.Column="1" Text="{Binding Text}" Margin="11,0,0,0" FontSize="12"
                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                <TextBlock Grid.Column="2" Text="{Binding Ago}" Classes="faint" FontSize="11"
+                <TextBlock Grid.Column="2" Text="{Binding Ago}" Classes="faint" FontSize="10.5"
                            VerticalAlignment="Center" Margin="8,0,0,0" />
             </Grid>
         </DataTemplate>
@@ -73,8 +74,8 @@
     <Grid RowDefinitions="Auto,*">
 
         <!-- Who, and when. -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
-            <StackPanel Grid.Column="0" Spacing="3">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+            <StackPanel Grid.Column="0" Spacing="2">
                 <TextBlock Text="{Binding Greeting}" Classes="h2" />
                 <TextBlock Text="{Binding Standing}" Classes="faint" />
             </StackPanel>
@@ -83,295 +84,290 @@
         </Grid>
 
         <Border Grid.Row="0" Classes="card bad" IsVisible="{Binding HasProblem}" Padding="18,14"
-                VerticalAlignment="Top" Margin="0,60,0,0">
+                VerticalAlignment="Top" Margin="0,56,0,0">
             <TextBlock Text="{Binding Problem}" TextWrapping="Wrap"
                        Foreground="{DynamicResource Bad}" />
         </Border>
 
+        <!-- The whole board sits on one screen: five short rows, three equal
+             columns, no scroll. The two naturally wide things — the moving
+             covers and the overdue list — are kept to one column each. -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
-                      IsVisible="{Binding !HasProblem}" Padding="0,0,6,0">
-            <Grid ColumnDefinitions="*,14,*,14,*" Margin="0,0,0,6"
-                  RowDefinitions="Auto,14,Auto,14,Auto,14,Auto,14,Auto,14,Auto">
+                      IsVisible="{Binding !HasProblem}" Padding="0,0,4,0">
+        <Grid ColumnDefinitions="*,12,*,12,*,12,*"
+              RowDefinitions="Auto,12,Auto,12,Auto,12,Auto">
 
-                <!-- =============================== the counter's figures today -->
-                <ItemsControl Grid.Row="0" Grid.ColumnSpan="5" ItemsSource="{Binding Tiles}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate><UniformGrid Rows="1" /></ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="vm:Tile">
-                            <Border Classes="card tile" Margin="0,0,10,0" Padding="16,13"
-                                    Classes.cool="{Binding IsCool}" Classes.info="{Binding IsInfo}"
-                                    Classes.warn="{Binding IsWarn}" Classes.bad="{Binding IsBad}">
-                                <StackPanel Spacing="3">
-                                    <TextBlock Text="{Binding Label}" Classes="label" />
-                                    <TextBlock Text="{Binding Value}" Classes="figure" FontSize="24"
-                                               Foreground="{Binding IsBad, Converter={x:Static conv:Swatch.BadOrPlain}}" />
-                                    <TextBlock Text="{Binding Note}" Classes="faint" FontSize="10.5"
-                                               TextWrapping="Wrap" />
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+            <!-- =============================== the counter's figures today -->
+            <ItemsControl Grid.Row="0" Grid.ColumnSpan="7" ItemsSource="{Binding Tiles}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><UniformGrid Rows="1" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="vm:Tile">
+                        <Border Classes="card tile" Margin="0,0,10,0" Padding="15,11"
+                                Classes.cool="{Binding IsCool}" Classes.info="{Binding IsInfo}"
+                                Classes.warn="{Binding IsWarn}" Classes.bad="{Binding IsBad}">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="{Binding Label}" Classes="label" />
+                                <TextBlock Text="{Binding Value}" Classes="figure" FontSize="22"
+                                           Foreground="{Binding IsBad, Converter={x:Static conv:Swatch.BadOrPlain}}" />
+                                <TextBlock Text="{Binding Note}" Classes="faint" FontSize="10.5"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
-                <!-- ============ row: rings | collection | members by category -->
-                <Border Grid.Row="2" Grid.Column="0" Classes="card pane" Padding="20,18">
-                    <StackPanel Spacing="14">
-                        <TextBlock Text="Circulation at a glance" Classes="h2" />
-                        <ItemsControl ItemsSource="{Binding Gauges}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate><UniformGrid Columns="3" /></ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="vm:Gauge">
-                                    <StackPanel Spacing="12" Margin="4,0">
-                                        <Panel Width="118" Height="118" HorizontalAlignment="Center">
-                                            <Path Data="{Binding Track}" Stroke="{DynamicResource SurfaceSunken}"
-                                                  StrokeThickness="12" />
-                                            <Path Data="{Binding Value}"
-                                                  Stroke="{Binding Colour, Converter={x:Static conv:Hue.Brush}}"
-                                                  StrokeThickness="12" StrokeLineCap="Round" />
-                                            <TextBlock Text="{Binding Percent}" FontSize="22" FontWeight="Bold"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                       Foreground="{Binding Colour, Converter={x:Static conv:Hue.Brush}}" />
-                                        </Panel>
-                                        <StackPanel Spacing="2" HorizontalAlignment="Center">
-                                            <TextBlock Text="{Binding Label}" Classes="label" HorizontalAlignment="Center" />
-                                            <TextBlock Text="{Binding Count}" FontWeight="SemiBold" HorizontalAlignment="Center" />
-                                            <TextBlock Text="{Binding Note}" Classes="faint" FontSize="11" HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <Rectangle Height="1" Fill="{DynamicResource Line}" />
-                        <Grid ColumnDefinitions="*,*,*">
-                            <StackPanel Grid.Column="0" Spacing="1" HorizontalAlignment="Center">
-                                <TextBlock Text="{Binding TitlesText}" Classes="figure" FontSize="21" HorizontalAlignment="Center" />
-                                <TextBlock Text="TITLES" Classes="label" HorizontalAlignment="Center" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="1" HorizontalAlignment="Center">
-                                <TextBlock Text="{Binding CopiesText}" Classes="figure" FontSize="21" HorizontalAlignment="Center" />
-                                <TextBlock Text="COPIES" Classes="label" HorizontalAlignment="Center" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Spacing="1" HorizontalAlignment="Center">
-                                <TextBlock Text="{Binding MembersText}" Classes="figure" FontSize="21" HorizontalAlignment="Center" />
-                                <TextBlock Text="MEMBERS" Classes="label" HorizontalAlignment="Center" />
-                            </StackPanel>
-                        </Grid>
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Row="2" Grid.Column="2" Classes="card pane" Padding="20,18">
-                    <StackPanel Spacing="14">
-                        <TextBlock Text="The collection" Classes="h2" />
-                        <Panel Width="160" Height="160" HorizontalAlignment="Center">
-                            <Ellipse Width="160" Height="160" Stroke="{DynamicResource SurfaceSunken}" StrokeThickness="22" />
-                            <ItemsControl ItemsSource="{Binding Collection}">
-                                <ItemsControl.ItemsPanel><ItemsPanelTemplate><Panel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate DataType="vm:Wedge">
+            <!-- ========= row: rings (wide) | collection | recently catalogued -->
+            <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Classes="card pane" Padding="18,15">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Circulation at a glance" Classes="h2" />
+                    <ItemsControl ItemsSource="{Binding Gauges}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><UniformGrid Columns="3" /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:Gauge">
+                                <StackPanel Spacing="9" Margin="2,0">
+                                    <Panel Width="110" Height="110" HorizontalAlignment="Center">
+                                        <Path Data="{Binding Track}" Stroke="{DynamicResource SurfaceSunken}"
+                                              StrokeThickness="11" />
                                         <Path Data="{Binding Value}"
                                               Stroke="{Binding Colour, Converter={x:Static conv:Hue.Brush}}"
-                                              StrokeThickness="22" />
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="0">
-                                <TextBlock Text="{Binding CopiesText}" FontSize="28" FontWeight="Bold" HorizontalAlignment="Center" />
-                                <TextBlock Text="COPIES" Classes="label" HorizontalAlignment="Center" />
-                            </StackPanel>
-                        </Panel>
+                                              StrokeThickness="11" StrokeLineCap="Round" />
+                                        <TextBlock Text="{Binding Percent}" FontSize="20" FontWeight="Bold"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Foreground="{Binding Colour, Converter={x:Static conv:Hue.Brush}}" />
+                                    </Panel>
+                                    <StackPanel Spacing="1" HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding Label}" Classes="label" HorizontalAlignment="Center" />
+                                        <TextBlock Text="{Binding Count}" FontWeight="SemiBold" FontSize="12" HorizontalAlignment="Center" />
+                                        <TextBlock Text="{Binding Note}" Classes="faint" FontSize="10.5" HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Rectangle Height="1" Fill="{DynamicResource Line}" />
+                    <Grid ColumnDefinitions="*,*,*">
+                        <StackPanel Grid.Column="0" Spacing="1" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding TitlesText}" Classes="figure" FontSize="19" HorizontalAlignment="Center" />
+                            <TextBlock Text="TITLES" Classes="label" HorizontalAlignment="Center" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="1" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding CopiesText}" Classes="figure" FontSize="19" HorizontalAlignment="Center" />
+                            <TextBlock Text="COPIES" Classes="label" HorizontalAlignment="Center" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="1" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding MembersText}" Classes="figure" FontSize="19" HorizontalAlignment="Center" />
+                            <TextBlock Text="MEMBERS" Classes="label" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="2" Grid.Column="4" Classes="card pane" Padding="18,15">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="The collection" Classes="h2" />
+                    <Panel Width="150" Height="150" HorizontalAlignment="Center">
+                        <Ellipse Width="150" Height="150" Stroke="{DynamicResource SurfaceSunken}" StrokeThickness="20" />
                         <ItemsControl ItemsSource="{Binding Collection}">
+                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><Panel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="vm:Wedge">
-                                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4">
-                                        <Ellipse Grid.Column="0" Width="11" Height="11" VerticalAlignment="Center"
-                                                 Fill="{Binding Colour, Converter={x:Static conv:Hue.Brush}}" />
-                                        <TextBlock Grid.Column="1" Text="{Binding Label}" Margin="10,0,0,0" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="2" Text="{Binding Count}" Classes="mono" FontWeight="SemiBold" VerticalAlignment="Center" />
-                                    </Grid>
+                                    <Path Data="{Binding Value}"
+                                          Stroke="{Binding Colour, Converter={x:Static conv:Hue.Brush}}"
+                                          StrokeThickness="20" />
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Row="2" Grid.Column="4" Classes="card pane" Padding="20,18">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="Members by category" Classes="h2" />
-                        <ItemsControl ItemsSource="{Binding Categories}" ItemTemplate="{StaticResource BarRowTemplate}" />
-                        <TextBlock IsVisible="{Binding !Categories.Count}" Classes="faint" FontSize="11.5"
-                                   Text="No members enrolled yet." />
-                    </StackPanel>
-                </Border>
-
-                <!-- ============ row: classification | material | most borrowed -->
-                <Border Grid.Row="4" Grid.Column="0" Classes="card pane" Padding="20,18">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="Holdings by classification" Classes="h2" />
-                        <ItemsControl ItemsSource="{Binding Classified}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="vm:Segment">
-                                    <Grid ColumnDefinitions="104,*,Auto" Margin="0,5">
-                                        <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="12"
-                                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                                        <Border Grid.Column="1" Height="15" CornerRadius="4" HorizontalAlignment="Left"
-                                                Width="{Binding Width}"
-                                                Background="{Binding Class, Converter={x:Static conv:Marking.Ground}}"
-                                                BorderBrush="{DynamicResource Line}" BorderThickness="1" />
-                                        <TextBlock Grid.Column="2" Text="{Binding Count}" Classes="mono"
-                                                   FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <TextBlock IsVisible="{Binding !HasClassified}" Classes="faint" FontSize="11.5"
-                                   Text="Nothing on the register yet." />
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Row="4" Grid.Column="2" Classes="card pane" Padding="20,18">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="By kind of material" Classes="h2" />
-                        <ItemsControl ItemsSource="{Binding Materials}" ItemTemplate="{StaticResource BarRowTemplate}" />
-                        <TextBlock IsVisible="{Binding !Materials.Count}" Classes="faint" FontSize="11.5"
-                                   Text="Nothing catalogued yet." />
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Row="4" Grid.Column="4" Classes="card pane" Padding="20,18">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="Most borrowed" Classes="h2" />
-                        <ItemsControl ItemsSource="{Binding Popular}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="vm:PopularBook">
-                                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,5">
-                                        <Border Grid.Column="0" Width="22" Height="22" CornerRadius="11"
-                                                Background="{DynamicResource SurfaceSunken}" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Rank}" FontSize="11" FontWeight="Bold"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                        </Border>
-                                        <StackPanel Grid.Column="1" Margin="10,0" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Title}" FontWeight="Medium" FontSize="12.5"
-                                                       TextTrimming="CharacterEllipsis" />
-                                            <TextBlock Text="{Binding Author}" Classes="faint" FontSize="11"
-                                                       IsVisible="{Binding HasAuthor}" TextTrimming="CharacterEllipsis" />
-                                        </StackPanel>
-                                        <TextBlock Grid.Column="2" Text="{Binding LoansText}" Classes="faint"
-                                                   FontSize="11" VerticalAlignment="Center" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <TextBlock IsVisible="{Binding !HasPopular}" Classes="faint" FontSize="11.5"
-                                   Text="Nothing has been borrowed yet." />
-                    </StackPanel>
-                </Border>
-
-                <!-- ============ row: recent activity | this week | by status -->
-                <Border Grid.Row="6" Grid.Column="0" Classes="card pane" Padding="20,18">
-                    <StackPanel Spacing="10">
-                        <TextBlock Text="Recent activity" Classes="h2" />
-                        <ItemsControl ItemsSource="{Binding Activity}" ItemTemplate="{StaticResource ActivityRowTemplate}" />
-                        <TextBlock IsVisible="{Binding !HasActivity}" Classes="faint" FontSize="11.5"
-                                   Text="Nothing has happened yet." />
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Row="6" Grid.Column="2" Classes="card pane" Padding="20,16">
-                    <StackPanel Spacing="12">
-                        <StackPanel Spacing="2">
-                            <TextBlock Text="Issues this week" Classes="h2" />
-                            <TextBlock Text="{Binding WeekText}" Classes="faint" FontSize="11" />
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="0">
+                            <TextBlock Text="{Binding CopiesText}" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center" />
+                            <TextBlock Text="COPIES" Classes="label" HorizontalAlignment="Center" />
                         </StackPanel>
-                        <ItemsControl ItemsSource="{Binding Week}" VerticalAlignment="Bottom">
-                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="vm:Bar">
-                                    <StackPanel Spacing="6">
-                                        <TextBlock Text="{Binding CountText}" FontSize="10" Classes="faint" HorizontalAlignment="Center" />
-                                        <Border Height="96" VerticalAlignment="Bottom">
-                                            <Rectangle Classes="bar" Classes.today="{Binding IsToday}"
-                                                       Width="20" RadiusX="4" RadiusY="4" Height="{Binding Height}"
-                                                       VerticalAlignment="Bottom" HorizontalAlignment="Center" />
-                                        </Border>
-                                        <TextBlock Text="{Binding Day}" FontSize="10" Classes="faint" HorizontalAlignment="Center" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </Border>
+                    </Panel>
+                    <ItemsControl ItemsSource="{Binding Collection}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:Wedge">
+                                <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,3">
+                                    <Ellipse Grid.Column="0" Width="11" Height="11" VerticalAlignment="Center"
+                                             Fill="{Binding Colour, Converter={x:Static conv:Hue.Brush}}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Label}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Count}" Classes="mono" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
 
-                <Border Grid.Row="6" Grid.Column="4" Classes="card pane" Padding="20,18">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="Copies by status" Classes="h2" />
-                        <ItemsControl ItemsSource="{Binding Statuses}" ItemTemplate="{StaticResource BarRowTemplate}" />
-                    </StackPanel>
-                </Border>
-
-                <!-- ============================== recently catalogued, full width -->
-                <Border Grid.Row="8" Grid.ColumnSpan="5" Classes="card" Padding="20,16,20,18" ClipToBounds="True">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="Recently catalogued" Classes="h2" />
-                        <Panel Height="164" ClipToBounds="True">
-                            <Canvas ClipToBounds="True">
-                                <StackPanel Name="MarqueeStrip" Orientation="Horizontal" Spacing="14" Canvas.Left="0" Canvas.Top="0">
-                                    <ItemsControl Name="MarqueeSetA" ItemsSource="{Binding Covers}" ItemTemplate="{StaticResource CoverCard}">
-                                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="14" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                                    </ItemsControl>
-                                    <ItemsControl ItemsSource="{Binding Covers}" ItemTemplate="{StaticResource CoverCard}">
-                                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="14" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                                    </ItemsControl>
-                                </StackPanel>
-                            </Canvas>
-                            <TextBlock Text="No covers yet — attach a book's cover and it appears here."
-                                       Classes="faint" FontSize="11.5" VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       IsVisible="{Binding !Covers.Count}" />
-                        </Panel>
-                    </StackPanel>
-                </Border>
-
-                <!-- ============================================ overdue, full width -->
-                <Border Grid.Row="10" Grid.ColumnSpan="5" Classes="card" Padding="0" ClipToBounds="True">
-                    <StackPanel>
-                        <TextBlock Text="Overdue — oldest first" Classes="h2" Margin="20,16,20,10" />
-                        <Border Classes="tableHead">
-                            <Grid ColumnDefinitions="*,2*,150,110,90" Margin="20,0">
-                                <TextBlock Grid.Column="0" Text="MEMBER" Classes="label" />
-                                <TextBlock Grid.Column="1" Text="BOOK" Classes="label" />
-                                <TextBlock Grid.Column="2" Text="ACCESSION NO" Classes="label" />
-                                <TextBlock Grid.Column="3" Text="DUE" Classes="label" />
-                                <TextBlock Grid.Column="4" Text="LATE BY" Classes="label" />
-                            </Grid>
-                        </Border>
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="300">
-                            <StackPanel>
-                                <ItemsControl ItemsSource="{Binding Overdues}" Classes="rows">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate DataType="vm:OverdueRow">
-                                            <Grid ColumnDefinitions="*,2*,150,110,90" Margin="20,10">
-                                                <TextBlock Grid.Column="0" Text="{Binding Member}" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
-                                                <TextBlock Grid.Column="1" Text="{Binding Book}" TextTrimming="CharacterEllipsis" />
-                                                <TextBlock Grid.Column="2" Text="{Binding Accession}" Classes="mono" />
-                                                <TextBlock Grid.Column="3" Text="{Binding DueText}" Classes="faint" />
-                                                <TextBlock Grid.Column="4" Text="{Binding DaysText}" FontWeight="SemiBold" Foreground="{DynamicResource Bad}" />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
+            <!-- Recently catalogued: one column, top right. As more covers are
+                 attached the strip fills and scrolls itself right to left. -->
+            <Border Grid.Row="2" Grid.Column="6" Classes="card pane" Padding="18,15" ClipToBounds="True">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Recently catalogued" Classes="h2" />
+                    <Panel Height="150" ClipToBounds="True">
+                        <Canvas ClipToBounds="True">
+                            <StackPanel Name="MarqueeStrip" Orientation="Horizontal" Spacing="14" Canvas.Left="0" Canvas.Top="0">
+                                <ItemsControl Name="MarqueeSetA" ItemsSource="{Binding Covers}" ItemTemplate="{StaticResource CoverCard}">
+                                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="14" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                                 </ItemsControl>
-                                <StackPanel IsVisible="{Binding NothingOverdue}" Margin="0,40" Spacing="8" HorizontalAlignment="Center">
-                                    <TextBlock Text="Nothing is overdue" Classes="h2" HorizontalAlignment="Center" />
-                                    <TextBlock Classes="faint" HorizontalAlignment="Center"
-                                               Text="Every book that is out is still within its loan period." />
-                                </StackPanel>
+                                <ItemsControl ItemsSource="{Binding Covers}" ItemTemplate="{StaticResource CoverCard}">
+                                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="14" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                </ItemsControl>
                             </StackPanel>
-                        </ScrollViewer>
+                        </Canvas>
+                        <TextBlock Text="No covers yet — attach a book's cover and it appears here."
+                                   Classes="faint" FontSize="11.5" TextWrapping="Wrap" MaxWidth="220"
+                                   VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center"
+                                   IsVisible="{Binding !Covers.Count}" />
+                    </Panel>
+                </StackPanel>
+            </Border>
+
+            <!-- ============ row: members | classification | material -->
+            <Border Grid.Row="4" Grid.Column="0" Classes="card pane" Padding="18,15">
+                <StackPanel Spacing="9">
+                    <TextBlock Text="Members by category" Classes="h2" />
+                    <ItemsControl ItemsSource="{Binding Categories}" ItemTemplate="{StaticResource BarRowTemplate}" />
+                    <TextBlock IsVisible="{Binding !Categories.Count}" Classes="faint" FontSize="11.5"
+                               Text="No members enrolled yet." />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="4" Grid.Column="2" Classes="card pane" Padding="18,15">
+                <StackPanel Spacing="9">
+                    <TextBlock Text="Holdings by classification" Classes="h2" />
+                    <ItemsControl ItemsSource="{Binding Classified}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:Segment">
+                                <Grid ColumnDefinitions="104,*,Auto" Margin="0,4">
+                                    <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="12"
+                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                    <Border Grid.Column="1" Height="14" CornerRadius="4" HorizontalAlignment="Left"
+                                            Width="{Binding Width}"
+                                            Background="{Binding Class, Converter={x:Static conv:Marking.Ground}}"
+                                            BorderBrush="{DynamicResource Line}" BorderThickness="1" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Count}" Classes="mono"
+                                               FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock IsVisible="{Binding !HasClassified}" Classes="faint" FontSize="11.5"
+                               Text="Nothing on the register yet." />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="4" Grid.Column="4" Classes="card pane" Padding="18,15">
+                <StackPanel Spacing="9">
+                    <TextBlock Text="By kind of material" Classes="h2" />
+                    <ItemsControl ItemsSource="{Binding Materials}" ItemTemplate="{StaticResource BarRowTemplate}" />
+                    <TextBlock IsVisible="{Binding !Materials.Count}" Classes="faint" FontSize="11.5"
+                               Text="Nothing catalogued yet." />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="4" Grid.Column="6" Classes="card pane" Padding="18,15">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Most borrowed" Classes="h2" />
+                    <ItemsControl ItemsSource="{Binding Popular}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:PopularBook">
+                                <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4">
+                                    <Border Grid.Column="0" Width="21" Height="21" CornerRadius="11"
+                                            Background="{DynamicResource SurfaceSunken}" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Rank}" FontSize="11" FontWeight="Bold"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="10,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Title}" FontWeight="Medium" FontSize="12"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Author}" Classes="faint" FontSize="10.5"
+                                                   IsVisible="{Binding HasAuthor}" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" Text="{Binding LoansText}" Classes="faint"
+                                               FontSize="10.5" VerticalAlignment="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock IsVisible="{Binding !HasPopular}" Classes="faint" FontSize="11.5"
+                               Text="Nothing has been borrowed yet." />
+                </StackPanel>
+            </Border>
+
+            <!-- ============ row: recent activity | this week | status | overdue -->
+            <Border Grid.Row="6" Grid.Column="0" Classes="card pane" Padding="18,15">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Recent activity" Classes="h2" />
+                    <ItemsControl ItemsSource="{Binding Activity}" ItemTemplate="{StaticResource ActivityRowTemplate}" />
+                    <TextBlock IsVisible="{Binding !HasActivity}" Classes="faint" FontSize="11.5"
+                               Text="Nothing has happened yet." />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="6" Grid.Column="4" Classes="card pane" Padding="18,15">
+                <StackPanel Spacing="9">
+                    <TextBlock Text="Copies by status" Classes="h2" />
+                    <ItemsControl ItemsSource="{Binding Statuses}" ItemTemplate="{StaticResource BarRowTemplate}" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="6" Grid.Column="2" Classes="card pane" Padding="18,15">
+                <StackPanel Spacing="10">
+                    <StackPanel Spacing="1">
+                        <TextBlock Text="Issues this week" Classes="h2" />
+                        <TextBlock Text="{Binding WeekText}" Classes="faint" FontSize="11" />
                     </StackPanel>
-                </Border>
-            </Grid>
+                    <ItemsControl ItemsSource="{Binding Week}" VerticalAlignment="Bottom">
+                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:Bar">
+                                <StackPanel Spacing="5">
+                                    <TextBlock Text="{Binding CountText}" FontSize="10" Classes="faint" HorizontalAlignment="Center" />
+                                    <Border Height="74" VerticalAlignment="Bottom">
+                                        <Rectangle Classes="bar" Classes.today="{Binding IsToday}"
+                                                   Width="22" RadiusX="4" RadiusY="4" Height="{Binding Height}"
+                                                   VerticalAlignment="Bottom" HorizontalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock Text="{Binding Day}" FontSize="10" Classes="faint" HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="6" Grid.Column="6" Classes="card pane" Padding="18,15" ClipToBounds="True">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Overdue — oldest first" Classes="h2" />
+                    <ItemsControl ItemsSource="{Binding Overdues}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:OverdueRow">
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,5">
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Book}" FontWeight="Medium" FontSize="12"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Member}" Classes="faint" FontSize="10.5"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding DaysText}" FontWeight="SemiBold"
+                                               FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0"
+                                               Foreground="{DynamicResource Bad}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <StackPanel IsVisible="{Binding NothingOverdue}" Spacing="4" Margin="0,10,0,0">
+                        <TextBlock Text="Nothing is overdue" FontWeight="SemiBold" />
+                        <TextBlock Classes="faint" FontSize="11.5" TextWrapping="Wrap"
+                                   Text="Every book that is out is still within its loan period." />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
         </ScrollViewer>
     </Grid>
 </UserControl>

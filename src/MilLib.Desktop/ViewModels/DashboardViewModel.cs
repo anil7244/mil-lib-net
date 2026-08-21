@@ -475,7 +475,7 @@ public partial class DashboardViewModel : ViewModelBase
 
         Activity.Clear();
 
-        foreach (var e in issues.Concat(returns).Concat(enrols).OrderByDescending(x => x.When).Take(8))
+        foreach (var e in issues.Concat(returns).Concat(enrols).OrderByDescending(x => x.When).Take(6))
         {
             var text = e.Kind switch
             {
@@ -677,9 +677,9 @@ internal static class Arc
 public sealed class Gauge
 {
     /// <summary>The ring's fixed size, shared with the drawing so the maths agrees.</summary>
-    public const double Diameter = 132;
+    public const double Diameter = 110;
 
-    public const double Thickness = 12;
+    public const double Thickness = 11;
 
     public Gauge(string label, double fraction, string colour, string count, string note)
     {
@@ -716,9 +716,9 @@ public sealed class Gauge
 /// <summary>One wedge of the collection donut, from where the last one ended.</summary>
 public sealed class Wedge
 {
-    public const double Diameter = 168;
+    public const double Diameter = 150;
 
-    public const double Thickness = 22;
+    public const double Thickness = 20;
 
     public Wedge(string label, int count, string colour, double start, double fraction)
     {
