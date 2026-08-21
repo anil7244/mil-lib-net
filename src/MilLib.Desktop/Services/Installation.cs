@@ -114,25 +114,13 @@ public class Installation
                 return "";
             }
 
-            try
-            {
-                var bytes = ProtectedData.Unprotect(
-                    Convert.FromBase64String(PasswordProtected), null, DataProtectionScope.CurrentUser);
-
-                return Encoding.UTF8.GetString(bytes);
-            }
-            catch
-            {
-                // Written by a different Windows account, or on a different
-                // machine. Treated as no password rather than as a crash; the
-                // screen asks for it again.
-                return "";
-            }
+            // Unreadable in the file, on whatever platform this is — Windows
+            // account protection where there is any, AES elsewhere. A value
+            // from a different account or machine reads as no password rather
+            // than a crash; the screen asks for it again.
+            return Secret.Unprotect(PasswordProtected);
         }
-        set => PasswordProtected = value.Length == 0
-            ? ""
-            : Convert.ToBase64String(ProtectedData.Protect(
-                Encoding.UTF8.GetBytes(value), null, DataProtectionScope.CurrentUser));
+        set => PasswordProtected = Secret.Protect(value);
     }
 
     // -------------------------------------------------------------- source --

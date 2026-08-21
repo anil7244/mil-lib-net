@@ -34,7 +34,20 @@ public static class Machine
     /// </summary>
     public static string Source { get; private set; } = "";
 
-    private static string? Serial()
+    /// <summary>
+    /// The machine's own serial, from wherever this operating system keeps it.
+    /// Windows is asked exactly as the web application asks it, so a key issued
+    /// for that installation still matches; the other systems have their own
+    /// stable identity, which is all a licence needs where there is no web
+    /// application to agree with.
+    /// </summary>
+    private static string? Serial() =>
+        OperatingSystem.IsWindows() ? WindowsSerial()
+        : OperatingSystem.IsLinux() ? LinuxSerial()
+        : OperatingSystem.IsMacOS() ? MacSerial()
+        : null;
+
+    private static string? WindowsSerial()
     {
         // The same three questions the web application asks, in the same
         // order. Changing the order would change the answer on a machine where
@@ -59,6 +72,125 @@ public static class Machine
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// On Linux, the machine id the system keeps for exactly this purpose —
+    /// world-readable, stable for the life of the install, and needing no root.
+    /// The board serial is tried first for those machines that expose it, since
+    /// it survives a reinstall.
+    /// </summary>
+    private static string? LinuxSerial()
+    {
+        (string Path, string Called)[] files =
+        [
+            ("/sys/class/dmi/id/board_serial", "the motherboard"),
+            ("/sys/class/dmi/id/product_uuid", "the system UUID"),
+            ("/etc/machine-id", "the machine id"),
+            ("/var/lib/dbus/machine-id", "the machine id"),
+        ];
+
+        foreach (var (path, called) in files)
+        {
+            try
+            {
+                if (!File.Exists(path))
+                {
+                    continue;
+                }
+
+                var value = File.ReadAllText(path).Trim();
+
+                if (value.Length > 0 && !Meaningless(value))
+                {
+                    Source = called;
+
+                    return value;
+                }
+            }
+            catch (Exception)
+            {
+                // Unreadable (a serial file often needs root) — try the next.
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>On macOS, the platform UUID the hardware reports through ioreg.</summary>
+    private static string? MacSerial()
+    {
+        var output = Run("/usr/sbin/ioreg", "-rd1 -c IOPlatformExpertDevice");
+
+        if (output is null)
+        {
+            return null;
+        }
+
+        foreach (var line in output.Split('\n'))
+        {
+            if (!line.Contains("IOPlatformUUID"))
+            {
+                continue;
+            }
+
+            var parts = line.Split('"');
+
+            if (parts.Length >= 4 && parts[3].Trim() is { Length: > 0 } uuid && !Meaningless(uuid))
+            {
+                Source = "the platform UUID";
+
+                return uuid;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>Run a command and read its output, or null if it will not run.</summary>
+    private static string? Run(string file, string arguments)
+    {
+        try
+        {
+            using var process = Process.Start(new ProcessStartInfo
+            {
+                FileName = file,
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            });
+
+            if (process is null)
+            {
+                return null;
+            }
+
+            var output = process.StandardOutput.ReadToEnd();
+
+            if (!process.WaitForExit(8000))
+            {
+                try
+                {
+                    process.Kill(entireProcessTree: true);
+                }
+                catch (Exception)
+                {
+                    // Discarding the answer anyway.
+                }
+
+                return null;
+            }
+
+            return output;
+        }
+        catch (Exception ex)
+        {
+            Faults.Record($"asking {file} what machine this is", ex);
+
+            return null;
+        }
     }
 
     private static string? Ask(string command)

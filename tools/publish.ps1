@@ -13,6 +13,11 @@
 
 param(
     [string] $Dotnet   = 'D:\dotnet10\dotnet.exe',
+    # The platform to build for. win-x64 is the usual one; linux-x64,
+    # osx-x64 and osx-arm64 make the self-contained build for those systems —
+    # the same application, run the same way, no runtime to install first.
+    [ValidateSet('win-x64', 'win-arm64', 'linux-x64', 'linux-arm64', 'osx-x64', 'osx-arm64')]
+    [string] $Runtime  = 'win-x64',
     [string] $Into     = 'publish\staging',
     # Where the member photos and book covers live. The web application serves
     # them from public\storage (what the database paths resolve against), so a
@@ -48,9 +53,12 @@ New-Item -ItemType Directory -Force -Path $out | Out-Null
 # _IsPublishing turns on the single-file, self-contained settings in the
 # csproj. They live there rather than here so this script cannot disagree with
 # a build done from an IDE.
+Write-Host ('  for   ' + $Runtime)
+Write-Host ''
+
 & $Dotnet publish (Join-Path $root 'src\MilLib.Desktop\MilLib.Desktop.csproj') `
     -c Release `
-    -r win-x64 `
+    -r $Runtime `
     -p:_IsPublishing=true `
     -o $out `
     --nologo
@@ -133,7 +141,11 @@ if (Test-Path $readme) {
 
 Write-Host ''
 
-$exe = Join-Path $out 'Library Manager.exe'
+# Windows names the program with .exe; Linux and macOS have no extension, and
+# the file must be marked executable on the target (chmod +x "Library Manager")
+# — a thing a Windows filesystem cannot set for another one.
+$exeName = if ($Runtime -like 'win*') { 'Library Manager.exe' } else { 'Library Manager' }
+$exe = Join-Path $out $exeName
 
 if (-not (Test-Path $exe)) {
     throw 'The executable is not where it should be. Something about the publish is wrong.'
