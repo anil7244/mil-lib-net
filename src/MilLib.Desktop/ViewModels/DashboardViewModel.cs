@@ -62,8 +62,16 @@ public partial class DashboardViewModel : ViewModelBase
     /// <summary>The last seven days of issues, as bars.</summary>
     public ObservableCollection<Bar> Week { get; } = [];
 
-    /// <summary>The books most recently catalogued, with their covers.</summary>
-    public ObservableCollection<RecentBook> Recent { get; } = [];
+    /// <summary>
+    /// The most recently catalogued books that actually have a cover — the strip
+    /// that scrolls across the top of the dashboard. Only covered books, because
+    /// a shelf of grey placeholders is not what makes a library look like one.
+    /// </summary>
+    public ObservableCollection<RecentBook> Covers { get; } = [];
+
+    /// <summary>Raised when the cover strip has been refilled, so the view can
+    /// restart the scroll against the new width.</summary>
+    public event Action? CoversChanged;
 
     public List<OverdueRow> Overdues { get; } = [];
 
@@ -124,11 +132,12 @@ public partial class DashboardViewModel : ViewModelBase
             BuildCollection();
             BuildWeek(recentIssues);
 
-            Recent.Clear();
+            Covers.Clear();
 
-            var recent = await db.Titles
+            var covered = await db.Titles
+                .Where(t => t.CoverPath != null && t.CoverPath != "")
                 .OrderByDescending(t => t.TitleId)
-                .Take(8)
+                .Take(24)
                 .Select(t => new
                 {
                     t.Name,
@@ -137,10 +146,19 @@ public partial class DashboardViewModel : ViewModelBase
                 })
                 .ToListAsync();
 
-            foreach (var r in recent)
+            foreach (var r in covered)
             {
-                Recent.Add(new RecentBook(r.Name, r.Author ?? "", Workspace.CoverPath(r.CoverPath)));
+                var file = Workspace.CoverPath(r.CoverPath);
+
+                // Only the ones whose file is actually here — a recorded path
+                // whose picture is missing would be a gap in the moving strip.
+                if (file is not null)
+                {
+                    Covers.Add(new RecentBook(r.Name, r.Author ?? "", file));
+                }
             }
+
+            CoversChanged?.Invoke();
 
             Overdues.Clear();
 

@@ -26,6 +26,25 @@
         </Style>
     </UserControl.Styles>
 
+    <UserControl.Resources>
+        <!-- One book in the moving strip: the cover at a book's proportions,
+             the title under it. Used twice — the strip is the covers laid out
+             end to end and then laid out again, so it can scroll forever without
+             a seam. Fixed width, so the scroll distance is known. -->
+        <DataTemplate x:Key="CoverCard" DataType="vm:RecentBook">
+            <StackPanel Width="94" Spacing="6">
+                <Border Classes="mini" Height="130" CornerRadius="5" ClipToBounds="True"
+                        Background="{DynamicResource SurfaceSunken}"
+                        BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                    <Image Source="{Binding Cover}" Stretch="UniformToFill"
+                           RenderOptions.BitmapInterpolationMode="HighQuality" />
+                </Border>
+                <TextBlock Text="{Binding Title}" FontSize="10.5" LineHeight="13"
+                           TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+
     <Grid RowDefinitions="Auto,*">
 
         <!-- Who, and when. One line, and then out of the way. -->
@@ -112,51 +131,126 @@
                 </StackPanel>
             </Border>
 
-            <!-- ================================================= the collection -->
-            <Border Grid.Row="0" Grid.Column="2" Classes="card" Padding="20,18">
-                <StackPanel Spacing="14">
-                    <TextBlock Text="The collection" Classes="h2" />
+            <!-- ==================== the right column: covers, collection, week -->
+            <Grid Grid.Row="0" Grid.RowSpan="3" Grid.Column="2"
+                  RowDefinitions="Auto,14,Auto,14,*">
 
-                    <Panel Width="168" Height="168" HorizontalAlignment="Center">
-                        <Ellipse Width="168" Height="168"
-                                 Stroke="{DynamicResource SurfaceSunken}" StrokeThickness="22" />
+                <!-- recently catalogued: a strip of covers scrolling right to left -->
+                <Border Grid.Row="0" Classes="card" Padding="20,16,20,18" ClipToBounds="True">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Recently catalogued" Classes="h2" />
+
+                        <Panel Height="164" ClipToBounds="True">
+                            <Canvas ClipToBounds="True">
+                                <StackPanel Name="MarqueeStrip" Orientation="Horizontal" Spacing="14"
+                                            Canvas.Left="0" Canvas.Top="0">
+                                    <ItemsControl Name="MarqueeSetA" ItemsSource="{Binding Covers}"
+                                                  ItemTemplate="{StaticResource CoverCard}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal" Spacing="14" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                    </ItemsControl>
+                                    <ItemsControl ItemsSource="{Binding Covers}"
+                                                  ItemTemplate="{StaticResource CoverCard}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal" Spacing="14" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Canvas>
+
+                            <TextBlock Text="No covers yet — attach a book's cover and it appears here."
+                                       Classes="faint" FontSize="11.5" TextWrapping="Wrap"
+                                       TextAlignment="Center" MaxWidth="260"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center"
+                                       IsVisible="{Binding !Covers.Count}" />
+                        </Panel>
+                    </StackPanel>
+                </Border>
+
+                <!-- the collection, shifted down -->
+                <Border Grid.Row="2" Classes="card" Padding="20,18">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="The collection" Classes="h2" />
+
+                        <Panel Width="168" Height="168" HorizontalAlignment="Center">
+                            <Ellipse Width="168" Height="168"
+                                     Stroke="{DynamicResource SurfaceSunken}" StrokeThickness="22" />
+
+                            <ItemsControl ItemsSource="{Binding Collection}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><Panel /></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="vm:Wedge">
+                                        <Path Data="{Binding Value}"
+                                              Stroke="{Binding Colour, Converter={x:Static conv:Hue.Brush}}"
+                                              StrokeThickness="22" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="0">
+                                <TextBlock Text="{Binding CopiesText}" FontSize="30" FontWeight="Bold"
+                                           HorizontalAlignment="Center" />
+                                <TextBlock Text="COPIES" Classes="label" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Panel>
 
                         <ItemsControl ItemsSource="{Binding Collection}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate><Panel /></ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="vm:Wedge">
-                                    <Path Data="{Binding Value}"
-                                          Stroke="{Binding Colour, Converter={x:Static conv:Hue.Brush}}"
-                                          StrokeThickness="22" />
+                                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4">
+                                        <Ellipse Grid.Column="0" Width="11" Height="11" VerticalAlignment="Center"
+                                                 Fill="{Binding Colour, Converter={x:Static conv:Hue.Brush}}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Label}" Margin="10,0,0,0"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Count}" Classes="mono"
+                                                   FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+                    </StackPanel>
+                </Border>
 
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="0">
-                            <TextBlock Text="{Binding CopiesText}" FontSize="30" FontWeight="Bold"
-                                       HorizontalAlignment="Center" />
-                            <TextBlock Text="COPIES" Classes="label" HorizontalAlignment="Center" />
+                <!-- issues this week -->
+                <Border Grid.Row="4" Classes="card" Padding="20,16" VerticalAlignment="Top">
+                    <StackPanel Spacing="12">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Issues this week" Classes="h2" />
+                            <TextBlock Text="{Binding WeekText}" Classes="faint" FontSize="11" />
                         </StackPanel>
-                    </Panel>
 
-                    <ItemsControl ItemsSource="{Binding Collection}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="vm:Wedge">
-                                <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4">
-                                    <Ellipse Grid.Column="0" Width="11" Height="11" VerticalAlignment="Center"
-                                             Fill="{Binding Colour, Converter={x:Static conv:Hue.Brush}}" />
-                                    <TextBlock Grid.Column="1" Text="{Binding Label}" Margin="10,0,0,0"
-                                               VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="2" Text="{Binding Count}" Classes="mono"
-                                               FontWeight="SemiBold" VerticalAlignment="Center" />
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Border>
+                        <ItemsControl ItemsSource="{Binding Week}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><UniformGrid Rows="1" /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="vm:Bar">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="{Binding CountText}" FontSize="10"
+                                                   Classes="faint" HorizontalAlignment="Center" />
+                                        <Border Height="96" VerticalAlignment="Bottom">
+                                            <Rectangle Classes="bar" Classes.today="{Binding IsToday}"
+                                                       Width="20" RadiusX="4" RadiusY="4"
+                                                       Height="{Binding Height}"
+                                                       VerticalAlignment="Bottom"
+                                                       HorizontalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Text="{Binding Day}" FontSize="10"
+                                                   Classes="faint" HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
 
             <!-- ================================================== the overdue list -->
             <Border Grid.Row="2" Grid.Column="0" Classes="card" Padding="0" ClipToBounds="True">
@@ -204,82 +298,6 @@
                 </Grid>
             </Border>
 
-            <!-- ============================== the week, and what was just added -->
-            <Grid Grid.Row="2" Grid.Column="2" RowDefinitions="Auto,14,*">
-
-                <!-- issues this week -->
-                <Border Grid.Row="0" Classes="card" Padding="20,16">
-                    <StackPanel Spacing="12">
-                        <StackPanel Spacing="2">
-                            <TextBlock Text="Issues this week" Classes="h2" />
-                            <TextBlock Text="{Binding WeekText}" Classes="faint" FontSize="11" />
-                        </StackPanel>
-
-                        <ItemsControl ItemsSource="{Binding Week}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate><UniformGrid Rows="1" /></ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="vm:Bar">
-                                    <StackPanel Spacing="6">
-                                        <TextBlock Text="{Binding CountText}" FontSize="10"
-                                                   Classes="faint" HorizontalAlignment="Center" />
-                                        <Border Height="96" VerticalAlignment="Bottom">
-                                            <Rectangle Classes="bar" Classes.today="{Binding IsToday}"
-                                                       Width="20" RadiusX="4" RadiusY="4"
-                                                       Height="{Binding Height}"
-                                                       VerticalAlignment="Bottom"
-                                                       HorizontalAlignment="Center" />
-                                        </Border>
-                                        <TextBlock Text="{Binding Day}" FontSize="10"
-                                                   Classes="faint" HorizontalAlignment="Center" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </Border>
-
-                <!-- recently catalogued -->
-                <Border Grid.Row="2" Classes="card" Padding="20,16" ClipToBounds="True">
-                    <Grid RowDefinitions="Auto,*">
-                        <TextBlock Grid.Row="0" Text="Recently catalogued" Classes="h2"
-                                   Margin="0,0,0,12" />
-
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                            <ItemsControl ItemsSource="{Binding Recent}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate DataType="vm:RecentBook">
-                                        <StackPanel Width="78" Spacing="5" Margin="0,0,10,12">
-                                            <Border Classes="mini" Height="104" CornerRadius="4"
-                                                    ClipToBounds="True"
-                                                    Background="{DynamicResource SurfaceSunken}"
-                                                    BorderBrush="{DynamicResource Line}" BorderThickness="1">
-                                                <Panel>
-                                                    <Path Data="{StaticResource IconBooks}"
-                                                          Stroke="{DynamicResource InkFaint}" StrokeThickness="1.4"
-                                                          Width="18" Height="18" Stretch="Uniform"
-                                                          HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                          IsVisible="{Binding !HasCover}" />
-                                                    <Image Source="{Binding Cover}" Stretch="UniformToFill"
-                                                           IsVisible="{Binding HasCover}"
-                                                           RenderOptions.BitmapInterpolationMode="HighQuality" />
-                                                </Panel>
-                                            </Border>
-                                            <TextBlock Text="{Binding Title}" FontSize="10.5" LineHeight="13"
-                                                       TextWrapping="Wrap" MaxLines="2"
-                                                       TextTrimming="CharacterEllipsis" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-                    </Grid>
-                </Border>
-            </Grid>
         </Grid>
     </Grid>
 </UserControl>
