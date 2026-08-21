@@ -143,7 +143,7 @@ public partial class MainViewModel : ViewModelBase
     /// this person may hand the machine over to it.
     /// </summary>
     public bool MayOpenKiosk =>
-        Session.Has(Feature.MemberLogin) && Session.Can(Ability.CatalogueView);
+        Session.Has(Feature.ReadingRoom) && Session.Can(Ability.CatalogueView);
 
     /// <summary>Raised when the machine should become a reading-room terminal.</summary>
     public event Action? OpenKiosk;

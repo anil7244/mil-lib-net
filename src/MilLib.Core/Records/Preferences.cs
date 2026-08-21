@@ -140,7 +140,10 @@ public class Preferences
         Feature.Withdrawal => Flag("feature.withdrawal"),
         Feature.Classified => Flag("feature.classified"),
         Feature.ReportsAdvanced => Flag("feature.reports_advanced"),
-        Feature.MemberLogin => Flag("feature.member_login"),
+        // The reading-room kiosk. Its stored key stays "feature.member_login"
+        // — the value units have already set, and the one the other program
+        // knows — even though what it turns on is now called the reading room.
+        Feature.ReadingRoom => Flag("feature.member_login"),
         Feature.Branches => Flag("feature.branches"),
         Feature.Acquisitions => Flag("feature.acquisitions"),
         Feature.Serials => Flag("feature.serials"),
@@ -158,7 +161,7 @@ public enum Feature
     Withdrawal,
     Classified,
     ReportsAdvanced,
-    MemberLogin,
+    ReadingRoom,
     Branches,
     Acquisitions,
     Serials,
