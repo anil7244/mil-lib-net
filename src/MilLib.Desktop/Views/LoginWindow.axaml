@@ -383,9 +383,9 @@
 
             <!-- ==================================================== the footer -->
             <!-- The offline mark and the licence standing stay to the left in the
-                 house red, as before; the web address sits on its own in the
-                 centre of the bar. There are no buttons here any more — the way
-                 in is under the fields, where a sign-in screen puts it. -->
+                 house red, as before; the web address sits at the right end,
+                 embossed. There are no buttons here any more — the way in is
+                 under the fields, where a sign-in screen puts it. -->
             <Border Grid.Row="2"
                     Background="{DynamicResource AuthPanel}"
                     BorderBrush="{DynamicResource AuthHairline}"
@@ -426,9 +426,20 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <TextBlock Text="{Binding Website}" FontSize="11" FontWeight="SemiBold"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Foreground="{DynamicResource AuthMuted}" />
+                    <!-- The maker's web address sits at the right end, embossed:
+                         a pale highlight one pixel down and right, the muted text
+                         over it, so the letters look pressed into the bar. -->
+                    <Panel HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Website}" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="#FFFFFF" Opacity="0.8">
+                            <TextBlock.RenderTransform>
+                                <TranslateTransform X="1" Y="1" />
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
+                        <TextBlock Text="{Binding Website}" FontSize="11" FontWeight="SemiBold"
+                                   LetterSpacing="0.3"
+                                   Foreground="{DynamicResource AuthMuted}" />
+                    </Panel>
                 </Panel>
             </Border>
         </Grid>
