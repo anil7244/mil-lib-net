@@ -1,0 +1,163 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MilLib.Desktop.ViewModels"
+             xmlns:conv="using:MilLib.Desktop"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="720"
+             x:Class="MilLib.Desktop.Views.ImportExportView"
+             x:DataType="vm:ImportExportViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.seg">
+            <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="ClipToBounds" Value="True" />
+            <Setter Property="Background" Value="{DynamicResource Glass}" />
+        </Style>
+        <Style Selector="Button.seg">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="26,0" />
+            <Setter Property="MinHeight" Value="42" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.seg /template/ ContentPresenter">
+            <Setter Property="CornerRadius" Value="0" />
+        </Style>
+        <Style Selector="Button.seg:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource GlassRaised}" />
+        </Style>
+        <Style Selector="Button.seg.on /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource Accent}" />
+        </Style>
+        <Style Selector="Button.seg.on TextBlock">
+            <Setter Property="Foreground" Value="#FFFFFF" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,18,*" ColumnDefinitions="*,18,*">
+
+        <!-- what set, and why this screen exists -->
+        <Grid Grid.Row="0" Grid.ColumnSpan="3" ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Spacing="3">
+                <TextBlock Text="Import &amp; Export" Classes="h2" />
+                <TextBlock Classes="sub"
+                           Text="Take the catalogue or the roll out to a spreadsheet, PDF or CSV — or fill in a template and bring a batch of records in." />
+            </StackPanel>
+
+            <Border Grid.Column="1" Classes="seg" Height="42" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal">
+                    <Button Classes="seg" Classes.on="{Binding IsBooks}"
+                            Command="{Binding UseBooksCommand}">
+                        <TextBlock Text="Books" />
+                    </Button>
+                    <Button Classes="seg" Classes.on="{Binding IsMembers}"
+                            Command="{Binding UseMembersCommand}">
+                        <TextBlock Text="Members" />
+                    </Button>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ==================================================== export card -->
+        <Border Grid.Row="2" Grid.Column="0" Classes="card" Padding="24,20" VerticalAlignment="Top">
+            <StackPanel Spacing="16">
+                <StackPanel Spacing="3">
+                    <TextBlock Text="Export" Classes="h2" />
+                    <TextBlock Classes="sub" TextWrapping="Wrap">
+                        <Run Text="Save all" />
+                        <Run Text="{Binding Noun}" />
+                        <Run Text="to a file. Excel is the working copy — sorted, filtered, pasted into a return; PDF is the record to print; CSV opens anywhere." />
+                    </TextBlock>
+                </StackPanel>
+
+                <StackPanel Spacing="10">
+                    <Button Classes="primary withIcon" Content="Export to Excel (.xlsx)"
+                            Tag="{StaticResource IconTransfer}" MinHeight="44"
+                            HorizontalAlignment="Stretch"
+                            IsEnabled="{Binding !Busy}"
+                            Command="{Binding ExportExcelCommand}" />
+                    <Grid ColumnDefinitions="*,10,*">
+                        <Button Grid.Column="0" Content="Export to PDF" MinHeight="42"
+                                HorizontalAlignment="Stretch"
+                                IsEnabled="{Binding !Busy}"
+                                Command="{Binding ExportPdfCommand}" />
+                        <Button Grid.Column="2" Content="Export to CSV" MinHeight="42"
+                                HorizontalAlignment="Stretch"
+                                IsEnabled="{Binding !Busy}"
+                                Command="{Binding ExportCsvCommand}" />
+                    </Grid>
+                </StackPanel>
+
+                <Rectangle Height="1" Fill="{DynamicResource Line}" />
+
+                <StackPanel Spacing="8">
+                    <StackPanel Spacing="3">
+                        <TextBlock Text="Blank template" Classes="faint" />
+                        <TextBlock Classes="sub" TextWrapping="Wrap"
+                                   Text="An empty Excel file with just the column headings, to fill in and import below." />
+                    </StackPanel>
+                    <Button Classes="withIcon" Content="Download the import template"
+                            Tag="{StaticResource IconLabels}" MinHeight="42"
+                            HorizontalAlignment="Left" MinWidth="260"
+                            IsEnabled="{Binding !Busy}"
+                            Command="{Binding DownloadTemplateCommand}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- ==================================================== import card -->
+        <Border Grid.Row="2" Grid.Column="2" Classes="card" Padding="24,20" VerticalAlignment="Top">
+            <StackPanel Spacing="16">
+                <StackPanel Spacing="3">
+                    <TextBlock Text="Import" Classes="h2" />
+                    <TextBlock Classes="sub" TextWrapping="Wrap">
+                        <Run Text="Read an Excel file and add its rows as new" />
+                        <Run Text="{Binding Noun}" />
+                        <Run Text="— matched by column heading, so the export of this or another library works too. Each row is checked the same way the screen checks it; a bad row is skipped and listed, never forced in." />
+                    </TextBlock>
+                </StackPanel>
+
+                <Button Classes="primary withIcon" Content="Import from Excel…"
+                        Tag="{StaticResource IconTransfer}" MinHeight="44"
+                        HorizontalAlignment="Left" MinWidth="240"
+                        IsEnabled="{Binding MayImport}"
+                        Command="{Binding ImportCommand}" />
+
+                <TextBlock Classes="faint" FontSize="11" TextWrapping="Wrap"
+                           IsVisible="{Binding !MayImport}"
+                           Text="Importing needs permission to catalogue books or manage members. You can still export." />
+
+                <Border Classes="card" Padding="14,12"
+                        IsVisible="{Binding HasSaid}"
+                        Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                    <TextBlock Text="{Binding Said}" TextWrapping="Wrap"
+                               Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+                </Border>
+
+                <Border Classes="card cool" Padding="0" ClipToBounds="True"
+                        IsVisible="{Binding Problems.Count}">
+                    <Grid RowDefinitions="Auto,*" MaxHeight="260">
+                        <TextBlock Grid.Row="0" Text="ROWS THAT COULD NOT BE ADDED" Classes="label"
+                                   Margin="14,12,14,8" />
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding Problems}" Margin="14,0,14,12">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" FontSize="11.5" TextWrapping="Wrap"
+                                                   Margin="0,3"
+                                                   Foreground="{DynamicResource Bad}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

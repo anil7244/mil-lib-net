@@ -280,6 +280,7 @@ public partial class MainViewModel : ViewModelBase
             "Reservations" => new ReservationsViewModel(),
             "Fines" => new FinesViewModel(),
             "Settings" => new SettingsViewModel(),
+            "Import & Export" => new ImportExportViewModel(),
             "Staff Accounts" => new StaffViewModel(),
             "Activity" => new ActivityViewModel(),
             "Subjects" => new SubjectsViewModel(),
@@ -368,6 +369,7 @@ public partial class MainViewModel : ViewModelBase
             new("Administration", "IconSettings",
             [
                 new("Reports", "Reports", "IconReports", Ability.ReportsView),
+                new("Import & Export", "Import & Export", "IconTransfer", Ability.CatalogueView),
                 new("Lending Rules", "Member Types", "IconRules", Ability.SettingsManage),
                 new("Staff Accounts", "Staff Accounts", "IconUsers", Ability.UsersManage),
                 new("Activity", "Activity Log", "IconActivity", Ability.AuditView),

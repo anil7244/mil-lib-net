@@ -51,6 +51,76 @@ public static class Documents
         }
     }
 
+    /// <summary>
+    /// Save a file of a given kind — a spreadsheet, a PDF — choosing the folder
+    /// first. The same as the PDF save below, but the picker offers the right
+    /// extension and filter so the name comes out ".xlsx", not ".pdf".
+    /// </summary>
+    public static async Task SaveAsync(
+        Visual anchor, string title, string suggestedFileName,
+        string extension, string typeName, IReadOnlyList<string> patterns,
+        Action<string> write)
+    {
+        if (TopLevel.GetTopLevel(anchor) is not { } top)
+        {
+            return;
+        }
+
+        string? path = null;
+
+        try
+        {
+            var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = title,
+                SuggestedFileName = Clean(suggestedFileName),
+                DefaultExtension = extension,
+                FileTypeChoices = [new FilePickerFileType(typeName) { Patterns = [.. patterns] }],
+            });
+
+            path = file?.TryGetLocalPath();
+
+            if (path is null)
+            {
+                return;
+            }
+
+            write(path);
+        }
+        catch (Exception ex)
+        {
+            Faults.Record(title, ex);
+
+            await Notice.ShowAsync(top as Window, "The file could not be saved", Faults.Explain(ex));
+
+            return;
+        }
+
+        await Notice.ShowAsync(top as Window, "Saved", path, path);
+    }
+
+    /// <summary>
+    /// Choose a file to read — an import. Returns its path, or null if the
+    /// person backed out of the picker.
+    /// </summary>
+    public static async Task<string?> OpenAsync(
+        Visual anchor, string title, string typeName, IReadOnlyList<string> patterns)
+    {
+        if (TopLevel.GetTopLevel(anchor) is not { } top)
+        {
+            return null;
+        }
+
+        var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = title,
+            AllowMultiple = false,
+            FileTypeFilter = [new FilePickerFileType(typeName) { Patterns = [.. patterns] }],
+        });
+
+        return files.Count == 0 ? null : files[0].TryGetLocalPath();
+    }
+
     public static async Task SaveAsync(
         Visual anchor, string title, string suggestedFileName, Action<string> write)
     {

@@ -301,6 +301,13 @@ internal static class Program
             Shoot(Path.Combine(outDir, "licence.png"),
                 new LicenceView { DataContext = licence });
 
+            Shoot(Path.Combine(outDir, "import-export.png"),
+                new ImportExportView { DataContext = new ImportExportViewModel() });
+
+            // A round-trip proof, printed to the console: export the books to a
+            // real .xlsx, read it back, and say how many rows survived.
+            ProveExcel();
+
             // The dark theme, to show the dual palette — the same view models,
             // repainted by the variant switch, nothing rebuilt.
             Theming.UseVariant(true);
@@ -830,6 +837,24 @@ internal static class Program
         var bitmap = new RenderTargetBitmap(new PixelSize(width, height), new Vector(96, 96));
         bitmap.Render(window);
         bitmap.Save(path);
+    }
+
+    /// <summary>Export the books to a real .xlsx and read it back, as a check.</summary>
+    private static void ProveExcel()
+    {
+        using var db = Workspace.Open();
+
+        var port = new MilLib.Core.Records.DataPort(db);
+
+        var sheet = port.ExportBooksAsync().GetAwaiter().GetResult();
+        var bytes = MilLib.Core.Documents.Workbook.Write(sheet);
+
+        using var stream = new MemoryStream(bytes);
+        var read = MilLib.Core.Documents.Workbook.Read(stream);
+
+        Console.WriteLine($"Excel round-trip: wrote {sheet.Rows.Count} book rows "
+            + $"({bytes.Length} bytes), read back {read.Rows.Count} rows, "
+            + $"{read.Headers.Count} columns.");
     }
 
     /// <summary>The key-entry dialog, reachable from the sign-in screen.</summary>
