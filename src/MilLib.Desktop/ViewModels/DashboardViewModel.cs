@@ -73,6 +73,29 @@ public partial class DashboardViewModel : ViewModelBase
     /// restart the scroll against the new width.</summary>
     public event Action? CoversChanged;
 
+    /// <summary>
+    /// The small figures a librarian acts on today — what is due back, what is
+    /// waiting to be collected, what is owed, whose card is about to lapse, and
+    /// what has gone astray. Built from what this person may see and what the
+    /// unit has switched on, so a counter with no reservations gets a shorter
+    /// row rather than one with a hole in it.
+    /// </summary>
+    public ObservableCollection<Tile> Tiles { get; } = [];
+
+    /// <summary>
+    /// The holdings by security marking — the view a military library is asked
+    /// for that an ordinary one never is. Each marking in its conventional
+    /// colour, so the shape of the classified holding is read at a glance.
+    /// </summary>
+    public ObservableCollection<Segment> Classified { get; } = [];
+
+    /// <summary>The most-borrowed titles — what the unit actually reads.</summary>
+    public ObservableCollection<PopularBook> Popular { get; } = [];
+
+    public bool HasPopular => Popular.Count > 0;
+
+    public bool HasClassified => Classified.Count > 0;
+
     public List<OverdueRow> Overdues { get; } = [];
 
     public bool NothingOverdue => !Busy && Overdues.Count == 0;
@@ -127,6 +150,79 @@ public partial class DashboardViewModel : ViewModelBase
                 .ToListAsync();
 
             IssuedThisWeek = recentIssues.Count;
+
+            // --- the figures the counter acts on today ------------------------
+            var dueToday = await open.CountAsync(l => l.DueOn == today);
+            var lostMissing = await db.Copies.CountAsync(c =>
+                c.Status == CopyStatus.LOST || c.Status == CopyStatus.MISSING);
+            var expiringSoon = await db.Members.CountAsync(m =>
+                m.Status == MemberStatus.ACTIVE
+                && m.ValidUpto != null
+                && m.ValidUpto >= today
+                && m.ValidUpto <= today.AddDays(30));
+
+            var holdsReady = 0;
+            var holdsWaiting = 0;
+            if (Session.Has(Feature.Reservations))
+            {
+                holdsReady = await db.Reservations.CountAsync(r => r.Status == ReservationStatus.READY);
+                holdsWaiting = await db.Reservations.CountAsync(r => r.Status == ReservationStatus.WAITING);
+            }
+
+            decimal pendingFines = 0;
+            if (Session.Has(Feature.Fines))
+            {
+                pendingFines = await db.Fines
+                    .Where(f => f.Status == FineStatus.PENDING)
+                    .SumAsync(f => (decimal?)f.Amount) ?? 0m;
+            }
+
+            BuildTiles(dueToday, holdsReady, holdsWaiting, pendingFines, expiringSoon, lostMissing);
+
+            // --- holdings by security marking (a military library's view) -----
+            var byClass = await db.Copies
+                .GroupBy(c => c.Title!.SecurityClass)
+                .Select(g => new { Class = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            BuildClassified(byClass.ToDictionary(x => x.Class, x => x.Count));
+
+            // --- the most-borrowed titles -------------------------------------
+            var counts = await db.Loans
+                .Where(l => l.Copy != null)
+                .GroupBy(l => l.Copy!.TitleId)
+                .Select(g => new { TitleId = g.Key, Loans = g.Count() })
+                .OrderByDescending(x => x.Loans)
+                .Take(6)
+                .ToListAsync();
+
+            var wantedIds = counts.Select(c => c.TitleId).ToList();
+
+            var named = await db.Titles
+                .Where(t => wantedIds.Contains(t.TitleId))
+                .Select(t => new
+                {
+                    t.TitleId,
+                    t.Name,
+                    Author = t.Authors.OrderBy(a => a.SortOrder).Select(a => a.Author!.Name).FirstOrDefault(),
+                })
+                .ToListAsync();
+
+            Popular.Clear();
+            var rank = 0;
+            foreach (var c in counts)
+            {
+                var title = named.FirstOrDefault(n => n.TitleId == c.TitleId);
+                if (title is null || c.Loans == 0)
+                {
+                    continue;
+                }
+
+                Popular.Add(new PopularBook(++rank, title.Name, title.Author ?? "", c.Loans));
+            }
+
+            OnPropertyChanged(nameof(HasPopular));
+            OnPropertyChanged(nameof(HasClassified));
 
             BuildGauges();
             BuildCollection();
@@ -203,6 +299,77 @@ public partial class DashboardViewModel : ViewModelBase
             Busy = false;
 
             OnPropertyChanged(nameof(NothingOverdue));
+        }
+    }
+
+    /// <summary>
+    /// The counter's figures for today, each tinted for what it is: the ordinary
+    /// ones cool, the ones that are somebody's job now warm, and the one that
+    /// means trouble red. Only the ones this person may see and the unit has on.
+    /// </summary>
+    private void BuildTiles(int dueToday, int holdsReady, int holdsWaiting,
+        decimal pendingFines, int expiringSoon, int lostMissing)
+    {
+        var money = Session.Preferences;
+
+        Tiles.Clear();
+
+        if (Session.Can(Ability.CirculationOperate))
+        {
+            Tiles.Add(new Tile("DUE BACK TODAY", $"{dueToday:N0}",
+                "over the counter today", dueToday > 0 ? "info" : "cool"));
+        }
+
+        if (Session.Has(Feature.Reservations) && Session.Can(Ability.ReservationsManage))
+        {
+            Tiles.Add(new Tile("HOLDS READY", $"{holdsReady:N0}",
+                holdsWaiting == 1 ? "1 more in the queue" : $"{holdsWaiting} more in the queue",
+                holdsReady > 0 ? "warn" : "cool"));
+        }
+
+        if (Session.Has(Feature.Fines) && Session.Can(Ability.FinesManage))
+        {
+            Tiles.Add(new Tile("UNPAID FINES", money.Money(pendingFines),
+                "to settle at the counter", pendingFines > 0 ? "bad" : "cool"));
+        }
+
+        if (Session.Can(Ability.MembersView))
+        {
+            Tiles.Add(new Tile("CARDS EXPIRING", $"{expiringSoon:N0}",
+                "in the next 30 days", expiringSoon > 0 ? "warn" : "cool"));
+        }
+
+        Tiles.Add(new Tile("LOST OR MISSING", $"{lostMissing:N0}",
+            "copies to trace or condemn", lostMissing > 0 ? "bad" : "cool"));
+    }
+
+    /// <summary>
+    /// The holdings by marking, in the order and the colours a marking is
+    /// conventionally drawn in, each with a bar scaled to the largest so the
+    /// classified share reads against the whole.
+    /// </summary>
+    private void BuildClassified(IReadOnlyDictionary<SecurityClass, int> counts)
+    {
+        Classified.Clear();
+
+        SecurityClass[] order =
+        [
+            SecurityClass.UNCLASSIFIED, SecurityClass.RESTRICTED, SecurityClass.CONFIDENTIAL,
+            SecurityClass.SECRET, SecurityClass.TOP_SECRET,
+        ];
+
+        var max = Math.Max(1, order.Select(c => counts.GetValueOrDefault(c)).DefaultIfEmpty(0).Max());
+
+        foreach (var cls in order)
+        {
+            var count = counts.GetValueOrDefault(cls);
+
+            if (count == 0)
+            {
+                continue;
+            }
+
+            Classified.Add(new Segment(cls, Words.Of(cls), count, Math.Max(6, 188.0 * count / max)));
         }
     }
 
@@ -483,6 +650,30 @@ public sealed class RecentBook(string title, string author, string? coverFile)
     }
 
     public bool HasCover => Cover is not null;
+}
+
+/// <summary>One small figure on the dashboard, tinted for what kind it is.</summary>
+public sealed record Tile(string Label, string Value, string Note, string Tone)
+{
+    public bool IsCool => Tone == "cool";
+
+    public bool IsInfo => Tone == "info";
+
+    public bool IsWarn => Tone == "warn";
+
+    public bool IsBad => Tone == "bad";
+}
+
+/// <summary>One marking's holding: the class, its count, and a bar scaled to the
+/// largest.</summary>
+public sealed record Segment(SecurityClass Class, string Label, int Count, double Width);
+
+/// <summary>One of the most-borrowed titles.</summary>
+public sealed record PopularBook(int Rank, string Title, string Author, int Loans)
+{
+    public string LoansText => Loans == 1 ? "1 loan" : $"{Loans:N0} loans";
+
+    public bool HasAuthor => Author.Length > 0;
 }
 
 /// <summary>One line of the overdue list.</summary>
