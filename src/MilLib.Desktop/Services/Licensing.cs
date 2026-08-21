@@ -47,6 +47,50 @@ public static class Licensing
     }
 
     /// <summary>
+    /// A key the installer was given, activated on first run and then removed.
+    ///
+    /// The installer cannot activate anything itself — the machine fingerprint
+    /// is worked out by the running application, never written down — so when
+    /// somebody types their key into the setup wizard it is left in a file
+    /// beside the data for the application to pick up the first time it opens.
+    /// Consumed once and deleted, whether it worked or not: a key that failed is
+    /// re-entered at the login screen, not retried silently forever.
+    /// </summary>
+    public static async Task ConsumePendingKeyAsync()
+    {
+        try
+        {
+            var path = Path.Combine(Workspace.Pictures, "licence-key.txt");
+
+            if (!File.Exists(path))
+            {
+                return;
+            }
+
+            var key = File.ReadAllText(path).Trim();
+
+            File.Delete(path);
+
+            if (key.Length == 0)
+            {
+                return;
+            }
+
+            await using var db = Workspace.Open();
+
+            await For(db).ActivateAsync(key, DateOnly.FromDateTime(DateTime.Now));
+
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            // Never at the cost of opening: a bad key is entered again at the
+            // front door, where there is a screen to say what was wrong.
+            Faults.Record("activating the key from the installer", ex);
+        }
+    }
+
+    /// <summary>
     /// Whether the application may be used. Unknown counts as usable: a
     /// licence check that could not be made is not evidence of anything, and
     /// locking a unit out of its own library because a database read failed

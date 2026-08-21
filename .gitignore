@@ -19,3 +19,6 @@ installation.json
 # The real licence salt — the shared secret of the licensing scheme.
 # A public copy of this repository must never carry it.
 src/MilLib.Desktop/Services/LicenceSecret.cs
+
+# Handover build artifacts (installers, zips)
+dist/

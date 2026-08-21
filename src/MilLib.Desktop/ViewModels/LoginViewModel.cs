@@ -176,6 +176,10 @@ public partial class LoginViewModel : ViewModelBase
                 // A colour somebody typed wrong is not worth a blank screen.
             }
 
+            // A key typed into the setup wizard is activated here, the first
+            // time the application opens, then the file it was left in is gone.
+            await Licensing.ConsumePendingKeyAsync();
+
             // Said here as well as inside, because the web application says it
             // here and this screen is meant to be the same screen. What it
             // gives away is that a unit's licence is running out, to somebody
