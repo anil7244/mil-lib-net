@@ -81,6 +81,9 @@ public partial class LoginViewModel : ViewModelBase
 
     public string VendorLine => $"{Vendor.Company} · {Vendor.Website}";
 
+    /// <summary>Just the address, for the foot of the sign-in screen.</summary>
+    public string Website => Vendor.Website;
+
     public bool HasProblem => Problem.Length > 0;
 
     public bool HasMotto => Motto.Length > 0;
