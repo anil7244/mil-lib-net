@@ -358,83 +358,18 @@
                                        TextWrapping="Wrap"
                                        Foreground="{DynamicResource AuthText}" />
                         </Border>
-                    </StackPanel>
-                </Border>
-            </Grid>
 
-            <!-- ============================================ the action bar -->
-            <!-- A quiet footer: what the machine is and how its licence stands,
-                 centred, with the two actions on the right. An empty spacer on
-                 the left matches the buttons' width (a shared size group), so
-                 the centre line sits in the true middle of the bar rather than
-                 the middle of the space the buttons leave. -->
-            <Border Grid.Row="2"
-                    Background="{DynamicResource AuthPanel}"
-                    BorderBrush="{DynamicResource AuthHairline}"
-                    BorderThickness="0,1,0,0"
-                    Padding="22,10"
-                    Grid.IsSharedSizeScope="True">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="foot" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="foot" />
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center"
-                                HorizontalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                            <Path Data="{StaticResource IconLicence}"
-                                  Fill="{Binding Accent}"
-                                  Stretch="Uniform" Width="12" Height="12"
-                                  VerticalAlignment="Center" />
-                            <TextBlock Text="Fully offline · 0% internet dependencies"
-                                       FontSize="11" FontWeight="SemiBold" LetterSpacing="0.3"
-                                       VerticalAlignment="Center"
-                                       Foreground="{DynamicResource AuthMuted}" />
-                        </StackPanel>
-
-                        <StackPanel Orientation="Horizontal" Spacing="7" HorizontalAlignment="Center"
-                                    IsVisible="{Binding HasLicence}">
-                            <TextBlock Text="{Binding Licence}" FontSize="11"
-                                       VerticalAlignment="Center"
-                                       Foreground="{DynamicResource AuthMuted}" />
-                            <TextBlock Text="·" FontSize="11" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource AuthFaint}" />
-                            <TextBlock Text="{Binding Website}" FontSize="11"
-                                       VerticalAlignment="Center"
-                                       Foreground="{DynamicResource AuthFaint}" />
-
-                            <!-- Only when the copy is locked: nothing to activate
-                                 while the trial or licence is still running. -->
-                            <TextBlock Text="·" FontSize="11" VerticalAlignment="Center"
-                                       IsVisible="{Binding Locked}"
-                                       Foreground="{DynamicResource AuthFaint}" />
-                            <Button Classes="link" Padding="0" MinHeight="0"
-                                    VerticalAlignment="Center"
-                                    IsVisible="{Binding Locked}"
-                                    Command="{Binding EnterKeyCommand}">
-                                <TextBlock Text="Enter licence key" FontSize="11"
-                                           TextDecorations="Underline"
-                                           Foreground="{Binding Accent}" />
-                            </Button>
-                        </StackPanel>
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10"
-                                VerticalAlignment="Center">
-                        <Button Classes="act reset"
-                                Command="{Binding ResetCommand}"
-                                AutomationProperties.Name="Reset">
-                            <TextBlock Text="RESET" VerticalAlignment="Center" />
-                        </Button>
-
-                        <Button Classes="act" IsDefault="True"
+                        <!-- The way in, under the fields where it belongs on a
+                             sign-in screen — not down in the footer. -->
+                        <Button Classes="auth" IsDefault="True"
                                 Background="{Binding Accent}"
+                                HorizontalAlignment="Stretch"
+                                Margin="0,22,0,0"
                                 IsEnabled="{Binding !Busy}"
                                 Command="{Binding EnterCommand}"
                                 AutomationProperties.Name="Login">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                        HorizontalAlignment="Center">
                                 <TextBlock Text="LOGIN" VerticalAlignment="Center" />
                                 <Path Data="{StaticResource IconSignIn}"
                                       Stroke="#FFFFFF" StrokeThickness="1.8"
@@ -443,7 +378,58 @@
                             </StackPanel>
                         </Button>
                     </StackPanel>
-                </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ==================================================== the footer -->
+            <!-- The offline mark and the licence standing stay to the left in the
+                 house red, as before; the web address sits on its own in the
+                 centre of the bar. There are no buttons here any more — the way
+                 in is under the fields, where a sign-in screen puts it. -->
+            <Border Grid.Row="2"
+                    Background="{DynamicResource AuthPanel}"
+                    BorderBrush="{DynamicResource AuthHairline}"
+                    BorderThickness="0,1,0,0"
+                    Padding="22,11">
+                <Panel>
+                    <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center" Spacing="2">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Path Data="{StaticResource IconLicence}"
+                                  Fill="{Binding Accent}"
+                                  Stretch="Uniform" Width="12" Height="12"
+                                  VerticalAlignment="Center" />
+                            <TextBlock Text="FULLY OFFLINE · 0% INTERNET DEPENDENCIES"
+                                       FontSize="10" FontWeight="Bold" LetterSpacing="0.6"
+                                       VerticalAlignment="Center"
+                                       Foreground="{Binding Accent}" />
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="7" Margin="20,0,0,0"
+                                    IsVisible="{Binding HasLicence}">
+                            <TextBlock Text="{Binding Licence}" FontSize="10"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource AuthMuted}" />
+
+                            <!-- Only when the copy is locked: nothing to activate
+                                 while the trial or licence is still running. -->
+                            <TextBlock Text="·" FontSize="10" VerticalAlignment="Center"
+                                       IsVisible="{Binding Locked}"
+                                       Foreground="{DynamicResource AuthFaint}" />
+                            <Button Classes="link" Padding="0" MinHeight="0"
+                                    VerticalAlignment="Center"
+                                    IsVisible="{Binding Locked}"
+                                    Command="{Binding EnterKeyCommand}">
+                                <TextBlock Text="Enter licence key" FontSize="10"
+                                           TextDecorations="Underline"
+                                           Foreground="{Binding Accent}" />
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding Website}" FontSize="11" FontWeight="SemiBold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="{DynamicResource AuthMuted}" />
+                </Panel>
             </Border>
         </Grid>
     </Panel>
