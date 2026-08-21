@@ -92,9 +92,23 @@ public partial class DashboardViewModel : ViewModelBase
     /// <summary>The most-borrowed titles — what the unit actually reads.</summary>
     public ObservableCollection<PopularBook> Popular { get; } = [];
 
+    /// <summary>Active members by their category — who the library lends to.</summary>
+    public ObservableCollection<BarRow> Categories { get; } = [];
+
+    /// <summary>The catalogue by kind of thing — books, manuals, maps, precis.</summary>
+    public ObservableCollection<BarRow> Materials { get; } = [];
+
+    /// <summary>Every copy by where it is — on the shelf, out, lost, withdrawn.</summary>
+    public ObservableCollection<BarRow> Statuses { get; } = [];
+
+    /// <summary>The last few things that happened at the counter.</summary>
+    public ObservableCollection<ActivityRow> Activity { get; } = [];
+
     public bool HasPopular => Popular.Count > 0;
 
     public bool HasClassified => Classified.Count > 0;
+
+    public bool HasActivity => Activity.Count > 0;
 
     public List<OverdueRow> Overdues { get; } = [];
 
@@ -223,6 +237,37 @@ public partial class DashboardViewModel : ViewModelBase
 
             OnPropertyChanged(nameof(HasPopular));
             OnPropertyChanged(nameof(HasClassified));
+
+            // --- members by category ------------------------------------------
+            var byCategory = await db.Members
+                .Where(m => m.Status == MemberStatus.ACTIVE)
+                .GroupBy(m => m.Category!.Name)
+                .Select(g => new { Label = g.Key, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
+                .ToListAsync();
+
+            Fill(Categories, byCategory.Select(x => (x.Label ?? "—", x.Count, "Accent")).ToList());
+
+            // --- the catalogue by kind of thing -------------------------------
+            var byMaterial = await db.Titles
+                .GroupBy(t => t.MaterialType)
+                .Select(g => new { Material = g.Key, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
+                .ToListAsync();
+
+            Fill(Materials, byMaterial.Select(x => (Words.Of(x.Material), x.Count, "Info")).ToList());
+
+            // --- every copy by where it is ------------------------------------
+            var byStatus = await db.Copies
+                .GroupBy(c => c.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
+                .ToListAsync();
+
+            Fill(Statuses, byStatus.Select(x => (Words.Of(x.Status), x.Count, StatusColour(x.Status))).ToList());
+
+            // --- the recent-activity feed -------------------------------------
+            await BuildActivityAsync(db);
 
             BuildGauges();
             BuildCollection();
@@ -372,6 +417,94 @@ public partial class DashboardViewModel : ViewModelBase
             Classified.Add(new Segment(cls, Words.Of(cls), count, Math.Max(6, 188.0 * count / max)));
         }
     }
+
+    /// <summary>
+    /// A list of labelled bars, each scaled against the largest so the shares
+    /// read against one another — the shape shared by the category, material and
+    /// status breakdowns.
+    /// </summary>
+    private static void Fill(ObservableCollection<BarRow> into,
+        IReadOnlyList<(string Label, int Count, string Colour)> rows)
+    {
+        into.Clear();
+
+        var max = Math.Max(1, rows.Select(r => r.Count).DefaultIfEmpty(0).Max());
+
+        foreach (var (label, count, colour) in rows.Where(r => r.Count > 0).Take(8))
+        {
+            into.Add(new BarRow(label, count, Math.Max(6, 132.0 * count / max), colour));
+        }
+    }
+
+    /// <summary>Where a copy is, in the colour that state is worth drawing in.</summary>
+    private static string StatusColour(CopyStatus status) => status switch
+    {
+        CopyStatus.AVAILABLE => "Good",
+        CopyStatus.ISSUED => "Accent",
+        CopyStatus.RESERVED => "Info",
+        CopyStatus.LOST or CopyStatus.MISSING => "Bad",
+        CopyStatus.WITHDRAWN => "InkFaint",
+        _ => "InkMuted",
+    };
+
+    /// <summary>
+    /// The last few things that happened, from the three streams a counter
+    /// generates — a book going out, a book coming back, a member joining —
+    /// merged newest first.
+    /// </summary>
+    private async Task BuildActivityAsync(MilLibDbContext db)
+    {
+        var issues = await db.Loans
+            .OrderByDescending(l => l.IssuedOn).Take(8)
+            .Select(l => new FeedEvent(l.IssuedOn, "issued", l.Copy!.Title!.Name, l.Member!.FullName))
+            .ToListAsync();
+
+        var returns = await db.Loans
+            .Where(l => l.ReturnedOn != null)
+            .OrderByDescending(l => l.ReturnedOn).Take(8)
+            .Select(l => new FeedEvent(l.ReturnedOn!.Value, "returned", l.Copy!.Title!.Name, l.Member!.FullName))
+            .ToListAsync();
+
+        var enrols = await db.Members
+            .Where(m => m.CreatedAt != null)
+            .OrderByDescending(m => m.CreatedAt).Take(8)
+            .Select(m => new FeedEvent(m.CreatedAt!.Value, "enrolled", "", m.FullName))
+            .ToListAsync();
+
+        var now = DateTime.Now;
+
+        Activity.Clear();
+
+        foreach (var e in issues.Concat(returns).Concat(enrols).OrderByDescending(x => x.When).Take(8))
+        {
+            var text = e.Kind switch
+            {
+                "issued" => $"{Short(e.Who)} borrowed {e.Book}",
+                "returned" => $"{e.Book} returned by {Short(e.Who)}",
+                _ => $"{Short(e.Who)} enrolled",
+            };
+
+            var colour = e.Kind switch
+            {
+                "issued" => "Accent",
+                "returned" => "Good",
+                _ => "Info",
+            };
+
+            Activity.Add(new ActivityRow(colour, text, Ago(now - e.When)));
+        }
+
+        OnPropertyChanged(nameof(HasActivity));
+    }
+
+    private static string Short(string name) => name.Length > 24 ? name[..23] + "…" : name;
+
+    private static string Ago(TimeSpan span) =>
+        span.TotalMinutes < 1 ? "just now"
+        : span.TotalMinutes < 60 ? $"{(int)span.TotalMinutes}m ago"
+        : span.TotalHours < 24 ? $"{(int)span.TotalHours}h ago"
+        : span.TotalDays < 30 ? $"{(int)span.TotalDays}d ago"
+        : $"{(int)(span.TotalDays / 30)}mo ago";
 
     /// <summary>
     /// The three rings. Each is a fraction the eye can read before the number —
@@ -675,6 +808,15 @@ public sealed record PopularBook(int Rank, string Title, string Author, int Loan
 
     public bool HasAuthor => Author.Length > 0;
 }
+
+/// <summary>One labelled bar in a breakdown, coloured by a palette key.</summary>
+public sealed record BarRow(string Label, int Count, double Width, string Colour);
+
+/// <summary>One line of the recent-activity feed.</summary>
+public sealed record ActivityRow(string Colour, string Text, string Ago);
+
+/// <summary>One event on the way to building the activity feed.</summary>
+public sealed record FeedEvent(DateTime When, string Kind, string Book, string Who);
 
 /// <summary>One line of the overdue list.</summary>
 public record OverdueRow(string Member, string Book, string Accession, DateOnly Due, int Days)
