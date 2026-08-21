@@ -179,27 +179,19 @@
                     Padding="22,7">
                 <Grid ColumnDefinitions="Auto,*,Auto">
 
-                    <!-- The crest and the two-line lockup, as the web
-                         application carries it. -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="11">
-                        <Border Width="38" Height="38" CornerRadius="999"
-                                ClipToBounds="True"
-                                Background="{Binding CrestGround}"
+                    <!-- The product's own mark, not a unit crest.
+                         This build ships to many units, so the strip carries a
+                         plain library icon and the system's name — no single
+                         unit's badge or name over the top of every one of them. -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12"
                                 VerticalAlignment="Center">
-                            <Image Source="{Binding Crest}" Stretch="Uniform" Margin="3"
-                                   RenderOptions.BitmapInterpolationMode="HighQuality" />
-                        </Border>
-
-                        <StackPanel VerticalAlignment="Center" Spacing="1" MaxWidth="420">
-                            <TextBlock Text="{Binding BarTitle}"
-                                       FontSize="13.5" FontWeight="Bold" LetterSpacing="0.5"
-                                       TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource BarInk}" />
-                            <TextBlock Text="{Binding BarUnit}"
-                                       FontSize="9.5" FontWeight="SemiBold" LetterSpacing="1.6"
-                                       TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource BarInkFaint}" />
-                        </StackPanel>
+                        <Path Data="{StaticResource IconBooks}"
+                              Stroke="{DynamicResource AccentOnDark}" StrokeThickness="1.9"
+                              Width="24" Height="24" Stretch="Uniform" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding BarTitle}"
+                                   FontSize="14" FontWeight="Bold" LetterSpacing="0.6"
+                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource BarInk}" />
                     </StackPanel>
 
                     <!-- The clock on the right, in the Windows system font, and
