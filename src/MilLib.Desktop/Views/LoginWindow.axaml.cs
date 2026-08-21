@@ -29,11 +29,34 @@ public partial class LoginWindow : Window
         var model = new LoginViewModel();
 
         model.Allowed += OnAllowed;
+        model.EnterKeyAsked += OnEnterKeyAsked;
 
         DataContext = model;
 
         // The cursor starts where the typing starts.
         Opened += (_, _) => this.FindControl<TextBox>("UsernameBox")?.Focus();
+    }
+
+    /// <summary>
+    /// Open the key-entry dialog from the front door, and re-read the licence
+    /// when it closes — so a copy just unlocked stops saying it is locked. The
+    /// dialog needs no account, because a key works only on this machine.
+    /// </summary>
+    private async void OnEnterKeyAsked()
+    {
+        var dialog = new KeyEntryWindow();
+
+        await dialog.ShowDialog(this);
+
+        if (DataContext is LoginViewModel model)
+        {
+            await model.RefreshLicenceAsync();
+
+            if (dialog.Activated)
+            {
+                this.FindControl<TextBox>("UsernameBox")?.Focus();
+            }
+        }
     }
 
     private async void OnAllowed()

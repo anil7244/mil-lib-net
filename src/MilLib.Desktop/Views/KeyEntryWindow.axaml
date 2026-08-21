@@ -1,0 +1,95 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MilLib.Desktop.ViewModels"
+        xmlns:conv="using:MilLib.Desktop"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="560" d:DesignHeight="640"
+        x:Class="MilLib.Desktop.Views.KeyEntryWindow"
+        x:DataType="vm:KeyEntryViewModel"
+        Icon="/Assets/library.ico"
+        Title="Licence key"
+        Width="560" Height="646"
+        CanResize="False"
+        Background="{DynamicResource Backdrop}"
+        WindowStartupLocation="CenterOwner">
+
+    <Border Classes="card" Margin="18" Padding="26,22">
+        <StackPanel Spacing="16">
+
+            <!-- The maker's mark and the standing, so it is plain what this is
+                 and why it is being asked for. -->
+            <Grid ColumnDefinitions="Auto,14,*">
+                <Image Grid.Column="0" Width="48" Height="48" Stretch="Uniform"
+                       VerticalAlignment="Center"
+                       Source="/Assets/tactical-code-logo.png"
+                       RenderOptions.BitmapInterpolationMode="HighQuality" />
+                <StackPanel Grid.Column="2" Spacing="3" VerticalAlignment="Center">
+                    <TextBlock Text="Enter a licence key" Classes="h2" />
+                    <TextBlock Text="{Binding Headline}" FontSize="12.5" FontWeight="SemiBold"
+                               TextWrapping="Wrap"
+                               Foreground="{Binding Grave, Converter={x:Static conv:Swatch.BadOrGood}}" />
+                </StackPanel>
+            </Grid>
+
+            <TextBlock Classes="faint" FontSize="12" TextWrapping="Wrap" LineHeight="18"
+                       Text="No sign-in is needed to activate — a key works only on the machine it was issued for. Send the details below; type the key that comes back." />
+
+            <StackPanel Spacing="5">
+                <TextBlock Text="THIS MACHINE" Classes="label" />
+                <SelectableTextBlock Text="{Binding HardwareId}" Classes="mono" FontSize="18"
+                                     LetterSpacing="0.5" />
+            </StackPanel>
+
+            <Border Classes="card cool" Padding="15,12">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="WHAT TO SEND" Classes="label" />
+                    <SelectableTextBlock Text="{Binding ToSend}" Classes="mono"
+                                         FontSize="11.5" LineHeight="19" TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="Copy this" MinHeight="34"
+                                Command="{Binding CopyDetailsCommand}" />
+                        <TextBlock Text="Copied." Classes="faint" VerticalAlignment="Center"
+                                   IsVisible="{Binding Copied}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Spacing="7">
+                <TextBlock Text="THE LICENCE KEY" Classes="label" />
+                <TextBox Text="{Binding Key, UpdateSourceTrigger=PropertyChanged}"
+                         PlaceholderText="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX-NNNNNN"
+                         Classes="mono" FontSize="15" MinHeight="46" Padding="14,9">
+                    <TextBox.KeyBindings>
+                        <KeyBinding Gesture="Enter" Command="{Binding ActivateCommand}" />
+                    </TextBox.KeyBindings>
+                </TextBox>
+
+                <Border Classes="card" Padding="14,11"
+                        IsVisible="{Binding HasSaid}"
+                        Background="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBad}}">
+                    <TextBlock Text="{Binding Said}" TextWrapping="Wrap"
+                               Foreground="{Binding SaidIsGood, Converter={x:Static conv:Swatch.GoodOrBadInk}}" />
+                </Border>
+            </StackPanel>
+
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button Grid.Column="0" Classes="primary" Content="Activate" MinHeight="42"
+                        MinWidth="150"
+                        IsEnabled="{Binding !Busy}"
+                        Command="{Binding ActivateCommand}" />
+                <Button Grid.Column="2" Classes="quiet" Content="Close" MinHeight="42"
+                        Name="CloseButton" />
+            </Grid>
+
+            <!-- Who to ask, small, at the foot. -->
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                <TextBlock Text="{Binding Company}" Classes="faint" FontSize="11" />
+                <TextBlock Text="·" Classes="faint" FontSize="11" />
+                <SelectableTextBlock Text="{Binding Phone}" Classes="faint" FontSize="11" />
+                <TextBlock Text="·" Classes="faint" FontSize="11" />
+                <SelectableTextBlock Text="{Binding Email}" Classes="faint" FontSize="11" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

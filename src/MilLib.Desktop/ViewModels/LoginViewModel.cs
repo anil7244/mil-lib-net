@@ -51,6 +51,15 @@ public partial class LoginViewModel : ViewModelBase
     [ObservableProperty] private bool _mayActivate;
 
     /// <summary>
+    /// True when this copy may not be used — the trial is over, or the licence
+    /// has expired. Sign-in is refused until a key is entered, and the front
+    /// door says so and offers the way to do it, because the screen where a key
+    /// is normally typed is on the far side of a sign-in this copy will not
+    /// allow.
+    /// </summary>
+    [ObservableProperty] private bool _locked;
+
+    /// <summary>
     /// The unit's own accent, out of the settings, so this screen is the
     /// colour the rest of the unit's printed material is.
     /// </summary>
@@ -193,6 +202,39 @@ public partial class LoginViewModel : ViewModelBase
         LicenceIsGrave = standing.State is LicenceState.TrialOver or LicenceState.Expired;
         LicenceIsWarning = standing.State == LicenceState.Trial;
         MayActivate = !standing.Usable || standing.State == LicenceState.Trial;
+        Locked = !standing.Usable;
+    }
+
+    /// <summary>Raised when the key-entry dialog should be opened.</summary>
+    public event Action? EnterKeyAsked;
+
+    /// <summary>
+    /// Open the key-entry dialog. Reachable whether or not this copy is locked,
+    /// so a trial can be turned into a licence early and a running licence
+    /// renewed without waiting for it to lapse.
+    /// </summary>
+    [RelayCommand]
+    private void EnterKey() => EnterKeyAsked?.Invoke();
+
+    /// <summary>
+    /// Read the licence again after the key-entry dialog closes, so a copy that
+    /// was just unlocked stops saying it is locked and lets the person in.
+    /// </summary>
+    public async Task RefreshLicenceAsync()
+    {
+        try
+        {
+            ShowLicence(await Licensing.RefreshAsync());
+
+            if (!Locked)
+            {
+                Problem = "";
+            }
+        }
+        catch
+        {
+            // If it cannot be re-read, the state on screen simply stands.
+        }
     }
 
     [RelayCommand]
@@ -208,6 +250,18 @@ public partial class LoginViewModel : ViewModelBase
         if (DataFileMissing)
         {
             Problem = "There is no data file to sign in to. " + DataFile;
+            return;
+        }
+
+        // The one gate the licence actually is. A trial that has run out or a
+        // licence that has lapsed refuses sign-in, and points at the key entry
+        // rather than leaving somebody typing a password that will never work —
+        // and it says the records are still there, because they are.
+        if (Locked)
+        {
+            Problem = "This copy needs a valid licence key before it can be used. "
+                + "Enter one below to unlock it — nothing has been lost, and the "
+                + "records are all still here.";
             return;
         }
 

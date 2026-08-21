@@ -312,6 +312,8 @@ internal static class Program
             // the unit runs; a dark render proves it flips too.
             ShootLogin(Path.Combine(outDir, "login-light.png"), dark: false);
             ShootLogin(Path.Combine(outDir, "login-dark.png"), dark: true);
+            ShootLoginLocked(Path.Combine(outDir, "login-locked.png"));
+            ShootKeyEntry(Path.Combine(outDir, "key-entry.png"));
             Theming.UseVariant(false);
 
             ShootKiosk(Path.Combine(outDir, "kiosk.png"));
@@ -785,6 +787,66 @@ internal static class Program
         }
 
         Theming.UseVariant(dark);
+        Dispatcher.UIThread.RunJobs();
+
+        window.Measure(new Size(width, height));
+        window.Arrange(new Rect(0, 0, width, height));
+        Dispatcher.UIThread.RunJobs();
+
+        var bitmap = new RenderTargetBitmap(new PixelSize(width, height), new Vector(96, 96));
+        bitmap.Render(window);
+        bitmap.Save(path);
+    }
+
+    /// <summary>The sign-in screen when the licence has lapsed — the locked
+    /// banner and its way to a key, forced on so it can be seen.</summary>
+    private static void ShootLoginLocked(string path)
+    {
+        var window = new LoginWindow();
+
+        var vm = (LoginViewModel)window.DataContext!;
+
+        const int width = 1000;
+        const int height = 620;
+
+        window.Width = width;
+        window.Height = height;
+        window.Show();
+
+        for (var i = 0; i < 80 && vm.Organisation.Length == 0; i++)
+        {
+            Dispatcher.UIThread.RunJobs();
+            Thread.Sleep(25);
+        }
+
+        vm.Locked = true;
+        Theming.UseVariant(false);
+        Dispatcher.UIThread.RunJobs();
+
+        window.Measure(new Size(width, height));
+        window.Arrange(new Rect(0, 0, width, height));
+        Dispatcher.UIThread.RunJobs();
+
+        var bitmap = new RenderTargetBitmap(new PixelSize(width, height), new Vector(96, 96));
+        bitmap.Render(window);
+        bitmap.Save(path);
+    }
+
+    /// <summary>The key-entry dialog, reachable from the sign-in screen.</summary>
+    private static void ShootKeyEntry(string path)
+    {
+        var window = new KeyEntryWindow();
+
+        var vm = (KeyEntryViewModel)window.DataContext!;
+
+        const int width = 560;
+        const int height = 646;
+
+        window.Width = width;
+        window.Height = height;
+        window.Show();
+
+        SettleWhile(() => vm.Busy);
         Dispatcher.UIThread.RunJobs();
 
         window.Measure(new Size(width, height));
