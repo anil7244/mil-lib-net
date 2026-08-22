@@ -224,6 +224,17 @@ public partial class MainViewModel : ViewModelBase
     {
         Current = ScreenFor(value);
 
+        // Landing back on Home redraws it, so a book issued at the counter or a
+        // member just enrolled shows on the dashboard without anyone pressing
+        // Refresh. Every other screen keeps its state on return — a search, a
+        // half-filled form — but the dashboard is a live summary of what the
+        // rest of the application has just done, and is meant to be current
+        // every time it is looked at.
+        if (value == Home && Current is DashboardViewModel dashboard)
+        {
+            dashboard.Reload();
+        }
+
         // The button carrying the screen lights up — including the group
         // button, when the screen came out of its list. Without it a person
         // three screens into Administration has nothing telling them where

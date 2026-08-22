@@ -132,6 +132,29 @@ public partial class DashboardViewModel : ViewModelBase
     [RelayCommand]
     private async Task RefreshAsync() => await LoadAsync();
 
+    /// <summary>
+    /// Redraw the whole picture, called when the dashboard is navigated back
+    /// to. A book issued at the counter, a member just enrolled or a fine just
+    /// settled shows here the moment somebody returns to Home, without them
+    /// having to press Refresh. The greeting is re-read as well, in case the
+    /// machine has been left open across a change of the hour.
+    ///
+    /// A reload already under way is left to finish rather than a second one
+    /// started over it — the two would write the same collections at once.
+    /// </summary>
+    public void Reload()
+    {
+        if (Busy)
+        {
+            return;
+        }
+
+        Greeting = Welcome();
+        Standing = WhoAndWhen();
+
+        _ = LoadAsync();
+    }
+
     private async Task LoadAsync()
     {
         Busy = true;
