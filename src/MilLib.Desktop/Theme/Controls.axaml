@@ -264,11 +264,72 @@
         <Setter Property="Fill" Value="White" />
     </Style>
 
+    <!--
+        The date fields.
+
+        The Fluent theme draws the drop-down button as a live calendar glyph —
+        four hairline borders, today's day number and an accent dot — which on
+        a pale field with the icon font absent collapses to just the number and
+        the dot. It is retemplated here to a plain box with a drawn calendar
+        icon: the same vector set as the rest of the application, legible in
+        both themes, with no font to be missing. The parts keep the names the
+        control looks up — PART_TextBox, PART_Button, PART_Popup, PART_Calendar
+        — so nothing about how the calendar opens or reads back changes.
+    -->
     <Style Selector="CalendarDatePicker">
         <Setter Property="MinHeight" Value="36" />
         <Setter Property="Background" Value="{DynamicResource Surface}" />
         <Setter Property="BorderBrush" Value="{DynamicResource LineStrong}" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{DynamicResource ControlRadius}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <DataValidationErrors>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Border Grid.ColumnSpan="2"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{TemplateBinding CornerRadius}" />
+
+                        <TextBox Name="PART_TextBox" Grid.Column="0"
+                                 Background="Transparent" BorderThickness="0"
+                                 MinHeight="0" Padding="10,0"
+                                 VerticalContentAlignment="Center"
+                                 Watermark="{TemplateBinding Watermark}" />
+
+                        <Button Name="PART_Button" Grid.Column="1"
+                                Background="Transparent" BorderThickness="0"
+                                Focusable="False" IsTabStop="False"
+                                Padding="7,0,9,0" VerticalAlignment="Stretch"
+                                ToolTip.Tip="Pick a date">
+                            <Path Data="{DynamicResource IconCalendar}"
+                                  Stroke="{DynamicResource InkMuted}" StrokeThickness="1.5"
+                                  StrokeLineCap="Round" StrokeJoin="Round"
+                                  Width="17" Height="17" Stretch="Uniform"
+                                  VerticalAlignment="Center" HorizontalAlignment="Center" />
+                        </Button>
+
+                        <Popup Name="PART_Popup" Grid.Column="1"
+                               WindowManagerAddShadowHint="False"
+                               Placement="BottomEdgeAlignedLeft"
+                               IsLightDismissEnabled="True">
+                            <Calendar Name="PART_Calendar" />
+                        </Popup>
+                    </Grid>
+                </DataValidationErrors>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- The drawn calendar icon takes the accent when the field has focus, so a
+         date field lights up like the text boxes around it. -->
+    <Style Selector="CalendarDatePicker:focus-within /template/ Path">
+        <Setter Property="Stroke" Value="{DynamicResource Accent}" />
+    </Style>
+
+    <Style Selector="CalendarDatePicker:pointerover /template/ Border">
+        <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
     </Style>
 
     <!-- ========================================================== cards == -->

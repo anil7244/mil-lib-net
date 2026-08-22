@@ -24,6 +24,10 @@ public partial class DashboardViewModel : ViewModelBase
 {
     private readonly Action<string> _go;
 
+    /// <summary>The covers last put in the moving strip, so a refresh that finds
+    /// the same ones leaves the scroll running rather than restarting it.</summary>
+    private string _coverSignature = "";
+
     [ObservableProperty] private bool _busy = true;
     [ObservableProperty] private string _problem = "";
 
@@ -296,8 +300,6 @@ public partial class DashboardViewModel : ViewModelBase
             BuildCollection();
             BuildWeek(recentIssues);
 
-            Covers.Clear();
-
             var covered = await db.Titles
                 .Where(t => t.CoverPath != null && t.CoverPath != "")
                 .OrderByDescending(t => t.TitleId)
@@ -310,6 +312,9 @@ public partial class DashboardViewModel : ViewModelBase
                 })
                 .ToListAsync();
 
+            var fresh = new List<RecentBook>();
+            var signature = new System.Text.StringBuilder();
+
             foreach (var r in covered)
             {
                 var file = Workspace.CoverPath(r.CoverPath);
@@ -318,11 +323,28 @@ public partial class DashboardViewModel : ViewModelBase
                 // whose picture is missing would be a gap in the moving strip.
                 if (file is not null)
                 {
-                    Covers.Add(new RecentBook(r.Name, r.Author ?? "", file));
+                    fresh.Add(new RecentBook(r.Name, r.Author ?? "", file));
+                    signature.Append(file).Append('|');
                 }
             }
 
-            CoversChanged?.Invoke();
+            // The strip scrolls on its own, and is only rebuilt when the books
+            // in it have actually changed. A minute-by-minute auto-refresh that
+            // refilled it every time would keep snapping the scroll back to the
+            // start for no reason.
+            if (signature.ToString() != _coverSignature)
+            {
+                _coverSignature = signature.ToString();
+
+                Covers.Clear();
+
+                foreach (var book in fresh)
+                {
+                    Covers.Add(book);
+                }
+
+                CoversChanged?.Invoke();
+            }
 
             Overdues.Clear();
 

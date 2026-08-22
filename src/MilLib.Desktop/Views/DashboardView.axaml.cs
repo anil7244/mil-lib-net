@@ -1,9 +1,11 @@
 using System;
 using System.Threading;
+using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using MilLib.Desktop.ViewModels;
 
 namespace MilLib.Desktop.Views;
@@ -14,9 +16,21 @@ public partial class DashboardView : UserControl
     private CancellationTokenSource? _marquee;
     private double _period;
 
+    /// <summary>
+    /// Redraws the board on its own while it is the screen in front of somebody,
+    /// so a change made on another machine — a book issued at a second counter,
+    /// a search run in the reading room — reaches it without a sign-out. It runs
+    /// only while the dashboard is on screen; the moment another screen is opened
+    /// it stops, so nothing is read from the database for a board nobody is
+    /// looking at.
+    /// </summary>
+    private readonly DispatcherTimer _auto = new() { Interval = TimeSpan.FromSeconds(60) };
+
     public DashboardView()
     {
         InitializeComponent();
+
+        _auto.Tick += (_, _) => (DataContext as DashboardViewModel)?.Reload();
 
         DataContextChanged += (_, _) => Hook();
 
@@ -29,6 +43,21 @@ public partial class DashboardView : UserControl
         }
 
         Hook();
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+
+        _auto.Start();
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+
+        _auto.Stop();
+        _marquee?.Cancel();
     }
 
     private void Hook()

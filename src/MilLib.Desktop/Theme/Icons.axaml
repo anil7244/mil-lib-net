@@ -100,4 +100,9 @@
     <StreamGeometry x:Key="IconOverdue">M12,4 A8,8 0 1,0 12,20 A8,8 0 1,0 12,4 M12,7.6 V12 L15,14</StreamGeometry>
     <StreamGeometry x:Key="IconWarning">M12,4 L21,19.4 H3 Z M12,10 V14.2 M12,16.8 H12.01</StreamGeometry>
 
+    <!-- A calendar: the body, the header rule, and two hangers. Used on the
+         date fields, in place of the theme's live-day glyph that renders as
+         a bare number and a dot where its outline font is missing. -->
+    <StreamGeometry x:Key="IconCalendar">M4,6 H20 V20 H4 Z M4,10 H20 M8,4 V7 M16,4 V7</StreamGeometry>
+
 </ResourceDictionary>
