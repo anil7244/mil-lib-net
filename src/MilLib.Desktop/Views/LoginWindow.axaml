@@ -47,6 +47,12 @@
                     <SolidColorBrush x:Key="AuthMuted" Color="#6BFFFFFF" />
                     <SolidColorBrush x:Key="AuthFaint" Color="#40FFFFFF" />
                     <SolidColorBrush x:Key="AuthGhost" Color="#1FFFFFFF" />
+                    <!-- The emboss under the web address. A pale white behind the
+                         text on the light bar reads as engraved; on the near-black
+                         bar that same white shows as a second, ghosted copy, so
+                         here it is a soft shadow instead — a hair of depth, no
+                         double. -->
+                    <SolidColorBrush x:Key="AuthEmboss" Color="#B3000000" />
                     <SolidColorBrush x:Key="AuthHairline" Color="#0FFFFFFF" />
                     <SolidColorBrush x:Key="AuthPanel" Color="#05FFFFFF" />
                     <SolidColorBrush x:Key="AuthPanel2" Color="#08FFFFFF" />
@@ -65,6 +71,9 @@
                     <SolidColorBrush x:Key="AuthMuted" Color="#64748B" />
                     <SolidColorBrush x:Key="AuthFaint" Color="#94A3B8" />
                     <SolidColorBrush x:Key="AuthGhost" Color="#2E0F172A" />
+                    <!-- On the light bar the emboss is a pale white highlight
+                         behind the text, which reads as engraved. -->
+                    <SolidColorBrush x:Key="AuthEmboss" Color="#D9FFFFFF" />
                     <SolidColorBrush x:Key="AuthHairline" Color="#1F3C321E" />
                     <SolidColorBrush x:Key="AuthPanel" Color="#053C321E" />
                     <SolidColorBrush x:Key="AuthPanel2" Color="#FCFBF7" />
@@ -427,11 +436,15 @@
                     </StackPanel>
 
                     <!-- The maker's web address sits at the right end, embossed:
-                         a pale highlight one pixel down and right, the muted text
-                         over it, so the letters look pressed into the bar. -->
+                         a theme-aware edge one pixel down and right, the muted
+                         text over it, so the letters look pressed into the bar.
+                         The edge is a pale highlight on the light bar and a soft
+                         shadow on the dark one — a white highlight there would
+                         show as a ghosted second copy rather than depth. -->
                     <Panel HorizontalAlignment="Right" VerticalAlignment="Center">
                         <TextBlock Text="{Binding Website}" FontSize="11" FontWeight="SemiBold"
-                                   Foreground="#FFFFFF" Opacity="0.8">
+                                   LetterSpacing="0.3"
+                                   Foreground="{DynamicResource AuthEmboss}">
                             <TextBlock.RenderTransform>
                                 <TranslateTransform X="1" Y="1" />
                             </TextBlock.RenderTransform>
