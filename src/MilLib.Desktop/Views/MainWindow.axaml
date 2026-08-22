@@ -132,6 +132,18 @@
             <Setter Property="Stroke" Value="#FFFFFF" />
         </Style>
 
+        <!-- The open menu itself.
+
+             It drops straight down from the button that opened it, so its top
+             edge is squared off — a rounded top would float clear of the button
+             and read as a separate card. The bottom two corners stay rounded,
+             which is where the eye expects the list to end. The only flyouts in
+             this window are these menus; the date fields use a popup, not a
+             flyout, so this leaves them alone. -->
+        <Style Selector="FlyoutPresenter">
+            <Setter Property="CornerRadius" Value="0,0,10,10" />
+        </Style>
+
         <!-- A plain button on the dark bar: sign out, the reading room. -->
         <Style Selector="Button.chrome">
             <Setter Property="Background" Value="Transparent" />
